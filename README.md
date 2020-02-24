@@ -18,7 +18,7 @@ Once the MCMC has converged, the `adata.obs` object will contain additional colu
 More details can be found at [this page](Advanced.md)
 
 ## Installation
-scNSBN is not (yet) available on PyPI. You have to install from source as:
+scNSBM is not (yet) available on PyPI. You have to install from source as:
 
 ```
 git clone https://github.com/dawe/scNSBM.git

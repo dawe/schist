@@ -243,7 +243,7 @@ def nested_model(
 
     # rename categories from 0 to n
     for c in groups.columns:
-        new_cat_names = dict([(cx, u'%s' % cn) for cn, cx in enumerate(a.cat.categories)])
+        new_cat_names = dict([(cx, u'%s' % cn) for cn, cx in enumerate(groups.loc[:, c].cat.categories)])
         groups.loc[:, c].cat.rename_categories(new_cat_names, inplace=True)
 
     if restrict_to is not None:
