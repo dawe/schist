@@ -53,6 +53,11 @@ graph_tool/draw/cairo_draw.py:1494: RuntimeWarning: Error importing Gtk module: 
 scNSBM allows to return the `NestedBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
 
 ```
-adata.uns['nsbm'].pop('state')
+state = adata.uns['nsbm'].pop('state')
 adata.write('myfile.h5ad')
+
+# save the state separately
+import pickle
+with open('state.pkl', 'wb') as pkl_state:
+    pickle.dump(state, pkl_state, 2)
 ```
