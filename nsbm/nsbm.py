@@ -12,7 +12,7 @@ from .utils import get_graph_tool_from_adjacency
 
 
 
-def nsbm(
+def nested_model(
     adata: AnnData,
     sweep_iterations: int = 10000,
     max_iterations: int = 1000000,
