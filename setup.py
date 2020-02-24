@@ -6,6 +6,18 @@ from setuptools import Extension
 req_path = Path('requirements.txt')
 with req_path.open() as requirements:
     requires = [l.strip() for l in requirements]
+    
+try:
+    import graph_tool.all as gt
+except ImportError:
+    raise ImportError(
+            """Please install the graph-tool library either visiting
+
+            https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions
+
+            or by conda: `conda install -c conda-forge graph-tool`
+            """
+    )    
 
 setup(name='scnsbm',
       version='0.1',
@@ -17,6 +29,9 @@ setup(name='scnsbm',
       license='BSD 3',
       packages=['scnsbm'],
       install_requires=requires,
+      dependency_links=[
+          'https://git.skewed.de/count0/graph-tool/tree/master'
+      ],
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Intended Audience :: Science/Research',
