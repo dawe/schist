@@ -2,7 +2,6 @@ from typing import Optional, Tuple, Sequence, Type, Union
 
 import numpy as np
 import pandas as pd
-from natsort import natsorted
 from anndata import AnnData
 from scipy import sparse
 
