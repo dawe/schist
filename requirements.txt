@@ -2,5 +2,4 @@ numpy
 scipy
 anndata
 pandas
-graph_tool
 scanpy

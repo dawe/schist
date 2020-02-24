@@ -7,7 +7,7 @@ req_path = Path('requirements.txt')
 with req_path.open() as requirements:
     requires = [l.strip() for l in requirements]
 
-setup(name='scnsbm',
+setup(name='scNSBM',
       version='0.1',
       description='Nested Stochastic Block Model applied to single cell data.',
       long_description='Partitioning of neighborhood graphs in Scanpy using Nested Stochastic Block Model.',

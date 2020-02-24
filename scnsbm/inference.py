@@ -164,7 +164,7 @@ def nested_model(
             adjacency,
         )
     # convert it to igraph
-    g = _utils.get_graph_tool_from_adjacency(adjacency, directed=directed)
+    g = get_graph_tool_from_adjacency(adjacency, directed=directed)
 
     if use_weights:
         # this is not ideal to me, possibly we may need to transform
