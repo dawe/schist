@@ -3,9 +3,15 @@ from setuptools import setup
 from pathlib import Path
 from setuptools import Extension
 
-req_path = Path('requirements.txt')
-with req_path.open() as requirements:
+_path = Path('requirements.txt')
+with _path.open() as requirements:
     requires = [l.strip() for l in requirements]
+
+version={}
+_path = Path('scnsbm/version.py')
+with _path.open() as version_file:
+    exec(version_file.read(), version)
+
     
 try:
     import graph_tool.all as gt
@@ -20,7 +26,7 @@ except ImportError:
     )    
 
 setup(name='scnsbm',
-      version='0.1',
+      version=version['__version__'],
       description='Nested Stochastic Block Model applied to single cell data.',
       long_description='Partitioning of neighborhood graphs in Scanpy using Nested Stochastic Block Model.',
       url='http://github.com/dawe/scNSBM',
