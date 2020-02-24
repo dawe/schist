@@ -8,7 +8,7 @@ An interface for Nested Stochastic Block Model for single cell analysis.
 ## How to use
 Once scNSBM has been installed, it can be used out of the box on `scanpy` objects:
 
-```
+```python
 from scnsbm.inference import nested_model
 
 nested_model(adata)
@@ -44,7 +44,7 @@ conda install -c conda-forge graph-tool
 ### Cairo interface
 `graph-tool` requilres `Gtk` to plot graphs. We do not plan to use those capabilities natively. This means that you may safely disregard the following warning:
 
-```
+```python
 graph_tool/draw/cairo_draw.py:1494: RuntimeWarning: Error importing Gtk module: No module named 'gi'; GTK+ drawing will not work.
   warnings.warn(msg, RuntimeWarning)
 ```
@@ -52,7 +52,7 @@ graph_tool/draw/cairo_draw.py:1494: RuntimeWarning: Error importing Gtk module: 
 ### Saving objects
 scNSBM allows to return the `NestedBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
 
-```
+```python
 state = adata.uns['nsbm'].pop('state')
 adata.write('myfile.h5ad')
 
