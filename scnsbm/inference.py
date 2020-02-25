@@ -23,6 +23,7 @@ def nested_model(
     collect_niter: int = 10000,
     hierarchy_length: int = 10,
     deg_corr: bool = False,
+    multiflip: bool = True,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -84,6 +85,10 @@ def nested_model(
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
+    multiflip
+        Whether to perform MCMC sweep with multiple simultaneous moves to sample
+        network partitions. It may result in slightly longer runtimes, but under
+        the hood it allows for a more efficient space exploration.
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -189,7 +194,10 @@ def nested_model(
 
     # run the MCMC sweep step
     logg.info(f'running MCMC sweep step with {sweep_iterations} iterations')
-    s_dS, s_nattempts, s_nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations)
+    if multiflip:
+        s_dS, s_nattempts, s_nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations)
+    else:
+        s_dS, s_nattempts, s_nmoves = state.mcmc_sweep(niter=sweep_iterations)
     logg.info('    done', time=start)
 
     # equilibrate the Markov chain
@@ -199,7 +207,7 @@ def nested_model(
                                                           nbreaks=nbreaks,
                                                           epsilon=epsilon,
                                                           max_niter=max_iterations,
-                                                          multiflip=True,
+                                                          multiflip=multiflip,
                                                           mcmc_args=dict(niter=10)
                                                           )
         if collect_marginals:
@@ -224,7 +232,7 @@ def nested_model(
                     cell_marginals = [None] * len(s.get_levels())
 
             gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
-                                max_niter=max_iterations, multiflip=True,
+                                max_niter=max_iterations, multiflip=multiflip,
                                 force_niter=collect_niter, mcmc_args=dict(niter=10),
                                 callback=_collect_marginals)
             logg.info('    done', time=start)
