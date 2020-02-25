@@ -20,7 +20,7 @@ def nested_model(
     wait: int = 1000,
     nbreaks: int = 2,
     collect_marginals: bool = False,
-    collect_niter: int = 10000,
+    niter_collect: int = 10000,
     hierarchy_length: int = 10,
     deg_corr: bool = False,
     multiflip: bool = True,
@@ -66,7 +66,7 @@ def nested_model(
     collect_marginals
         Whether or not collect node probability of belonging
         to a specific partition.
-    collect_niter
+    niter_collect
         Number of iterations to force when collecting marginals. This will
         increase the precision when calculating probabilites
     wait
@@ -233,7 +233,7 @@ def nested_model(
 
             gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
                                 max_niter=max_iterations, multiflip=multiflip,
-                                force_niter=collect_niter, mcmc_args=dict(niter=10),
+                                force_niter=niter_collect, mcmc_args=dict(niter=10),
                                 callback=_collect_marginals)
             logg.info('    done', time=start)
 
