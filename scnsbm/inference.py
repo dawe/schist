@@ -9,6 +9,21 @@ from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 from .utils import get_graph_tool_from_adjacency
 
+def prune_groups(groups, inverse=False):
+    """
+    Returns the index of informative levels after the nested_model has
+    been run. It works by looking at level entropy and, moreover, checks if
+    two consecutive levels have the same clustering
+    """
+    
+    n_groups = groups.shape[1]
+    
+    mi_groups = np.array([ami(groups.iloc[:, x - 1], groups.iloc[:, x]) for x in range(1, n_groups)])
+    
+    if inverse:
+        return groups.columns[np.where(mi_groups != 1)]
+    
+    return groups.columns[np.where(mi_groups == 1)]
 
 def nested_model(
     adata: AnnData,
@@ -31,6 +46,8 @@ def nested_model(
     directed: bool = False,
     use_weights: bool = False,
     save_state: bool = False,
+    prune: bool = False,
+    return_low: bool = False,
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
@@ -103,6 +120,16 @@ def nested_model(
         Whether to keep the block model state saved for subsequent
         custom analysis with graph-tool. Use only for debug session, state
         is not (yet) supported for `sc.write` function
+    prune
+        Some high levels in hierarchy may contain the same information in terms of 
+        cell assignments, even if they apparently have different group names. When this
+        option is set to `True`, the function only returns informative levels.
+        Note, however, that cell_marginals are still reported for all levels. Pruning
+        does not rename group levels
+    return_low
+        Whether or not return nsbm_level_0 in adata.obs. This level usually contains
+        so many groups that it cannot be plot anyway, but it may be useful for particular
+        analysis. By default it is not returned
     copy
         Whether to copy `adata` or modify it inplace.
     random_seed
@@ -267,7 +294,10 @@ def nested_model(
     # concatenate obs with new data, skipping level_0 which is usually
     # crap. In the future it may be useful to reintegrate it
     # we need it in this function anyway, to match groups with node marginals
-    adata.obs = pd.concat([adata.obs, groups.iloc[:, 1:]], axis=1)
+    if return_low:
+        adata.obs = pd.concat([adata.obs, groups], axis=1)
+    else:
+        adata.obs = pd.concat([adata.obs, groups.iloc[:, 1:]], axis=1)
 
     # add some unstructured info
 
@@ -334,6 +364,14 @@ def nested_model(
         # delete global variables (safety?)
 #        del cell_marginals
 
+    # prune uninformative levels, if any
+    if prune:
+        to_remove = prune_groups(groups)
+        logg.info(
+            f'    Removing levels f{to_remove}'
+        )
+        adata.obs.drop(to_remove, axis='columns', inplace=True)
+    
     # last step is recording some parameters used in this analysis
     adata.uns['nsbm']['params'] = dict(
         sweep_iterations=sweep_iterations,
@@ -343,6 +381,7 @@ def nested_model(
         equilibrate=equilibrate,
         collect_marginals=collect_marginals,
         hierarchy_length=hierarchy_length,
+        prune=prune,
     )
 
 
