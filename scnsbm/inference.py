@@ -9,6 +9,8 @@ from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 from .utils import get_graph_tool_from_adjacency
 
+from sklearn.metrics import adjusted_mutual_info_score as ami
+
 def prune_groups(groups, inverse=False):
     """
     Returns the index of informative levels after the nested_model has
