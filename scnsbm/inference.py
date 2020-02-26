@@ -715,7 +715,6 @@ def simple_nested_model(
         epsilon=epsilon,
         wait=wait,
         nbreaks=nbreaks,
-        equilibrate=equilibrate,
         collect_marginals=collect_marginals,
         hierarchy_length=hierarchy_length,
         prune=prune,
