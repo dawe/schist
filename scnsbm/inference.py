@@ -712,7 +712,6 @@ def simple_nested_model(
     
     # last step is recording some parameters used in this analysis
     adata.uns['nsbm']['params'] = dict(
-        sweep_iterations=sweep_iterations,
         epsilon=epsilon,
         wait=wait,
         nbreaks=nbreaks,
