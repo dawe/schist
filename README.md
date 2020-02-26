@@ -2,6 +2,7 @@
 An interface for Nested Stochastic Block Model for single cell analysis.
 
 ## Status
+- Version 0.2 The code for the interface is mature. It is also possible to read/write objects
 - Version 0.1 implements a working interface to `graph-tool` library for `scanpy`
 
 
