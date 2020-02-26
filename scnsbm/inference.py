@@ -10,7 +10,6 @@ from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 from .utils import get_graph_tool_from_adjacency
 
 
-
 def nested_model(
     adata: AnnData,
     sweep_iterations: int = 10000,
@@ -232,7 +231,7 @@ def nested_model(
                     cell_marginals = [None] * len(s.get_levels())
 
             gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
-                                max_niter=max_iterations, multiflip=multiflip,
+                                max_niter=max_iterations, multiflip=False,
                                 force_niter=niter_collect, mcmc_args=dict(niter=10),
                                 callback=_collect_marginals)
             logg.info('    done', time=start)
@@ -322,7 +321,10 @@ def nested_model(
                 # sum counts of level_0 groups corresponding to
                 # this group at current level
                 cl[:, x] = c0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
-            adata.uns['nsbm']['cell_marginals'][nl + 1] = cl
+            adata.uns['nsbm']['cell_marginals'][nl + 1] = cl     
+#            adata.uns['nsbm']['cell_marginals'][nl + 1] = pd.DataFrame(cl, 
+#                                                                       columns=cross_tab.columns,
+#                                                                       index=groups.index)
         # refrain group marginals. We collected data in vector as long as
         # the number of cells, cut them into appropriate length data
         adata.uns['nsbm']['group_marginals'] = []
