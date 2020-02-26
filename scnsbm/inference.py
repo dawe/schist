@@ -574,7 +574,7 @@ def simple_nested_model(
                                     )
 
     # equilibrate the Markov chain
-    logg.info('equilibrating MCMC equilibration step')
+    logg.info('MCMC equilibration')
     e_dS, e_nattempts, e_nmoves = gt.mcmc_equilibrate(state, wait=wait,
                                                           nbreaks=nbreaks,
                                                           epsilon=epsilon,
@@ -582,6 +582,7 @@ def simple_nested_model(
                                                           multiflip=multiflip,
                                                           mcmc_args=dict(niter=10)
                                                           )
+    logg.info('    done', time=start)
     if collect_marginals:
         # we here only retain level_0 counts, until I can't figure out
         # how to propagate correctly counts to higher levels
@@ -607,7 +608,7 @@ def simple_nested_model(
                             max_niter=max_iterations, multiflip=False,
                             force_niter=niter_collect, mcmc_args=dict(niter=10),
                             callback=_collect_marginals)
-    logg.info('    done', time=start)
+        logg.info('    done', time=start)
 
     # everything is in place, we need to fill all slots
     # first build an array with
