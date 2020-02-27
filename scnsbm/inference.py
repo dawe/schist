@@ -27,7 +27,7 @@ def prune_groups(groups, inverse=False):
     
     return groups.columns[np.where(mi_groups == 1)]
 
-def nested_model(
+def _nested_model(
     adata: AnnData,
     sweep_iterations: int = 10000,
     max_iterations: int = 1000000,
@@ -398,7 +398,7 @@ def nested_model(
     return adata if copy else None
 
 
-def simple_nested_model(
+def nested_model(
     adata: AnnData,
     max_iterations: int = 1000000,
     epsilon: float = 1e-3,
