@@ -208,15 +208,15 @@ def nested_model(
     # run the MCMC sweep step
     logg.info(f'running MCMC sweep step with {sweep_iterations} iterations')
     if multiflip:
-        s_dS, s_nattempts, s_nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations)
+        dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations)
     else:
-        s_dS, s_nattempts, s_nmoves = state.mcmc_sweep(niter=sweep_iterations)
+        dS, nattempts, nmoves= state.mcmc_sweep(niter=sweep_iterations)
     logg.info('    done', time=start)
 
     # equilibrate the Markov chain
     if equilibrate:
         logg.info('running MCMC equilibration step')
-        e_dS, e_nattempts, e_nmoves = gt.mcmc_equilibrate(state, wait=wait,
+        dS, nattempts, nmoves= gt.mcmc_equilibrate(state, wait=wait,
                                                           nbreaks=nbreaks,
                                                           epsilon=epsilon,
                                                           max_niter=max_iterations,
@@ -290,26 +290,20 @@ def nested_model(
 
     adata.uns['nsbm'] = {}
     adata.uns['nsbm']['stats'] = dict(
-    sweep_dS=s_dS,
-    sweep_nattempts=s_nattempts,
-    sweep_nmoves=s_nmoves,
+    dS=dS,
+    nattempts=nattempts,
+    nmoves=nmoves,
     level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
     modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     )
-    if equilibrate:
-        adata.uns['nsbm']['stats'].update(dict(
-        equlibrate_dS=e_dS,
-        equlibrate_nattempts=e_nattempts,
-        equlibrate_nmoves=e_nmoves,
-        ))
-        if collect_marginals:
-            # since we have cell marginals we can also calculate
-            # mean field entropy.
-            adata.uns['nsbm']['stats']['mf_entropy'] = np.array([gt.mf_entropy(sl.g,
-                                                                 cell_marginals[l])
-                                                                 for l, sl in
-                                                                 enumerate(state.get_levels())])
+    if collect_marginals:
+        # since we have cell marginals we can also calculate
+        # mean field entropy.
+        adata.uns['nsbm']['stats']['mf_entropy'] = np.array([gt.mf_entropy(sl.g,
+                                                             cell_marginals[l])
+                                                             for l, sl in
+                                                             enumerate(state.get_levels())])
 
     if save_state:
         logg.warning("""It is not possible to dump on the disk `adata` objects'
