@@ -429,7 +429,9 @@ def fast_model(
     Bayesian inference on node groups. NSBM should circumvent classical
     limitations of SBM in detecting small groups in large graphs
     replacing the noninformative priors used by a hierarchy of priors
-    and hyperpriors.
+    and hyperpriors. This function is a faster implementation of `nested_model`,
+    it requires less memory and time, as it doesn't perform the initial minimization
+    nor the mcmc_sweep step. In general it converges to similar results.
 
     This requires having ran :func:`~scanpy.pp.neighbors` or
     :func:`~scanpy.external.pp.bbknn` first.
