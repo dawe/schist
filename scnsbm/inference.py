@@ -338,10 +338,10 @@ def nested_model(
 #                                                                       index=groups.index)
         # refrain group marginals. We collected data in vector as long as
         # the number of cells, cut them into appropriate length data
-        adata.uns['nsbm']['group_marginals'] = []
-        for level_marginals in group_marginals:
+        adata.uns['nsbm']['group_marginals'] = {}
+        for nl, level_marginals in enumerate(group_marginals):
             idx = np.where(level_marginals > 0)[0] + 1
-            adata.uns['nsbm']['group_marginals'].append(level_marginals[:np.max(idx)])
+            adata.uns['nsbm']['group_marginals'][nl] = np.array(level_marginals[:np.max(idx)])
         # delete global variables (safety?)
 #        del cell_marginals
 
@@ -680,9 +680,9 @@ def fast_model(
         # refrain group marginals. We collected data in vector as long as
         # the number of cells, cut them into appropriate length data
         adata.uns['nsbm']['group_marginals'] = []
-        for level_marginals in group_marginals:
+        for nl, level_marginals in enumerate(group_marginals):
             idx = np.where(level_marginals > 0)[0] + 1
-            adata.uns['nsbm']['group_marginals'].append(level_marginals[:np.max(idx)])
+            adata.uns['nsbm']['group_marginals'][nl] = np.array(level_marginals[:np.max(idx)])
         # delete global variables (safety?)
 #        del cell_marginals
 
