@@ -28,6 +28,23 @@ def get_graph_tool_from_adjacency(adjacency, directed=None):
     return g
 
 
+def prune_groups(groups, inverse=False):
+    """
+    Returns the index of informative levels after the nested_model has
+    been run. It works by looking at level entropy and, moreover, checks if
+    two consecutive levels have the same clustering
+    """
+    
+    n_groups = groups.shape[1]
+    
+    mi_groups = np.array([ami(groups.iloc[:, x - 1], groups.iloc[:, x]) for x in range(1, n_groups)])
+    
+    if inverse:
+        return groups.columns[np.where(mi_groups != 1)]
+    
+    return groups.columns[np.where(mi_groups == 1)]
+
+
 ## I/O utils, these are useful to read/write objects when the state is there
 
 def save(adata, prefix='adata', key='nsbm', h5ad_fname=None, pkl_fname=None):
