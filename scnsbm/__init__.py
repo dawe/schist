@@ -1,3 +1,3 @@
-from .inference import nested_model
+from .inference import *
 from .version import __version__
 
