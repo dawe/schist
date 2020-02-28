@@ -7,9 +7,21 @@ from scipy import sparse
 
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
-from .utils import get_graph_tool_from_adjacency, prune_groups
-
 from sklearn.metrics import adjusted_mutual_info_score as ami
+
+from .utils import get_graph_tool_from_adjacency, prune_groups
+try:
+    import graph_tool.all as gt
+except ImportError:
+    raise ImportError(
+        """Please install the graph-tool library either visiting
+
+        https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions
+
+        or by conda: `conda install -c conda-forge graph-tool`
+        """
+    )
+
 
 
 def nested_model(
@@ -141,17 +153,6 @@ def nested_model(
     `adata.uns['nsbm']['state']`
         The NestedBlockModel state object
     """
-    try:
-        import graph_tool.all as gt
-    except ImportError:
-        raise ImportError(
-            """Please install the graph-tool library either visiting
-
-            https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions
-
-            or by conda: `conda install -c conda-forge graph-tool`
-            """
-        )
 
     if fast_model: 
         # if the fast_model is chosen perform equilibration anyway

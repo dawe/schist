@@ -5,9 +5,22 @@ import anndata
 from scanpy import logging as logg
 import pickle
 
+try:
+    import graph_tool.all as gt
+except ImportError:
+    raise ImportError(
+        """Please install the graph-tool library either visiting
+
+        https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions
+
+        or by conda: `conda install -c conda-forge graph-tool`
+        """
+    )
+
+
+
 def get_graph_tool_from_adjacency(adjacency, directed=None):
     """Get graph-tool graph from adjacency matrix."""
-    import graph_tool.all as gt
     idx = np.nonzero(np.triu(adjacency.todense(),1))
     weights = adjacency[idx]
     if isinstance(weights, np.matrix):
