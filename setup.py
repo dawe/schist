@@ -1,16 +1,13 @@
 from os import cpu_count
 from setuptools import setup
 from pathlib import Path
-from setuptools import Extension
+from setuptools import setup, find_packages
 
 _path = Path('requirements.txt')
 with _path.open() as requirements:
     requires = [l.strip() for l in requirements]
 
-version={}
-_path = Path('scnsbm/version.py')
-with _path.open() as version_file:
-    exec(version_file.read(), version)
+version='0.2.4'
 
     
 try:
@@ -26,14 +23,14 @@ except ImportError:
     )    
 
 setup(name='scnsbm',
-      version=version['__version__'],
+      version=version,
       description='Nested Stochastic Block Model applied to single cell data.',
       long_description='Partitioning of neighborhood graphs in Scanpy using Nested Stochastic Block Model.',
       url='http://github.com/dawe/scNSBM',
       author='Davide Cittaro',
       author_email='cittaro.davide@gmail.com',
       license='BSD 3',
-      packages=['scnsbm'],
+      packages=find_packages(),
       install_requires=requires,
       dependency_links=[
           'https://git.skewed.de/count0/graph-tool/tree/master'
@@ -49,5 +46,4 @@ setup(name='scnsbm',
           'Programming Language :: Python :: 3.7',          
       ],
       python_requires='>=3.4',
-      py_modules=['inference', 'utils'],
       zip_safe=False)
