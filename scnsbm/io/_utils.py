@@ -15,11 +15,17 @@ def read(
     returning it to the user. Note that if pkl is not found, an AnnData object
     is returned anyway
 
-    :param prefix: The prefix for .h5ad and .pkl files, it is supposed to be the same for 
+    Parameters
+    ----------
+    prefix
+        The prefix for .h5ad and .pkl files, it is supposed to be the same for 
         both. If this is not, specify file names (see below)
-    :param key: The slot in `AnnData.uns` in which nsbm information is placed
-    :param h5ad_filename:  If `prefix` is not shared between h5ad and pkl, specify the h5ad file here
-    :param pkl_filename: If `prefix` is not shared between h5ad and pkl, specify the pkl file here
+    key
+        The slot in `AnnData.uns` in which nsbm information is placed
+    h5ad_filename
+        If `prefix` is not shared between h5ad and pkl, specify the h5ad file here
+    pkl_filename
+        If `prefix` is not shared between h5ad and pkl, specify the pkl file here
     """
     if not h5ad_fname:
         h5ad_fname = "%s.h5ad" % prefix
@@ -53,12 +59,19 @@ def write(
     inference. The `state` object is stripped out the `adata.uns` and saved as pickle
     separately.
 
-    :param adata: The AnnData object to be saved
-    :param prefix:  The prefix for .h5ad and .pkl files. Two files (prefix.h5ad, prefix.pkl) 
+    Parameters
+    ----------
+    adata
+        The AnnData object to be saved
+    prefix
+        The prefix for .h5ad and .pkl files. Two files (prefix.h5ad, prefix.pkl) 
         will be saved
-    :param key: The slot in `AnnData.uns` in which nsbm information is placed
-    :param h5ad_filename: Specify a file name for AnnData
-    :param pkl_filename: Specify a file name for `state` pickle
+    key
+        The slot in `AnnData.uns` in which nsbm information is placed
+    h5ad_filename
+        Specify a file name for AnnData
+    pkl_filename
+        Specify a file name for `state` pickle
     """
     state = None
     if 'state' in adata.uns[key]:
