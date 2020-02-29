@@ -1,7 +1,7 @@
 from typing import Union, Optional
 
 import pickle
-from anndata import AnnData
+from anndata import AnnData, read_h5ad
 from scanpy import logging as logg
 
 def read(
@@ -33,7 +33,7 @@ def read(
         pkl_fname = "%s.pkl" % prefix
     
     # read the anndata
-    adata = anndata.read_h5ad(h5ad_fname)
+    adata = read_h5ad(h5ad_fname)
     
     try:
         with open(pkl_fname, 'rb') as fh:
