@@ -64,10 +64,10 @@ with open('state.pkl', 'wb') as pkl_state:
     pickle.dump(state, pkl_state, 2)
 ```
 
-With version 0.2 it is possible to save `AnnData` objects like above simply issuing
+Since version 0.2 it is possible to save `AnnData` objects like above simply issuing
 
 ```python
-scnsbm.utils.save(adata, prefix='myfile')
+scnsbm.io.write(adata, prefix='myfile')
 ```
 
 This will create two files: `myfile.h5ad`, containing the actual `AnnData`, and 
@@ -75,7 +75,7 @@ This will create two files: `myfile.h5ad`, containing the actual `AnnData`, and
 are in the same place, issuing
 
 ```python
-adata = scnsbm.utils.read('myfile')
+adata = scnsbm.io.read('myfile')
 ```
 
 will read the `.h5ad` and the `.pkl` files and create the proper `AnnData` object
