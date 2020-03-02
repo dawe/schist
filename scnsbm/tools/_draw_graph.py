@@ -121,7 +121,7 @@ def draw_graph(
     adata.uns['draw_graph']['params'] = dict(
         layout=layout, random_seed=random_seed
     )
-    key_added = f'X_draw_graph_{key_added_ext or layout}'
+    key_added = f'X_draw_graph_{layout}'
     adata.obsm[key_added] = positions
     logg.info(
         '    finished',
