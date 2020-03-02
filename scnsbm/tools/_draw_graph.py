@@ -90,18 +90,23 @@ def draw_graph(
             'You need to run `pp.neighbors` first '
             'to compute a neighborhood graph.'
         )
-    if not key in adata.uns or 'state' not in adata.uns[key]:    
+    if not key in adata.uns:
         raise ValueError(
-            'You need to run `nested_model` and '
-            'set `save_state=True` to run this.'
+            'You need to run `nested_model` before trying to run this function '
+        )
+        
+    if use_tree and 'state' not in adata.uns[key]:    
+        raise ValueError(
+            'When `use_tree` is set to `True`, a state should be saved'
+            'running  `nested_model(adata, save_state=True)`.'
         )
     if adjacency is None:
         adjacency = adata.uns['neighbors']['connectivities']
-    # see whether fa2 is installed
-    state = adata.uns[key]['state']
-    g = state.g
+    
+    g = get_graph_tool_from_adjacency(adjacency)
     weights=g.ep['weight']
     if use_tree:
+        state = adata.uns[key]['state']
         g, _, _ = gt.get_hierarchy_tree(state, empty_branches=False)
         weights=None
     
