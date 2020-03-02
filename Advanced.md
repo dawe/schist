@@ -16,7 +16,7 @@ scNSBM provides an interface to `graph-tool` to infer Nested Stochastic Block Mo
 adata = scnsbm.io.read('adata')
 scnsbm.pl.alluvial(adata)
 ```
-![alluvial_01](figures/alluvial_01.png | width=150)
+<img src="figures/alluvial_01.png" width=150>
 
 This function will plot all levels in hierarchy by default. As many level are uninformative, they can be excluded from the plot
 
