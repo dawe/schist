@@ -16,7 +16,7 @@ scNSBM provides an interface to `graph-tool` to infer Nested Stochastic Block Mo
 adata = scnsbm.io.read('adata')
 scnsbm.pl.alluvial(adata)
 ```
-![alluvial_01](figures/alluvial_01.png | width=150)
+< img src="igures/alluvial_01.png"  width=300>
 
 This function will plot all levels in hierarchy by default. As many level are uninformative, they can be excluded from the plot
 
@@ -24,7 +24,7 @@ This function will plot all levels in hierarchy by default. As many level are un
 adata = scnsbm.io.read('adata')
 scnsbm.pl.alluvial(adata, level_end=5)
 ```
-![alluvial_02](figures/alluvial_02.png | width=150)
+<img src="figures/alluvial_02.png" width=300>
 
 Leaf levels can be also excluded
 
@@ -32,7 +32,7 @@ Leaf levels can be also excluded
 adata = scnsbm.io.read('adata')
 scnsbm.pl.alluvial(adata, level_end=5, level_start=2)               
 ```
-![alluvial_03](figures/alluvial_03.png | width=150)
+<img src="figures/alluvial_03.png" width=300>
 
 ### Extending `sc.tl.draw_grap()`
 
@@ -44,7 +44,7 @@ scnsbm.tl.draw_graph(adata, layout='fr')
 sc.pl.draw_graph(adata, layout='fr', color='nsbm_level_2', legend_loc='on data')     
 ```
 
-![fr_01](figures/fr_01.png | width=150)
+<img src="figures/fr_01.png" width=300>
 
 However, scNSBM allows to seed the plot using the graph tree.
 
@@ -54,7 +54,7 @@ scnsbm.tl.draw_graph(adata, layout='fr', use_tree=True)
 sc.pl.draw_graph(adata, layout='fr', color='nsbm_level_2')
 ```
 
-![fr_02](figures/fr_02.png | width=150)
+<img src="figures/fr_02.png" width=300>
 
 Default layout is SFDP spring-block layout
 
@@ -64,4 +64,4 @@ scnsbm.tl.draw_graph(adata)
 sc.pl.draw_graph(adata, layout='sfdp', color='nsbm_level_2', legend_loc='on data')     
 ```
 
-![sfdp_01](figures/sfdp_01.png | width=150)
+<img src="figures/sfdp_01.png" width=300>
