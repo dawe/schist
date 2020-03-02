@@ -56,7 +56,9 @@ def alluvial(
         """No levels to plot were found
         """
         )
-    
+    if gap < 0:
+        gap = 0
+        
     n_cells = adata.shape[0]
     
     e_pos = None # set this to none, later it will be the last of the previous iteration
