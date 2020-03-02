@@ -2,6 +2,7 @@ import numpy as np
 import anndata
 from scanpy import logging as logg
 import pickle
+from sklearn.metrics import adjusted_mutual_info_score as ami
 
 try:
     import graph_tool.all as gt
