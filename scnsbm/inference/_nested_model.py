@@ -36,6 +36,7 @@ def nested_model(
     collect_marginals: bool = False,
     niter_collect: int = 10000,
     hierarchy_length: int = 10,
+    B_max: int = None,
     deg_corr: bool = False,
     multiflip: bool = True,
     fast_model: bool = False,
@@ -98,6 +99,8 @@ def nested_model(
         passed, the top-most levels will be uninformative as they
         will likely contain the very same groups. Increase this valus
         if a very large number of cells is analyzed (>100.000).
+    B_max
+        The maximal number of blocks to be extracted    
     deg_corr
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
@@ -210,7 +213,7 @@ def nested_model(
                                     rec_types=rec_types
                                     ))
     else:
-        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr,
+        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, B_max=B_max,
                                                  state_args=dict(recs=recs,
                                                  rec_types=rec_types))
         logg.info('    done', time=start)
