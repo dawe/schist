@@ -138,12 +138,12 @@ def nested_model(
         Whether to copy `adata` or modify it inplace.
     random_seed
         Random number to be used as seed for graph-tool
+
     Returns
     -------
     `adata.obs[key_added]`
         Array of dim (number of samples) that stores the subgroup id
-        (`'0'`, `'1'`, ...) for each cell. Multiple arrays will be
-        added when `return_level` is set to `all`
+        (`'0'`, `'1'`, ...) for each cell. 
     `adata.uns['nsbm']['params']`
         A dict with the values for the parameters `resolution`, `random_state`,
         and `n_iterations`.
@@ -192,34 +192,27 @@ def nested_model(
         )
     # convert it to igraph
     g = get_graph_tool_from_adjacency(adjacency, directed=directed)
+    
+    recs=[]
+    rec_types=[]
+    if use_weights:
+        # this is not ideal to me, possibly we may need to transform
+        # weights. More tests needed.
+        recs=[g.ep.weight]
+        rec_types=['real-normal']
 
     if fast_model:
         # do not minimize, start with a dummy state and perform only equilibrate
         bs = [np.zeros(1)] * hierarchy_length
-    
-        if use_weights:
-            # this is not ideal to me, possibly we may need to transform
-            # weights. More tests needed.
-            state = gt.NestedBlockState(g=g, bs=bs, sampling=True,
-                                        state_args=dict(deg_corr=deg_corr,
-                                                        recs=[g.ep.weight],
-                                                        rec_types=['real-normal']
-                                                        )
-                                        )
-        else:
-            state = gt.NestedBlockState(g=g, bs=bs, sampling=True,
-                                        state_args=dict(deg_corr=deg_corr)
-                                        )
-        
+        state = gt.NestedBlockState(g=g, bs=bs, sampling=True,
+                                    state_args=dict(deg_corr=deg_corr,
+                                    recs=recs,
+                                    rec_types=rec_types
+                                    ))
     else:
-        if use_weights:
-            # this is not ideal to me, possibly we may need to transform
-            # weights. More tests needed.
-            state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr,
-                                                     state_args=dict(recs=[g.ep.weight],
-                                                     rec_types=['real-normal']))
-        else:
-            state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr)
+        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr,
+                                                 state_args=dict(recs=recs,
+                                                 rec_types=rec_types))
         logg.info('    done', time=start)
         bs = state.get_bs()
         if len(bs) < hierarchy_length:
@@ -231,12 +224,9 @@ def nested_model(
             logg.warning(f'A hierarchy length of {hierarchy_length} has been specified\n'
                          'but the minimized model contains {len(bs)} levels')
             pass    
-    
-        if use_weights:
-            state = gt.NestedBlockState(g, bs, state_args=dict(recs=[g.ep.weight],
-                                                rec_types=["real-normal"]), sampling=True)
-        else:
-            state = state.copy(bs=bs, sampling=True)
+        # create a new state with inferred blocks   
+        state = gt.NestedBlockState(g, bs, state_args=dict(recs=recs,
+                                    rec_types=rec_types), sampling=True)
     
         # run the MCMC sweep step
         logg.info(f'running MCMC sweep step with {sweep_iterations} iterations')
@@ -250,12 +240,12 @@ def nested_model(
     if equilibrate:
         logg.info('running MCMC equilibration step')
         dS, nattempts, nmoves= gt.mcmc_equilibrate(state, wait=wait,
-                                                          nbreaks=nbreaks,
-                                                          epsilon=epsilon,
-                                                          max_niter=max_iterations,
-                                                          multiflip=multiflip,
-                                                          mcmc_args=dict(niter=10)
-                                                          )
+                                                   nbreaks=nbreaks,
+                                                   epsilon=epsilon,
+                                                   max_niter=max_iterations,
+                                                   multiflip=multiflip,
+                                                   mcmc_args=dict(niter=10)
+                                                   )
     if collect_marginals and equilibrate:
         # we here only retain level_0 counts, until I can't figure out
         # how to propagate correctly counts to higher levels
