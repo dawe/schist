@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Sequence, Type, Union
+from typing import Optional, Tuple, Sequence, Type, Union, Dict
 
 import numpy as np
 import pandas as pd
@@ -38,7 +38,6 @@ def flat_model(
     deg_corr: bool = False,
     multiflip: bool = True,
     fast_model: bool = False,
-    B_max: int = None,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -47,7 +46,10 @@ def flat_model(
     directed: bool = False,
     use_weights: bool = False,
     save_state: bool = False,
-    copy: bool = False
+    copy: bool = False,
+    minimize_args: Optional[Dict] = None,
+    sweep_args: Optional[Dict] = None,
+    equilibrate_args: Optional[Dict] = None,    
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -98,8 +100,6 @@ def flat_model(
     fast_model
         Whether to skip initial minization and sweep steps. This approach tend to 
         be faster and consume less memory, but it may be less accurate.
-    B_max
-        Upper bound for the number of communities    
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -191,18 +191,20 @@ def flat_model(
                               ))
     else:
         state = gt.minimize_blockmodel_dl(g, deg_corr=deg_corr,
-                                          B_max=B_max,
                                           state_args=dict(recs=recs,
-                                          rec_types=rec_types))
+                                          rec_types=rec_types), 
+                                          **minimize_args)
         logg.info('    done', time=start)
         state = state.copy(B=g.num_vertices())
     
         # run the MCMC sweep step
         logg.info(f'running MCMC sweep step with {sweep_iterations} iterations')
         if multiflip:
-            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations)
+            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations, 
+                                                               **sweep_args)
         else:
-            dS, nattempts, nmoves= state.mcmc_sweep(niter=sweep_iterations)
+            dS, nattempts, nmoves= state.mcmc_sweep(niter=sweep_iterations,
+                                                    **sweep_args)
         logg.info('    done', time=start)
 
     # equilibrate the Markov chain
@@ -213,7 +215,8 @@ def flat_model(
                                                           epsilon=epsilon,
                                                           max_niter=max_iterations,
                                                           multiflip=multiflip,
-                                                          mcmc_args=dict(niter=10)
+                                                          mcmc_args=dict(niter=10),
+                                                          **equilibrate_args
                                                           )
     if collect_marginals and equilibrate:
         # we here only retain level_0 counts, until I can't figure out
