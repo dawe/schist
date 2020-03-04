@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Sequence, Type, Union
+from typing import Optional, Tuple, Sequence, Type, Union, Dict
 
 import numpy as np
 import pandas as pd
@@ -36,7 +36,6 @@ def nested_model(
     collect_marginals: bool = False,
     niter_collect: int = 10000,
     hierarchy_length: int = 10,
-    B_max: int = None,
     deg_corr: bool = False,
     multiflip: bool = True,
     fast_model: bool = False,
@@ -50,7 +49,10 @@ def nested_model(
     save_state: bool = False,
     prune: bool = False,
     return_low: bool = False,
-    copy: bool = False
+    copy: bool = False,
+    minimize_args: Optional[Dict] = None,
+    sweep_args: Optional[Dict] = None,
+    equilibrate_args: Optional[Dict] = None,
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -99,8 +101,6 @@ def nested_model(
         passed, the top-most levels will be uninformative as they
         will likely contain the very same groups. Increase this valus
         if a very large number of cells is analyzed (>100.000).
-    B_max
-        The maximal number of blocks to be extracted    
     deg_corr
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
@@ -213,9 +213,10 @@ def nested_model(
                                     rec_types=rec_types
                                     ))
     else:
-        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, B_max=B_max,
+        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
                                                  state_args=dict(recs=recs,
-                                                 rec_types=rec_types))
+                                                 rec_types=rec_types), 
+                                                 **minimize_args)
         logg.info('    done', time=start)
         bs = state.get_bs()
         if len(bs) < hierarchy_length:
@@ -234,9 +235,11 @@ def nested_model(
         # run the MCMC sweep step
         logg.info(f'running MCMC sweep step with {sweep_iterations} iterations')
         if multiflip:
-            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations)
+            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations,
+                                                               **sweep_args)
         else:
-            dS, nattempts, nmoves= state.mcmc_sweep(niter=sweep_iterations)
+            dS, nattempts, nmoves= state.mcmc_sweep(niter=sweep_iterations,
+                                                    **sweep_args)
         logg.info('    done', time=start)
 
     # equilibrate the Markov chain
@@ -247,7 +250,8 @@ def nested_model(
                                                    epsilon=epsilon,
                                                    max_niter=max_iterations,
                                                    multiflip=multiflip,
-                                                   mcmc_args=dict(niter=10)
+                                                   mcmc_args=dict(niter=10),
+                                                   **equilibrate_args
                                                    )
     if collect_marginals and equilibrate:
         # we here only retain level_0 counts, until I can't figure out
