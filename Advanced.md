@@ -14,7 +14,7 @@ The first step of a network analysis is the subdivision of nodes (or cells) into
 Where **P(A|θ,b)** is the probability of obtaining the network _A_ given the partition _b_ and additional parameters _θ_; **P(θ,b)** is the probability of occurrence of the partition _b_ having observed the netwok _A_; **P(A)** is the “model evidence” and it is the same for all possible partitions. Refer to the excellent [`graph-tool` documentation](https://graph-tool.skewed.de/static/doc/demos/inference/inference.html) for more details.
 The nested model introduces a hierarchy of priors used to infer the optimal recursive grouping of single cell groups. If you are familiar with Leiden or Louvain methods to find cell groups, you may think at this multilevel approach as a multiresolution one, except that it is not. Here, not only the cell groups at each hierarchy level are found maximising the equation above, but the hierarchy itself (hence the groups of groups) is part of the model.
 Since there may be more than one fit with similar probability, scNSBM uses the `graph-tool` routines to apply a Markow chain Monte Carlo sampling of the posterior distribution aiming to converge to the best model. 
-In general, model selection is
+
 
 ## Plotting
 
