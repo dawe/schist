@@ -1,6 +1,9 @@
 # Advanced usage
 
-This page explains some advanced usage options for scNSBM
+This page explains some advanced usage options for scNSBM. 
+
+- [Understanding NSBM](#Understanding-NSBM)
+- [Plotting][#Plotting]
 
 ## Understanding NSBM
 
