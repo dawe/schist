@@ -4,7 +4,7 @@ This page explains some advanced usage options for scNSBM
 
 ## Understanding NSBM
 
-scNSBM is based on Nested Stochastic Block Models (NSBM), a generative process based on the notion of group of nodes. Here, we use NSBM tu cluster cells in scRNA-seq experiments.
+scNSBM is based on Nested Stochastic Block Models (NSBM), a generative process based on the notion of group of nodes. Here, we use NSBM to cluster cells in scRNA-seq experiments.
 
 ### Bayesian approach
 Cell to cell relations are commonly represented as a neighborhood graph (typically KNN or  SNN), cell groups are identified as graph communities, this step is usually performed maximising graph modularity. In scNSBM, instead, partitioning is performed maximising the  Bayesian posterior probability **P(b|A)**, that is the likehood of generating a network _A_ with a partition _b_ and it is obtained according to 
