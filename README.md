@@ -1,3 +1,11 @@
+|Stars| |Build Status|
+
+.. |Stars| image:: https://img.shields.io/github/stars/dawe/scNSBN?logo=GitHub&color=yellow
+   :target: https://github.com/dawe/scNSBM/stargazers
+.. |Build Status| image:: https://travis-ci.org/dawe/scNSBM.svg?branch=master
+   :target: https://travis-ci.org/dawe/scNSBM
+
+
 # scNSBM
 An interface for Nested Stochastic Block Model for single cell analysis.
 
