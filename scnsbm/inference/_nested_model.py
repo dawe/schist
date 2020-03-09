@@ -50,9 +50,9 @@ def nested_model(
     prune: bool = False,
     return_low: bool = False,
     copy: bool = False,
-    minimize_args: Optional[Dict] = None,
-    sweep_args: Optional[Dict] = None,
-    equilibrate_args: Optional[Dict] = None,
+    minimize_args: Optional[Dict] = {},
+    sweep_args: Optional[Dict] = {},
+    equilibrate_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
