@@ -21,6 +21,30 @@ Where **P(A|θ,b)** is the probability of obtaining the network _A_ given the pa
 
 The nested model introduces a hierarchy of priors used to infer the optimal recursive grouping of single cell groups. If you are familiar with Leiden or Louvain methods to find cell groups, you may think at this multilevel approach as a multiresolution one, except that it is not. Here, not only the cell groups at each hierarchy level are found maximising the equation above, but the hierarchy itself (hence the groups of groups) is part of the model.
 Since there may be more than one fit with similar probability, scNSBM uses the `graph-tool` routines to apply a Markow chain Monte Carlo sampling of the posterior distribution aiming to converge to the best model. 
+One of the main limitations of scNSBM is that it requires significantly more time than any other state of the art approach to identify cell groups. This cost comes with the benefit that it is possible to choose between different parameters according to the likelihood of a partition set to be found over a network. 
+
+### Fast model vs standard approach
+
+In the standard approach, the model is initialized by minimizing the description length (entropy) before running the MCMC algorithm. This requires extra time but, in general, returns better results. It is possible to skip the initial minimization and the sweep step of MCMC setting 
+
+```python
+nested_model(adata, fast_model=True)
+```
+
+This will seed the model with a dummy description of the graph where every cell belongs to its own partition. This approach is generally faster and requires less memory, but it could be less precise
+
+### Marginals
+
+When using the following invocation 
+
+```python
+nested_model(adata, collect_marginals=True)
+```
+
+an additional step (with fixed number of iterations) is added to execution. During this step, scNSBM collects two types of marginals that can be used to understand the configuration of the single cell experiment. Cell marginals, that is the probability of a cell to be assigned to a group, are stored into `adata.uns['nsbm']['cell_marginals']`. Here, a dictionary keyed with NSBM levels counts the times a cell has been successfully moved to a group. These marginals can be efficiently used as covariates when looking for marker genes, this approach will weight the belief that a cell belongs to a group. We have prepared a [notebook](https://github.com/dawe/scNSBM-notebooks/blob/master/Cell_Marginals.ipynb) showing an example. 
+In addition to cell marginals, scNSBM collects the probability of having a certain number of groups for each level of the hierarchy. These are stored into `adata.uns['nsbm']['group_marginals]`:
+
+
 
 
 ## Plotting
