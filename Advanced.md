@@ -88,7 +88,7 @@ scnsbm.pl.alluvial(adata, level_end=5, level_start=2)
 ```
 <img src="docs/figures/alluvial_03.png" width=400>
 
-### Extending `sc.tl.draw_grap()`
+### Extending `sc.tl.draw_graph()`
 
 `graph-tools` has built-in functionalities to plot graphs. Some of these have been implemented into scNSBM using a syntax compatibile with `scanpy`'s functions. Note that Fruchterman-Reingold spring-block layout is already implemented into `scanpy`, and it gives the same output. 
 
