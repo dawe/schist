@@ -1,1 +1,4 @@
 language: python
+install:
+  - conda install -c conda-forge graph-tool
+  - pip install -r requirements.txt
