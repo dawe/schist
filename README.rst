@@ -1,9 +1,12 @@
-|Stars| |Build Status|
+|Stars| |Build Status| |Code Quality|
 
-.. |Stars| image:: https://img.shields.io/github/stars/dawe/scNSBN?logo=GitHub&color=yellow
+.. |Stars| image:: https://img.shields.io/github/stars/dawe/scNSBM?logo=GitHub&color=yellow
    :target: https://github.com/dawe/scNSBM/stargazers
 .. |Build Status| image:: https://travis-ci.org/dawe/scNSBM.svg?branch=master
    :target: https://travis-ci.org/dawe/scNSBM
+.. |Code Quality| image:: https://img.shields.io/lgtm/grade/python/g/dawe/scNSBM.svg
+    :target: https://lgtm.com/projects/g/dawe/scNSBM/context:python
+    :alt: LGTM Grade
 
 
 # scNSBM
