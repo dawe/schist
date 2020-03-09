@@ -43,7 +43,7 @@ nested_model(adata, collect_marginals=True)
 
 an additional step (with fixed number of iterations) is added to execution. During this step, scNSBM collects two types of marginals that can be used to understand the configuration of the single cell experiment. Cell marginals, that is the probability of a cell to be assigned to a group, are stored into `adata.uns['nsbm']['cell_marginals']`. Here, a dictionary keyed with NSBM levels counts the times a cell has been successfully moved to a group. These marginals can be efficiently used as covariates when looking for marker genes, this approach will weight the belief that a cell belongs to a group. We have prepared a [notebook](https://github.com/dawe/scNSBM-notebooks/blob/master/Cell_Marginals.ipynb) showing an example. 
 
-In addition to cell marginals, scNSBM collects the probability of having a certain number of groups for each level of the hierarchy. These are stored into `adata.uns['nsbm']['group_marginals]`:
+In addition to cell marginals, scNSBM collects the probability of having a certain number of groups for each level of the hierarchy. These are stored into `adata.uns['nsbm']['group_marginals']`:
 
 ```python
 level = 2
@@ -52,9 +52,9 @@ p = adata.uns['nsbm']['group_marginals'][level] / S
 ng = range(1, len(p) + 1)
 bar(ng, p)
 xticks(ng)
-xlabel("Number of groups")
-ylabel("Probability")
-title(f"Group marginals for level {level}")
+xlabel('Number of groups')
+ylabel('Probability')
+title(f'Group marginals for level {level}')
 ```
 
 <img src="docs/figures/gm.png" width=400>
