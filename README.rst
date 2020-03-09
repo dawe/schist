@@ -1,9 +1,5 @@
-|Build Status| |Activity|
-
-.. |Build Status| image:: https://travis-ci.org/dawe/scNSBM.svg?branch=master
-   :target: https://travis-ci.org/dawe/scNSBM
-.. |Activity| image:: https://img.shields.io/github/commit-activity/m/dawe/scNSBM    
-   :alt: Code Activity
+<img src="https://travis-ci.org/dawe/scNSBM.svg?branch=master" title="Build status">
+<img src="https://img.shields.io/github/commit-activity/m/dawe/scNSBM" title="Commit activity">
 
 # scNSBM
 An interface for Nested Stochastic Block Model for single cell analysis.
