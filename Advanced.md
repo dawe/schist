@@ -3,7 +3,7 @@
 This page explains some advanced usage options for scNSBM. 
 
 - [Understanding NSBM](#Understanding-NSBM)
-- [Plotting][#Plotting]
+- [Plotting](#Plotting)
 
 ## Understanding NSBM
 
