@@ -1,11 +1,7 @@
-|Stars| |Build Status| |Code Quality| |Activity|
+|Build Status| |Activity|
 
-.. |Stars| image:: https://img.shields.io/github/stars/dawe/scNSBM?logo=GitHub&color=yellow
-   :target: https://github.com/dawe/scNSBM/stargazers
 .. |Build Status| image:: https://travis-ci.org/dawe/scNSBM.svg?branch=master
    :target: https://travis-ci.org/dawe/scNSBM
-.. |Code Quality| image:: https://img.shields.io/codefactor/grade/github/dawe/scNSBM
-    :alt: CodeFactor Grade
 .. |Activity| image:: https://img.shields.io/github/commit-activity/m/dawe/scNSBM    
    :alt: Code Activity
 
