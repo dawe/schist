@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import Polygon
 from anndata import AnnData
 import pandas as pd
+#from ._utils import get_ncolors
 
 
 def alluvial(
@@ -140,7 +141,12 @@ def alluvial(
                 # Here colors are the matplotlib default ones, 
                 # It would be a good idea to specify them using the very same
                 # approach used by scanpy.
-                color = "C%s" % s
+                if f'{s_level}_colors' in adata.uns:
+                    # if colors have been used previously, use them
+                    color = adata.uns[f'{s_level}_colors'][int(s)]
+                else:
+                    # TODO: change color cycler according to the number of groups
+                    color = "C%s" % s
                 # generate the polygon vertex list
                 verts = [(sl, s_l), (sl, e_h),
                          *zip(xr, trace_l),
@@ -151,7 +157,8 @@ def alluvial(
                 
                 # annotate the groups with the group names.
                 ax.text(l , (e_h + e_l) / 2, e)
-
+        
+        
     ax.set_xlim(0, l)
     ax.set_xticks(range(len(levels)))
     # strip level key
