@@ -38,6 +38,8 @@ def alternate_model(
     deg_corr: bool = False,
     multiflip: bool = True,
     fast_model: bool = False,
+    beta_range: Tuple[float] = (1., 100.),
+    steps_anneal: int = 5,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -108,6 +110,10 @@ def alternate_model(
     fast_model
         Whether to skip initial minization and sweep steps. This approach tend to 
         be faster and consume less memory, but it may be less accurate.
+    beta_range
+        Inverse temperature at the beginning and the end of the equilibration
+    steps_anneal
+        Number of steps in which the simulated annealing is performed
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -231,22 +237,18 @@ def alternate_model(
     # equilibrate the Markov chain
     if equilibrate:
         logg.info('running MCMC equilibration step')
-        dS, nattempts, nmoves= gt.mcmc_equilibrate(state, wait=wait,
-                                                   nbreaks=nbreaks,
-                                                   epsilon=epsilon,
-                                                   max_niter=max_iterations,
-                                                   multiflip=multiflip,
-                                                   mcmc_args=dict(niter=10),
-                                                   **equilibrate_args
-                                                   )
-        dS, nattempts, nmoves= gt.mcmc_equilibrate(state, wait=wait,
-                                                   nbreaks=nbreaks,
-                                                   epsilon=epsilon,
-                                                   max_niter=max_iterations,
-                                                   multiflip=multiflip,
-                                                   mcmc_args=dict(beta=np.inf, niter=10),
-                                                   **equilibrate_args
-                                                   )
+        # equlibration done by simulated annealing
+        
+        equilibrate_args['wait'] = wait
+        equilibrate_args['nbreaks'] = nbreaks
+        equilibrate_args['max_niter'] = max_iterations
+        equilibrate_args['multiflip'] = multiflip
+        equilibrate_args['mcmc_args'] = {'niter':10}
+        
+        dS, nattempts, nmoves = gt.mcmc_anneal(state, 
+                                               mcmc_equilibrate_args=equilibrate_args,
+                                               niter=steps_anneal,
+                                               beta_range=beta_range)
     if collect_marginals and equilibrate:
         # we here only retain level_0 counts, until I can't figure out
         # how to propagate correctly counts to higher levels
