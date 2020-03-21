@@ -46,6 +46,28 @@ Alas, the key component (`graph-tool`) is not available through pip and requires
 conda install -c conda-forge graph-tool
 ```
 
+Since version 0.3.0 MCMC is performed by simulated annealing. This relies on the `gt.mcmc_anneal()` function by `graph_tool`. Unfortunately v 2.29 has a bug in this function, so you are required to patch it (until is fixed).  First identify the path of `graph_tool` library, which is likely something
+
+```
+${CONDA_PREFIX}/lib/${PYTHON_VERSION}/site-packages/graph_tool/
+```
+
+or
+
+```
+${PYTHON_INSTALL_DIR}/lib/${PYTHON_VERSION}/site-packages/graph_tool/
+```
+
+then you'll need to apply the patch `patch.mcmc.txt` file, to fix the variable `attempts` into `nattempts` at line 266. Simply do 
+
+```bash
+cd ${GRAPH_TOOL}/inference
+patch -p0 < ${PATH_TO_PATCH}/patch.mcmc.txt
+```
+
+where `$GRAPH_TOOL` is the directory where `graph_tool` is installed, and `$PATH_TO_PATCH` is the path where you downloaded this repository.
+
+
 ## Known issues
 ### Cairo interface
 `graph-tool` requilres `Gtk` to plot graphs. We do not plan to use those capabilities natively. This means that you may safely disregard the following warning:
