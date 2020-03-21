@@ -263,7 +263,7 @@ def flat_model(
     if save_state:
         logg.warning("""It is not possible to dump on the disk `adata` objects'
          when `state` is saved into `adata.uns`.
-         Remove it with `.pop` before saving data in .h5ad format""")
+         Remember to use scnsbm.io.write function to save objects properly""")
         adata.uns['sbm']['state'] = state
 
     # now add marginal probabilities.
