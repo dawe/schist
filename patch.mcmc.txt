@@ -1,0 +1,19 @@
+*** mcmc.py	Sat Mar 21 10:08:52 2020
+--- mcmc.fix.py	Sat Mar 21 10:09:09 2020
+*************** def mcmc_anneal(state, beta_range=(1., 1
+*** 263,269 ****
+              S = ret[0][-1]
+          else:
+              S = ret[0]
+!             attempts += ret[1]
+              nmoves += ret[2]
+  
+          beta *= speed
+--- 263,269 ----
+              S = ret[0][-1]
+          else:
+              S = ret[0]
+!             nattempts += ret[1]
+              nmoves += ret[2]
+  
+          beta *= speed
