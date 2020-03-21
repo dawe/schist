@@ -85,3 +85,5 @@ def write(
     if state:
         with open(pkl_fname, 'wb') as fh:
             pickle.dump(state, fh, 2)
+    # restore state        
+    adata.uns[key]['state'] = state            
