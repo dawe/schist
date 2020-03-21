@@ -27,7 +27,6 @@ except ImportError:
 
 def nested_model(
     adata: AnnData,
-    sweep_iterations: int = 10000,
     max_iterations: int = 1000000,
     epsilon: float = 1e-3,
     equilibrate: bool = True,
@@ -39,6 +38,8 @@ def nested_model(
     deg_corr: bool = False,
     multiflip: bool = True,
     fast_model: bool = False,
+    beta_range: Tuple[float] = (1., 100.),
+    steps_anneal: int = 5,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -71,9 +72,6 @@ def nested_model(
     ----------
     adata
         The annotated data matrix.
-    sweep_iterations
-        Number of iterations to run mcmc_sweep.
-        Higher values lead longer runtime.
     max_iterations
         Maximal number of iterations to be performed by the equilibrate step.
     epsilon
@@ -112,6 +110,10 @@ def nested_model(
     fast_model
         Whether to skip initial minization and sweep steps. This approach tend to 
         be faster and consume less memory, but it may be less accurate.
+    beta_range
+        Inverse temperature at the beginning and the end of the equilibration
+    steps_anneal
+        Number of steps in which the simulated annealing is performed
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -232,27 +234,21 @@ def nested_model(
         state = gt.NestedBlockState(g, bs, state_args=dict(recs=recs,
                                     rec_types=rec_types), sampling=True)
     
-        # run the MCMC sweep step
-        logg.info(f'running MCMC sweep step with {sweep_iterations} iterations')
-        if multiflip:
-            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=sweep_iterations,
-                                                               **sweep_args)
-        else:
-            dS, nattempts, nmoves= state.mcmc_sweep(niter=sweep_iterations,
-                                                    **sweep_args)
-        logg.info('    done', time=start)
-
     # equilibrate the Markov chain
     if equilibrate:
         logg.info('running MCMC equilibration step')
-        dS, nattempts, nmoves= gt.mcmc_equilibrate(state, wait=wait,
-                                                   nbreaks=nbreaks,
-                                                   epsilon=epsilon,
-                                                   max_niter=max_iterations,
-                                                   multiflip=multiflip,
-                                                   mcmc_args=dict(niter=10),
-                                                   **equilibrate_args
-                                                   )
+        # equlibration done by simulated annealing
+        
+        equilibrate_args['wait'] = wait
+        equilibrate_args['nbreaks'] = nbreaks
+        equilibrate_args['max_niter'] = max_iterations
+        equilibrate_args['multiflip'] = multiflip
+        equilibrate_args['mcmc_args'] = {'niter':10}
+        
+        dS, nattempts, nmoves = gt.mcmc_anneal(state, 
+                                               mcmc_equilibrate_args=equilibrate_args,
+                                               niter=steps_anneal,
+                                               beta_range=beta_range)
     if collect_marginals and equilibrate:
         # we here only retain level_0 counts, until I can't figure out
         # how to propagate correctly counts to higher levels
@@ -383,7 +379,6 @@ def nested_model(
     
     # last step is recording some parameters used in this analysis
     adata.uns['nsbm']['params'] = dict(
-        sweep_iterations=sweep_iterations,
         epsilon=epsilon,
         wait=wait,
         nbreaks=nbreaks,
