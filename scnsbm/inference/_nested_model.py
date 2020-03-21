@@ -52,7 +52,6 @@ def nested_model(
     return_low: bool = False,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
-    sweep_args: Optional[Dict] = {},
     equilibrate_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
     """\
@@ -108,8 +107,9 @@ def nested_model(
         network partitions. It may result in slightly longer runtimes, but under
         the hood it allows for a more efficient space exploration.
     fast_model
-        Whether to skip initial minization and sweep steps. This approach tend to 
-        be faster and consume less memory, but it may be less accurate.
+        Whether to skip initial minization step and let the MCMC find a solution. 
+        This approach tend to be faster and consume less memory, but 
+        less accurate.
     beta_range
         Inverse temperature at the beginning and the end of the equilibration
     steps_anneal
