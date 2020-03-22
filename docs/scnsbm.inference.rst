@@ -59,7 +59,7 @@ Parameters:
 Returns:
 ********
     *   ``adata.obs[key_added]``
-            Array of dim (number of samples) that stores the subgroup id ( ``'0'`` , ``'1' ``, ...) for each cell.
+            Array of dim (number of samples) that stores the subgroup id ( ``'0'`` , ``'1' `` , ...) for each cell.
     *   ``adata.uns['sbm']['params']``
             A dict with the values for the parameters ``resolution`` , ``random_state``, and ``n_iterations`` .
     *   ``adata.uns['sbm']['stats']``
