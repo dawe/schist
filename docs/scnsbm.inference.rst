@@ -5,7 +5,7 @@ scnsbm.inference package
 scnsbm.inference._flat_model
 ############################
 
-''scnsbm.inference.**_flat_model**(*adata:AnnData*,*max_iterations:1000000*,*epsilon:1e-3*,*equilibrate:True*,*wait:1000*,*nbreaks:2*,*collect_marginals:False*,*niter_collect:10000*,*deg_corr:False*,*multiflip:True*,*fast_model:False*,*beta_range:1.0,100.0*,*steps_anneal:int=5*,*restrict_to:Optional=None*,*random_seed:Optional=None*,*key_added:sbm*,*adjacency:Optional=None*,*directed:False*,*use_weights:False*,*save_state:False*,*copy:False*,*minimize_args:Optional*={},*equilibrate_args:Optional*={})''
+``scnsbm.inference.\ **_flat_model** \(\*adata:AnnData*,*max_iterations:1000000*,*epsilon:1e-3*,*equilibrate:True*,*wait:1000*,*nbreaks:2*,*collect_marginals:False*,*niter_collect:10000*,*deg_corr:False*,*multiflip:True*,*fast_model:False*,*beta_range:1.0,100.0*,*steps_anneal:int=5*,*restrict_to:Optional=None*,*random_seed:Optional=None*,*key_added:sbm*,*adjacency:Optional=None*,*directed:False*,*use_weights:False*,*save_state:False*,*copy:False*,*minimize_args:Optional*={},*equilibrate_args:Optional*={})``
 
 Cluster cells into subgroups,using the Stochastic Block Model [Peixoto14]_, performing Bayesian inference on node groups. 
 
@@ -13,9 +13,9 @@ This requires having ran :func:`~scanpy.pp.neighbors` or :func:`~scanpy.external
 
 Parameters:
 ***********
-    *   **adata**:''**AnnData**''
+    *   **adata**:**AnnData**
             The annotated data matrix.
-    *   **max_iterations**:''**int**''(default:''1000000'')
+    *   **max_iterations**:**int**(default:1000000)
             Maximal number of iterations to be performed by the equilibrate step.
     *   **epsilon**:''**float**''(default:''1e-3'')
             Relative changes in entropy smaller than epsilon will not be considered as record-breaking.
