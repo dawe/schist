@@ -53,13 +53,13 @@ Parameters:
             Whether to keep the block model state saved for subsequent custom analysis with graph-tool. Use only for debug session, state is not (yet) supported for ``sc.write`` function.
     *   **copy**: ``bool`` (default: ``False`` )
             Whether to copy ``adata`` or modify it inplace.
-    *   **random_seed**:**Optional**[ ``int`` ](default: ``None`` )
+    *   **random_seed**:Optional[ ``int`` ](default: ``None`` )
             Random number to be used as seed for graph-tool.
 
 Returns:
 ********
     *   ``adata.obs[key_added]``
-            Array of dim (number of samples) that stores the subgroup id ( ``'0'`` , ``'1' `` , ...) for each cell.
+            Array of dim (number of samples) that stores the subgroup id ( ``'0'`` , ``'1'`` , ...) for each cell.
     *   ``adata.uns['sbm']['params']``
             A dict with the values for the parameters ``resolution`` , ``random_state``, and ``n_iterations`` .
     *   ``adata.uns['sbm']['stats']``
@@ -132,7 +132,7 @@ Parameters:
 Returns:
 ********
     *   ``adata.obs[key_added]``
-            Array of dim (number of samples) that stores the subgroup id ( ``0`` , ``1`` , ...) for each cell. 
+            Array of dim (number of samples) that stores the subgroup id ( ``'0'`` , ``'1'`` , ...) for each cell. 
     *   ``adata.uns['nsbm']['params']``
             A dict with the values for the parameters ``resolution`` , ``random_state`` , and ``n_iterations``
     *   ``adata.uns['nsbm']['stats']``
