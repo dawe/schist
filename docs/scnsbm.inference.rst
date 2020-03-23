@@ -76,7 +76,9 @@ scnsbm.inference._nested_model
 
     scnsbm.inference._nested_model(adata: AnnData, max_iterations: 1000000, epsilon: 1e-3, equilibrate: True, wait: 1000, nbreaks: 2, collect_marginals: False, niter_collect: 10000, hierarchy_length: 10, deg_corr: False, multiflip: True, fast_model: False, beta_range: 1.0,100.0, steps_anneal: int=5, restrict_to: Optional=None, random_seed: Optional=None, key_added: nsbm, adjacency: Optional=None, directed: False, use_weights: False, save_state: False, prune=False, return_low=False, copy: False, minimize_args: Optional={}, equilibrate_args: Optional={})
 
-Cluster cells using the nested Stochastic Block Model [Peixoto14]_, a hierarchical version of Stochastic Block Model [Holland83]_, performing Bayesian inference on node groups. NSBM should circumvent classical limitations of SBM in detecting small groups in large graphs replacing the noninformative priors used by a hierarchy of priors and hyperpriors. 
+Cluster cells using the nested Stochastic Block Model [Peixoto14]_, a hierarchical version of Stochastic Block Model [Holland83]_, performing Bayesian inference on node groups. 
+
+NSBM should circumvent classical limitations of SBM in detecting small groups in large graphs replacing the noninformative priors used by a hierarchy of priors and hyperpriors. 
 
 This requires having ran :func:`~scanpy.pp.neighbors` or :func:`~scanpy.external.pp.bbknn` first.
 

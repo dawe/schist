@@ -9,7 +9,9 @@ scnsbm.io.read
 
     scnsbm.io.read(prefix: 'adata', key: 'nsbm', h5ad_fname: None, pkl_fname: None)
 
-Read anndata object when a NestedBlockState has been saved separately. This function reads the h5ad and the pkl files, then rebuilds the ``adata`` properly, returning it to the user. Note that if pkl is not found, an AnnData object is returned anyway.
+Read anndata object when a NestedBlockState has been saved separately. 
+
+This function reads the h5ad and the pkl files, then rebuilds the ``adata`` properly, returning it to the user. Note that if pkl is not found, an AnnData object is returned anyway.
 
 Parameters
 **********
@@ -29,7 +31,9 @@ scnsbm.io.write
 
     scnsbm.io.write(adata: AnnData, prefix: 'adata', key: 'nsbm', h5ad_fname: None, pkl_fname: None)
 
-Save anndata object when a NestedBlockState has been retained during inference. The ``state`` object is stripped out the ``adata.uns`` and saved as pickle separately.
+Save anndata object when a NestedBlockState has been retained during inference. 
+
+The ``state`` object is stripped out the ``adata.uns`` and saved as pickle separately.
 
 Parameters
 **********

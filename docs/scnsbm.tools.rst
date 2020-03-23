@@ -10,7 +10,9 @@ scnsbm.tools._draw_graph
 
     scnsbm.tools._draw_graph(adata: AnnData, layout: 'sfdp', use_tree: False, random_seed: None, adjacency: None, key_added_ext: None, key: 'nsbm', copy: False, **kwds)
 
-Extends scanpy.tools.draw_graph function using some layouts available in graph-tool library. Three layouts are available here:
+Extends scanpy.tools.draw_graph function using some layouts available in graph-tool library. 
+
+Three layouts are available here:
     *   SFDP spring-block layout.
     *   ARF spring-block layout.
     *   Fruchterman-Reingold spring-block layout.
