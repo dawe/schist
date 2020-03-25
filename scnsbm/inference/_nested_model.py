@@ -317,13 +317,16 @@ def nested_model(
 
     adata.uns['nsbm'] = {}
     adata.uns['nsbm']['stats'] = dict(
-    dS=dS,
-    nattempts=nattempts,
-    nmoves=nmoves,
     level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
     modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     )
+    if equilibrate:
+        adata.uns['nsbm']['stats']['dS'] = dS
+        adata.uns['nsbm']['stats']['nattempts'] = nattempts
+        adata.uns['nsbm']['stats']['nmoves'] = nmoves
+
+
     if collect_marginals:
         # since we have cell marginals we can also calculate
         # mean field entropy.
