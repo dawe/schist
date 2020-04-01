@@ -61,7 +61,7 @@ def get_cell_loglikelihood(
         
     if as_weights:
         W = (np.max(M, axis=1)[:, None] - M) 
-        W / np.max(W, axis=1)[:, None]
+        W = W / np.max(W, axis=1)[:, None]
         M = W
             
     return M
