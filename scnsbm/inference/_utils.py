@@ -10,6 +10,24 @@ def get_cell_loglikelihood(
     """
     Returns the matrix of log-likelihood differences
     when moving a cell into a different block
+    
+    Parameters
+    ----------
+    state
+        A graphtool BlockState or NestedBlockState objexct
+    level
+        The level in NestedBlockState to consider
+    rescale
+        For some models, moving a cell into a different block may result in a 
+        negative log-likelihood, indicating that cells may be better assigned 
+        to another group. Set this parameter to `True` if you want 
+        every cell to have LL=0 for the best group and avoid negative values
+
+    Returns
+    -------
+    `M`
+        Array of dim (n_cells, n_blocks) that stores the entropy difference
+        of moving a cell into a specific group
     """
     
     # get the graph from state
