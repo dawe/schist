@@ -7,7 +7,6 @@ from scipy import sparse
 
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
-from sklearn.metrics import adjusted_mutual_info_score as ami
 
 from .._utils import get_graph_tool_from_adjacency, prune_groups
 
