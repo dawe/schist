@@ -5,7 +5,7 @@ def get_cell_loglikelihood(
     state,
     level: int = 0,
     rescale = False, 
-    as_weight = False
+    as_weights = False
     
 ):
     """
@@ -41,7 +41,7 @@ def get_cell_loglikelihood(
         
         level = 0
     
-    if type(state) == graph_tool.inference.nested_blockmodel.NestedBlockState:
+    if type(state) == gt.NestedBlockState:
         B = gt.BlockState(g, b=state.project_partition(level, 0))
     else:
         B = state
@@ -64,4 +64,4 @@ def get_cell_loglikelihood(
         W / np.max(W, axis=1)[:, None]
         M = W
             
-    return M        
+    return M
