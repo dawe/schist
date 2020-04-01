@@ -46,7 +46,6 @@ def flat_model(
     adjacency: Optional[sparse.spmatrix] = None,
     directed: bool = False,
     use_weights: bool = False,
-    save_state: bool = False,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
     equilibrate_args: Optional[Dict] = {},    
@@ -113,10 +112,6 @@ def flat_model(
         If `True`, edge weights from the graph are used in the computation
         (placing more emphasis on stronger edges). Note that this
         increases computation times
-    save_state
-        Whether to keep the block model state saved for subsequent
-        custom analysis with graph-tool. Use only for debug session, state
-        is not (yet) supported for `sc.write` function
     copy
         Whether to copy `adata` or modify it inplace.
     random_seed
@@ -260,11 +255,7 @@ def flat_model(
     nmoves=nmoves,
     modularity=gt.modularity(g, state.get_blocks())
     )
-    if save_state:
-        logg.warning("""It is not possible to dump on the disk `adata` objects'
-         when `state` is saved into `adata.uns`.
-         Remember to use scnsbm.io.write function to save objects properly""")
-        adata.uns['sbm']['state'] = state
+    adata.uns['sbm']['state'] = state
 
     # now add marginal probabilities.
 
