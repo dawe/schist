@@ -5,7 +5,8 @@ def get_cell_loglikelihood(
     state,
     level: int = 0,
     rescale = False, 
-    as_weights = False
+    as_weights = False, 
+    as_prob = False
     
 ):
     """
@@ -26,6 +27,8 @@ def get_cell_loglikelihood(
     as_weight
         Return matrix as weights in the range (0, 1), where w = 0 corresponds to the 
         highest (less probable) LL value
+    as_prob
+        Return values as probabilites
 
     Returns
     -------
@@ -53,6 +56,9 @@ def get_cell_loglikelihood(
     
     M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
     
+    if as_prob:
+        rescale = True
+    
     if rescale:
         # some cells may be better in other groups, hence their LL
         # is negative when moved. Rescaling sets the minimum LL in the
@@ -61,7 +67,11 @@ def get_cell_loglikelihood(
         
     if as_weights:
         W = (np.max(M, axis=1)[:, None] - M) 
-        W = W / np.max(W, axis=1)[:, None]
-        M = W
+        return (W / np.max(W, axis=1)[:, None])
+
+    if as_prob:
+        E = np.exp(-M)
+        return (E / np.sum(E, axis=1)[:, None])
+
             
     return M
