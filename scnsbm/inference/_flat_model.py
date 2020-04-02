@@ -38,6 +38,7 @@ def flat_model(
     fast_model: bool = False,
     beta_range: Tuple[float] = (1., 100.),
     steps_anneal: int = 5,
+    resume: bool = False,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -100,6 +101,9 @@ def flat_model(
         Inverse temperature at the beginning and the end of the equilibration
     steps_anneal
         Number of steps in which the simulated annealing is performed
+    resume
+        Start from a previously created model, if any, without initializing a novel
+        model    
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -132,10 +136,18 @@ def flat_model(
         The BlockModel state object
     """
 
-    if fast_model: 
+    if fast_model or resume: 
         # if the fast_model is chosen perform equilibration anyway
         equilibrate=True
         
+    if resume and ('sbm' not in adata.uns or 'state' not in adata.uns['sbm']):
+        # let the model proceed as default
+        logg.warning('Resuming has been specified but a state was not found\n'
+                     'Will continue with default minimization step')
+
+        resume=False
+        fast_model=False
+
     if random_seed:
         np.random.seed(random_seed)
         gt.seed_rng(random_seed)
@@ -185,6 +197,9 @@ def flat_model(
                               recs=recs,
                               rec_types=rec_types
                               ))
+    elif resume:
+        # create the state and make sure sampling is performed
+        state = adata.uns['sbm']['state'].copy(sampling=True)
     else:
         state = gt.minimize_blockmodel_dl(g, deg_corr=deg_corr,
                                           state_args=dict(recs=recs,
