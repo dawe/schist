@@ -5,7 +5,6 @@ def get_cell_loglikelihood(
     state,
     level: int = 0,
     rescale: bool = False, 
-    as_weights:, bool = False, 
     as_prob: bool = False
     
 ):
@@ -44,6 +43,9 @@ def get_cell_loglikelihood(
         
         level = 0
     
+    if as_prob:
+        rescale = True
+
     if type(state) == gt.NestedBlockState:
         B = gt.BlockState(g, b=state.project_partition(level, 0))
     else:
@@ -56,19 +58,12 @@ def get_cell_loglikelihood(
     
     M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
     
-    if as_prob:
-        rescale = True
-    
     if rescale:
         # some cells may be better in other groups, hence their LL
         # is negative when moved. Rescaling sets the minimum LL in the
         # best group
         M = M - np.min(M, axis=1)[:, None]
         
-    if as_weights:
-        W = (np.max(M, axis=1)[:, None] - M) 
-        return (W / np.max(W, axis=1)[:, None])
-
     if as_prob:
         E = np.exp(-M)
         return (E / np.sum(E, axis=1)[:, None])

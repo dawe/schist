@@ -224,6 +224,9 @@ def nested_model(
     elif resume:
         # create the state and make sure sampling is performed
         state = adata.uns['nsbm']['state'].copy(sampling=True)
+        bs = state.get_bs()
+        # get the graph from state
+        g = state.g
     else:
         state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
                                                  state_args=dict(recs=recs,

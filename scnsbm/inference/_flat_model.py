@@ -200,6 +200,7 @@ def flat_model(
     elif resume:
         # create the state and make sure sampling is performed
         state = adata.uns['sbm']['state'].copy(sampling=True)
+        g = state.g
     else:
         state = gt.minimize_blockmodel_dl(g, deg_corr=deg_corr,
                                           state_args=dict(recs=recs,
