@@ -38,18 +38,19 @@ def get_cell_loglikelihood(
     
     # get the graph from state
     g = state.g
-    if level < 0 or level > len(state.get_levels()):
-        # by now return the lowest level if invalid 
-        
-        level = 0
+    
+    if type(state) == gt.NestedBlockState:
+        B = gt.BlockState(g, b=state.project_partition(level, 0))
+        if level < 0 or level > len(state.get_levels()):
+            # by now return the lowest level if invalid 
+            level = 0
+    else:
+        B = state
+    
     
     if as_prob:
         rescale = True
 
-    if type(state) == gt.NestedBlockState:
-        B = gt.BlockState(g, b=state.project_partition(level, 0))
-    else:
-        B = state
         
     n_cells = g.num_vertices()
     n_blocks = B.get_nonempty_B()
