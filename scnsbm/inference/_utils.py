@@ -4,9 +4,9 @@ import numpy as np
 def get_cell_loglikelihood(
     state,
     level: int = 0,
-    rescale = False, 
-    as_weights = False, 
-    as_prob = False
+    rescale: bool = False, 
+    as_weights:, bool = False, 
+    as_prob: bool = False
     
 ):
     """
