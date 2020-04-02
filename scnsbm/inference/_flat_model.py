@@ -22,7 +22,7 @@ except ImportError:
         """
     )
 
-
+from ._utils import get_cell_loglikelihood
 
 def flat_model(
     adata: AnnData,
@@ -285,6 +285,10 @@ def flat_model(
         c0 = l0_counts.T
         adata.uns['sbm']['cell_marginals'] = c0
 
+    # calculate log-likelihood of cell moves over the remaining levels
+    
+    adata.uns['sbm']['cell_affinity'] = get_cell_loglikelihood(state, as_prob=True)
+    
     # last step is recording some parameters used in this analysis
     adata.uns['sbm']['params'] = dict(
         epsilon=epsilon,

@@ -10,6 +10,7 @@ from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 
 from .._utils import get_graph_tool_from_adjacency, prune_groups
 
+
 try:
     import graph_tool.all as gt
 except ImportError:
@@ -22,7 +23,7 @@ except ImportError:
         """
     )
 
-
+from ._utils import get_cell_loglikelihood
 
 def nested_model(
     adata: AnnData,
@@ -388,6 +389,14 @@ def nested_model(
             f'    Removing levels f{to_remove}'
         )
         adata.obs.drop(to_remove, axis='columns', inplace=True)
+        
+    # calculate log-likelihood of cell moves over the remaining levels
+    levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
+    adata.uns['nsbm']['cell_affinity'] = dict.fromkeys(levels)
+    for l in levels:
+        adata.uns['nsbm']['cell_affinity'][l] = get_cell_loglikelihood(state, 
+                                                                    level=l,
+                                                                    as_prob=True)
     
     # last step is recording some parameters used in this analysis
     adata.uns['nsbm']['params'] = dict(
