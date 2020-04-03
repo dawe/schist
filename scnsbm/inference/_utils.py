@@ -23,9 +23,6 @@ def get_cell_loglikelihood(
         negative log-likelihood, indicating that cells may be better assigned 
         to another group. Set this parameter to `True` if you want 
         every cell to have LL=0 for the best group and avoid negative values
-    as_weight
-        Return matrix as weights in the range (0, 1), where w = 0 corresponds to the 
-        highest (less probable) LL value
     as_prob
         Return values as probabilites
 
