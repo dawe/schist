@@ -391,12 +391,21 @@ def nested_model(
         adata.obs.drop(to_remove, axis='columns', inplace=True)
         
     # calculate log-likelihood of cell moves over the remaining levels
+    # we have to calculate events at level 0 and propagate to upper levels
     levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
     adata.uns['nsbm']['cell_affinity'] = dict.fromkeys(levels)
-    for l in levels:
-        adata.uns['nsbm']['cell_affinity'][l] = get_cell_loglikelihood(state, 
-                                                                    level=l,
-                                                                    as_prob=True)
+    p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
+    
+    adata.uns['nsbm']['cell_affinity'][0] = p0
+    l0 = "%s_level_0" % key_added
+    for nl, level in enumerate(groups.columns[1:]):
+        cross_tab = pd.crosstab(groups.loc[:, l0], groups.loc[:, level])
+        cl = np.zeros((p0.shape[0], cross_tab.shape[1]), dtype=p0.dtype)
+        for x in range(cl.shape[1]):
+            # sum counts of level_0 groups corresponding to
+            # this group at current level
+            cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
+        adata.uns['nsbm']['cell_affinity'][nl + 1] = cl / np.sum(cl, axis=1)[:, None]
     
     # last step is recording some parameters used in this analysis
     adata.uns['nsbm']['params'] = dict(
