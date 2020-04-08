@@ -14,4 +14,4 @@ __email__ = ', '.join([
 ])
 
 # one day I will figure out how to make this automagically
-__version__ = '0.3.1'
+__version__ = '0.3.2'
