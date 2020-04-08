@@ -36,6 +36,7 @@ def flat_model(
     deg_corr: bool = False,
     multiflip: bool = True,
     fast_model: bool = False,
+    n_init: int = 1,
     beta_range: Tuple[float] = (1., 100.),
     steps_anneal: int = 5,
     resume: bool = False,
@@ -97,6 +98,9 @@ def flat_model(
         Whether to skip initial minization step and let the MCMC find a solution. 
         This approach tend to be faster and consume less memory, but 
         less accurate.
+    n_init
+        Number of initial minimizations to be performed. The one with smaller
+        entropy is chosen
     beta_range
         Inverse temperature at the beginning and the end of the equilibration
     steps_anneal
@@ -202,10 +206,15 @@ def flat_model(
         state = adata.uns['sbm']['state'].copy(sampling=True)
         g = state.g
     else:
-        state = gt.minimize_blockmodel_dl(g, deg_corr=deg_corr,
-                                          state_args=dict(recs=recs,
-                                          rec_types=rec_types), 
-                                          **minimize_args)
+        if n_init < 1:
+            n_init = 1
+        
+        states = [gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
+                  state_args=dict(recs=recs,  rec_types=rec_types), 
+                  **minimize_args) for n in range(n_init)]
+                  
+        state = states[np.argmin([s.entropy() for s in states])]    
+
         logg.info('    done', time=start)
         state = state.copy(B=g.num_vertices())
     

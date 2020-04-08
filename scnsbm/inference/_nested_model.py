@@ -38,6 +38,7 @@ def nested_model(
     deg_corr: bool = False,
     multiflip: bool = True,
     fast_model: bool = False,
+    n_init: int = 1,
     beta_range: Tuple[float] = (1., 100.),
     steps_anneal: int = 5,
     resume: bool = False,
@@ -110,6 +111,9 @@ def nested_model(
         Whether to skip initial minization step and let the MCMC find a solution. 
         This approach tend to be faster and consume less memory, but 
         less accurate.
+    n_init
+        Number of initial minimizations to be performed. The one with smaller
+        entropy is chosen
     beta_range
         Inverse temperature at the beginning and the end of the equilibration
     steps_anneal
@@ -229,10 +233,18 @@ def nested_model(
         # get the graph from state
         g = state.g
     else:
-        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
-                                                 state_args=dict(recs=recs,
-                                                 rec_types=rec_types), 
-                                                 **minimize_args)
+        if n_init < 1:
+            n_init = 1
+        
+        states = [gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
+                  state_args=dict(recs=recs,  rec_types=rec_types), 
+                  **minimize_args) for n in range(n_init)]
+                  
+        state = states[np.argmin([s.entropy() for s in states])]    
+#        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
+#                                                 state_args=dict(recs=recs,
+#                                                 rec_types=rec_types), 
+#                                                 **minimize_args)
         logg.info('    done', time=start)
         bs = state.get_bs()
         if len(bs) < hierarchy_length:
@@ -392,6 +404,7 @@ def nested_model(
         
     # calculate log-likelihood of cell moves over the remaining levels
     # we have to calculate events at level 0 and propagate to upper levels
+    logg.info('    calculating cell affinity to groups')
     levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
     adata.uns['nsbm']['cell_affinity'] = dict.fromkeys(levels)
     p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
