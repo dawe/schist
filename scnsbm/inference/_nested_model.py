@@ -286,19 +286,8 @@ def nested_model(
             for l, sl in enumerate(levels):
                 group_marginals[l][sl.get_nonempty_B()] += 1
 
-            # cell marginals need a global variable. It is a mess but this
-            # is due to the way collect_vertex_marginals works.
-            global cell_marginals
-            try:
-                cell_marginals = [sl.collect_vertex_marginals(cell_marginals[l]) for l, sl in enumerate(levels)]
-            except (NameError, ValueError):
-                # due to the way gt updates vertex marginals and the usage
-                # of global variables, our counter is persistent during the
-                # execution. For this we need to reinitialize it
-                cell_marginals = [None] * len(s.get_levels())
-
         gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
-                            max_niter=max_iterations, multiflip=False,
+                            max_niter=max_iterations, multiflip=True,
                             force_niter=niter_collect, mcmc_args=dict(niter=10),
                             callback=_collect_marginals)
         logg.info('    done', time=start)
@@ -366,33 +355,12 @@ def nested_model(
     # now add marginal probabilities.
 
     if collect_marginals:
-        # cell marginals will be a list of arrays with probabilities
-        # of belonging to a specific group
-        adata.uns['nsbm']['cell_marginals'] = {}
-        # get counts for the lowest levels, cells by groups. This will be summed in the
-        # parent levels, according to groupings
-        l0_ngroups = state.get_levels()[0].get_nonempty_B()
-        l0_counts = cell_marginals[0].get_2d_array(range(l0_ngroups))
-        c0 = l0_counts.T
-        adata.uns['nsbm']['cell_marginals'][0] = c0
-
-        l0 = "%s_level_0" % key_added
-        for nl, level in enumerate(groups.columns[1:]):
-            cross_tab = pd.crosstab(groups.loc[:, l0], groups.loc[:, level])
-            cl = np.zeros((c0.shape[0], cross_tab.shape[1]), dtype=c0.dtype)
-            for x in range(cl.shape[1]):
-                # sum counts of level_0 groups corresponding to
-                # this group at current level
-                cl[:, x] = c0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
-            adata.uns['nsbm']['cell_marginals'][nl + 1] = cl     
         # refrain group marginals. We collected data in vector as long as
         # the number of cells, cut them into appropriate length data
         adata.uns['nsbm']['group_marginals'] = {}
         for nl, level_marginals in enumerate(group_marginals):
             idx = np.where(level_marginals > 0)[0] + 1
             adata.uns['nsbm']['group_marginals'][nl] = np.array(level_marginals[:np.max(idx)])
-        # delete global variables (safety?)
-#        del cell_marginals
 
     # prune uninformative levels, if any
     if prune:

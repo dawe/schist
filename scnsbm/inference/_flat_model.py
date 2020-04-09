@@ -237,18 +237,9 @@ def flat_model(
         # how to propagate correctly counts to higher levels
         # I wonder if this should be placed after group definition or not
         logg.info('    collecting marginals')
+        group_marginals = np.zeros(g.num_vertices() + 1)
         def _collect_marginals(s):
-            # cell marginals need a global variable. It is a mess but this
-            # is due to the way collect_vertex_marginals works.
-            global cell_marginals
-            b = gt.perfect_prop_hash([s.b])[0]
-            try:
-                cell_marginals = s.collect_vertex_marginals(cell_marginals, b=b)
-            except (NameError, ValueError):
-                # due to the way gt updates vertex marginals and the usage
-                # of global variables, our counter is persistent during the
-                # execution. For this we need to reinitialize it
-                cell_marginals = None
+            group_marginals[s.get_nonempty_B()] += 1
 
         gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
                             max_niter=max_iterations, multiflip=False,
@@ -286,13 +277,7 @@ def flat_model(
     if collect_marginals:
         # cell marginals will be a list of arrays with probabilities
         # of belonging to a specific group
-        adata.uns['sbm']['cell_marginals'] = {}
-        # get counts for the lowest levels, cells by groups. This will be summed in the
-        # parent levels, according to groupings
-        l0_ngroups = state.get_nonempty_B()
-        l0_counts = cell_marginals.get_2d_array(range(l0_ngroups))
-        c0 = l0_counts.T
-        adata.uns['sbm']['cell_marginals'] = c0
+        adata.uns['sbm']['group_marginals'] = group_marginals
 
     # calculate log-likelihood of cell moves over the remaining levels
     
