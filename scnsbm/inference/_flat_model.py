@@ -45,6 +45,7 @@ def flat_model(
     random_seed: Optional[int] = None,
     key_added: str = 'sbm',
     adjacency: Optional[sparse.spmatrix] = None,
+    neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
     use_weights: bool = False,
     copy: bool = False,
@@ -112,7 +113,10 @@ def flat_model(
         `adata.obs` key under which to add the cluster labels.
     adjacency
         Sparse adjacency matrix of the graph, defaults to
-        `adata.uns['neighbors']['connectivities']`.
+        `adata.uns['neighbors']['connectivities']` in case of scanpy<=1.4.6 or
+        `adata.obsp[neighbors_key][connectivity_key]` for scanpy>1.4.6
+    neighbors_key
+        The key passed to `sc.pp.neighbors`
     directed
         Whether to treat the graph as directed or undirected.
     use_weights
@@ -169,12 +173,18 @@ def flat_model(
     adata = adata.copy() if copy else adata
     # are we clustering a user-provided graph or the default AnnData one?
     if adjacency is None:
-        if 'neighbors' not in adata.uns:
+        if neighbors_key not in adata.uns:
             raise ValueError(
                 'You need to run `pp.neighbors` first '
                 'to compute a neighborhood graph.'
             )
-        adjacency = adata.uns['neighbors']['connectivities']
+        elif 'connectivities_key' in adata.uns[neighbors_key]:
+            # scanpy>1.4.6 has matrix in another slot
+            conn_key = adata.uns[neighbors_key]['connectivities_key']
+            adjacency = adata.obsp[conn_key]
+        else:
+            # scanpy<=1.4.6 has sparse matrix here
+            adjacency = adata.uns[neighbors_key]['connectivities']
     if restrict_to is not None:
         restrict_key, restrict_categories = restrict_to
         adjacency, restrict_indices = restrict_adjacency(
