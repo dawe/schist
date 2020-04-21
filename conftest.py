@@ -3,8 +3,13 @@ import scanpy as sc
 sc.settings.verbosity=2                           
 adata = sc.datasets.blobs() 
 sc.tl.pca(adata)                                                        
-sc.pp.neighbors(adata, n_neighbors=3, key_added='foo')
-scnsbm.inference.nested_model(adata, fast_model=True, use_weights=False,  wait=10, equilibrate_args=dict(force_niter=2,verbose=True) , neighbors_key='foo')          
+try:
+    sc.pp.neighbors(adata, n_neighbors=3, key_added='foo')
+    scnsbm.inference.nested_model(adata, fast_model=True, use_weights=False,  wait=10, equilibrate_args=dict(force_niter=2,verbose=True) , neighbors_key='foo')          
+except TypeError:
+    sc.pp.neighbors(adata, n_neighbors=3)
+    scnsbm.inference.nested_model(adata, fast_model=True, use_weights=False,  wait=10, equilibrate_args=dict(force_niter=2,verbose=True) )
+
 scnsbm.io.write(adata, prefix='test')
 adata = scnsbm.io.read(prefix='test')
 sc.pp.neighbors(adata, n_neighbors=3)
