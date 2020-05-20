@@ -28,8 +28,8 @@ from ._utils import get_cell_loglikelihood
 def nested_model(
     adata: AnnData,
     max_iterations: int = 1000000,
-    epsilon: float = 1e-3,
-    equilibrate: bool = True,
+    epsilon: float = 0,
+    equilibrate: bool = False,
     wait: int = 1000,
     nbreaks: int = 2,
     collect_marginals: bool = False,
