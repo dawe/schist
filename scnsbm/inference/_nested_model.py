@@ -384,7 +384,7 @@ def nested_model(
     # we have to calculate events at level 0 and propagate to upper levels
     logg.info('    calculating cell affinity to groups')
     levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
-    adata.uns['nsbm']['cell_affinity'] = [str(x) for x in dict.fromkeys(levels)]
+    adata.uns['nsbm']['cell_affinity'] = dict.fromkeys([str(x) for x in levels])
     p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
     
     adata.uns['nsbm']['cell_affinity'][0] = p0
