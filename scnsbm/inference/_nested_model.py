@@ -384,7 +384,7 @@ def nested_model(
     # we have to calculate events at level 0 and propagate to upper levels
     logg.info('    calculating cell affinity to groups')
     levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
-    adata.uns['nsbm']['cell_affinity'] = dict.fromkeys(levels)
+    adata.uns['nsbm']['cell_affinity'] = [str(x) for x in dict.fromkeys(levels)]
     p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
     
     adata.uns['nsbm']['cell_affinity'][0] = p0
@@ -396,7 +396,7 @@ def nested_model(
             # sum counts of level_0 groups corresponding to
             # this group at current level
             cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
-        adata.uns['nsbm']['cell_affinity'][nl + 1] = cl / np.sum(cl, axis=1)[:, None]
+        adata.uns['nsbm']['cell_affinity'][str(nl + 1)] = cl / np.sum(cl, axis=1)[:, None]
     
     # last step is recording some parameters used in this analysis
     adata.uns['nsbm']['params'] = dict(
