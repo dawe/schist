@@ -264,7 +264,7 @@ def nested_model(
             bs += [np.zeros(1)] * (hierarchy_length - len(bs))
         else:
             logg.warning(f'A hierarchy length of {hierarchy_length} has been specified\n'
-                         'but the minimized model contains {len(bs)} levels')
+                         f'but the minimized model contains {len(bs)} levels')
             pass    
         # create a new state with inferred blocks   
         state = gt.NestedBlockState(g, bs, state_args=dict(recs=recs,

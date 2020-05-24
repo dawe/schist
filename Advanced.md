@@ -28,17 +28,17 @@ One of the main limitations of scNSBM is that it requires significantly more tim
 In the standard approach, the model is initialized by minimizing the description length (entropy) before running the MCMC algorithm. This requires extra time but, in general, returns better results. It is possible to skip the initial minimization and the sweep step of MCMC setting 
 
 ```python
-nested_model(adata, fast_model=True)
+nested_model(adata, fast_model=True, equilibrate=True)
 ```
 
-This will seed the model with a dummy description of the graph where every cell belongs to its own partition. This approach is generally faster and requires less memory, but it could be less precise
+This will seed the model with a dummy description of the graph where every cell belongs to its own partition. This approach is generally faster and requires less memory, but it could be less precise. Note that since v0.3.3 MCMC equilibration is not performed by default.
 
 ### Marginals
 
 When using the following invocation 
 
 ```python
-nested_model(adata, collect_marginals=True)
+nested_model(adata, collect_marginals=True, equilibrate=True)
 ```
 
 an additional step (with fixed number of iterations) is added to execution. During this step, scNSBM collects the probability of having a certain number of groups for each level of the hierarchy. These are stored into `adata.uns['nsbm']['group_marginals']`:
