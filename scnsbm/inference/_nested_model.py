@@ -140,7 +140,7 @@ def nested_model(
         Some high levels in hierarchy may contain the same information in terms of 
         cell assignments, even if they apparently have different group names. When this
         option is set to `True`, the function only returns informative levels.
-        Note, however, that cell_marginals are still reported for all levels. Pruning
+        Note, however, that cell affinities are still reported for all levels. Pruning
         does not rename group levels
     return_low
         Whether or not return nsbm_level_0 in adata.obs. This level usually contains
@@ -161,7 +161,7 @@ def nested_model(
         and `n_iterations`.
     `adata.uns['nsbm']['stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.uns['nsbm']['cell_marginals']`
+    `adata.uns['nsbm']['cell_affinity']`
         A `np.ndarray` with cell probability of belonging to a specific group
     `adata.uns['nsbm']['state']`
         The NestedBlockModel state object
@@ -351,14 +351,6 @@ def nested_model(
         adata.uns['nsbm']['stats']['nattempts'] = nattempts
         adata.uns['nsbm']['stats']['nmoves'] = nmoves
 
-
-    if collect_marginals:
-        # since we have cell marginals we can also calculate
-        # mean field entropy.
-        adata.uns['nsbm']['stats']['mf_entropy'] = np.array([gt.mf_entropy(sl.g,
-                                                             cell_marginals[l])
-                                                             for l, sl in
-                                                             enumerate(state.get_levels())])
 
     adata.uns['nsbm']['state'] = state
 

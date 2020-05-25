@@ -138,7 +138,7 @@ def flat_model(
         and `n_iterations`.
     `adata.uns['sbm']['stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.uns['sbm']['cell_marginals']`
+    `adata.uns['sbm']['cell_affinity']`
         A `np.ndarray` with cell probability of belonging to a specific group
     `adata.uns['sbm']['state']`
         The BlockModel state object
