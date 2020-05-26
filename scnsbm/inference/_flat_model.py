@@ -301,6 +301,7 @@ def flat_model(
         equilibrate=equilibrate,
         fast_model=fast_model,
         collect_marginals=collect_marginals,
+        random_seed=random_seed
     )
 
 

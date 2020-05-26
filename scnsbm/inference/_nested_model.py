@@ -399,6 +399,7 @@ def nested_model(
         fast_model=fast_model,
         collect_marginals=collect_marginals,
         hierarchy_length=hierarchy_length,
+        random_seed=random_seed,
         prune=prune,
     )
 
