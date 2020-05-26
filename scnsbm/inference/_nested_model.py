@@ -35,7 +35,7 @@ def nested_model(
     collect_marginals: bool = False,
     niter_collect: int = 10000,
     hierarchy_length: int = 10,
-    deg_corr: bool = False,
+    deg_corr: bool = True,
     multiflip: bool = True,
     fast_model: bool = False,
     n_init: int = 1,
