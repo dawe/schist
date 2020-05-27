@@ -291,7 +291,7 @@ def flat_model(
 
     # calculate log-likelihood of cell moves over the remaining levels
     
-    adata.uns['sbm']['cell_affinity'] = get_cell_loglikelihood(state, as_prob=True)
+    adata.uns['sbm']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
     
     # last step is recording some parameters used in this analysis
     adata.uns['sbm']['params'] = dict(
