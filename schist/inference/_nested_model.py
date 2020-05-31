@@ -257,7 +257,7 @@ def nested_model(
 #                                                 **minimize_args)
         logg.info('    done', time=start)
         bs = state.get_bs()
-        if len(bs) < hierarchy_length:
+        if len(bs) <= hierarchy_length:
             # increase hierarchy length up to the specified value
             # according to Tiago Peixoto 10 is reasonably large as number of
             # groups decays exponentially

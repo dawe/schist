@@ -7,7 +7,7 @@ _path = Path('requirements.txt')
 with _path.open() as requirements:
     requires = [l.strip() for l in requirements]
 
-version='0.3.4'
+version='0.4.0'
 
     
 try:
@@ -22,7 +22,7 @@ except ImportError:
             """
     )    
 
-setup(name='scnsbm',
+setup(name='schist',
       version=version,
       description='Nested Stochastic Block Model applied to single cell data.',
       long_description='Partitioning of neighborhood graphs in Scanpy using Nested Stochastic Block Model.',
