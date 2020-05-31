@@ -1,7 +1,7 @@
 <img src="https://travis-ci.org/dawe/scNSBM.svg?branch=master" title="Build status">
 <img src="https://img.shields.io/github/commit-activity/m/dawe/scNSBM" title="Commit activity">
 
-# scNSBM
+# SCHIST
 An interface for Nested Stochastic Block Model for single cell analysis.
 
 ## Status
@@ -13,7 +13,7 @@ An interface for Nested Stochastic Block Model for single cell analysis.
 
 
 ## How to use
-Once scNSBM has been installed, it can be used out of the box on `scanpy` objects:
+Once `schist` has been installed, it can be used out of the box on `scanpy` objects:
 
 ```python
 from schist.inference import nested_model
@@ -25,7 +25,7 @@ Once the MCMC has converged, the `adata.obs` object will contain additional colu
 More details can be found at [this page](Advanced.md)
 
 ## Installation
-scNSBM is not (yet) available on PyPI. You have to install from source as:
+`schist` is not (yet) available on PyPI. You have to install from source as:
 
 ```
 git clone https://github.com/dawe/scNSBM.git

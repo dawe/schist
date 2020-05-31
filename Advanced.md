@@ -1,16 +1,16 @@
 # Advanced usage
 
-This page explains some advanced usage options for scNSBM. 
+This page explains some advanced usage options for `schist`. 
 
 - [Understanding NSBM](#Understanding-NSBM)
 - [Plotting](#Plotting)
 
 ## Understanding NSBM
 
-scNSBM is based on Nested Stochastic Block Models (NSBM), a generative process based on the notion of group of nodes. Here, we use NSBM to cluster cells in scRNA-seq experiments.
+`schist` is based on Nested Stochastic Block Models (NSBM), a generative process based on the notion of group of nodes. Here, we use NSBM to cluster cells in scRNA-seq experiments.
 
 ### Bayesian approach
-Cell to cell relations are commonly represented as a neighborhood graph (typically KNN or  SNN), cell groups are identified as graph communities, this step is usually performed maximising graph modularity. In scNSBM, instead, partitioning is performed maximising the  Bayesian posterior probability **P(b|A)**, that is the likehood of generating a network _A_ with a partition _b_ and it is obtained according to 
+Cell to cell relations are commonly represented as a neighborhood graph (typically KNN or  SNN), cell groups are identified as graph communities, this step is usually performed maximising graph modularity. In `schist`, instead, partitioning is performed maximising the  Bayesian posterior probability **P(b|A)**, that is the likehood of generating a network _A_ with a partition _b_ and it is obtained according to 
 
 <img src="https://latex.codecogs.com/gif.latex?P(\boldsymbol&space;b&space;|&space;\boldsymbol&space;A)&space;=&space;\frac{P(\boldsymbol&space;A|\boldsymbol\theta,&space;\boldsymbol&space;b)P(\boldsymbol\theta,&space;\boldsymbol&space;b)}{P(\boldsymbol&space;A)}" title="P(\boldsymbol b | \boldsymbol A) = \frac{\sum_{\boldsymbol\theta}P(\boldsymbol A|\boldsymbol\theta, \boldsymbol b)P(\boldsymbol\theta, \boldsymbol b)}{P(\boldsymbol A)}">
 
@@ -20,8 +20,8 @@ Where **P(A|θ,b)** is the probability of obtaining the network _A_ given the pa
 
 
 The nested model introduces a hierarchy of priors used to infer the optimal recursive grouping of single cell groups. If you are familiar with Leiden or Louvain methods to find cell groups, you may think at this multilevel approach as a multiresolution one, except that it is not. Here, not only the cell groups at each hierarchy level are found maximising the equation above, but the hierarchy itself (hence the groups of groups) is part of the model.
-Since there may be more than one fit with similar probability, scNSBM uses the `graph-tool` routines to apply a Markov chain Monte Carlo sampling of the posterior distribution aiming to converge to the best model. 
-One of the main limitations of scNSBM is that it requires significantly more time than any other state of the art approach to identify cell groups. This cost comes with the benefit that it is possible to choose between different parameters according to the likelihood of a partition set to be found over a network. 
+Since there may be more than one fit with similar probability, `schist` uses the `graph-tool` routines to apply a Markov chain Monte Carlo sampling of the posterior distribution aiming to converge to the best model. 
+One of the main limitations of `schist` is that it requires significantly more time than any other state of the art approach to identify cell groups. This cost comes with the benefit that it is possible to choose between different parameters according to the likelihood of a partition set to be found over a network. 
 
 ### Fast model vs standard approach
 
@@ -41,7 +41,7 @@ When using the following invocation
 nested_model(adata, collect_marginals=True, equilibrate=True)
 ```
 
-an additional step (with fixed number of iterations) is added to execution. During this step, scNSBM collects the probability of having a certain number of groups for each level of the hierarchy. These are stored into `adata.uns['nsbm']['group_marginals']`:
+an additional step (with fixed number of iterations) is added to execution. During this step, `schist` collects the probability of having a certain number of groups for each level of the hierarchy. These are stored into `adata.uns['nsbm']['group_marginals']`:
 
 ```python
 level = 2
@@ -63,7 +63,7 @@ Prior to version 0.3.4, this option would have collected posterior probabilities
 
 ### Alluvial Plots
 
-scNSBM provides an interface to `graph-tool` to infer Nested Stochastic Block Models from single cell data in `scanpy`. Once models are built, data are partitioned in multiple groups, linked together in hierarchical way. In order to represent a hierarchy, scNSBM implements a simple plot function that represents data using alluvial plots:
+`schist` provides an interface to `graph-tool` to infer Nested Stochastic Block Models from single cell data in `scanpy`. Once models are built, data are partitioned in multiple groups, linked together in hierarchical way. In order to represent a hierarchy, `schist` implements a simple plot function that represents data using alluvial plots:
 
 ```python
 adata = schist.io.read('adata')
@@ -89,7 +89,7 @@ schist.pl.alluvial(adata, level_end=5, level_start=2)
 
 ### Extending `sc.tl.draw_graph()`
 
-`graph-tools` has built-in functionalities to plot graphs. Some of these have been implemented into scNSBM using a syntax compatibile with `scanpy`'s functions. Note that Fruchterman-Reingold spring-block layout is already implemented into `scanpy`, and it gives the same output. 
+`graph-tools` has built-in functionalities to plot graphs. Some of these have been implemented into `schist` using a syntax compatibile with `scanpy`'s functions. Note that Fruchterman-Reingold spring-block layout is already implemented into `scanpy`, and it gives the same output. 
 
 ```python
 adata = schist.io.read('adata')
@@ -99,7 +99,7 @@ sc.pl.draw_graph(adata, layout='fr', color='nsbm_level_2', legend_loc='on data')
 
 <img src="docs/figures/fr_01.png" width=400>
 
-However, scNSBM allows to seed the plot using the graph tree.
+However, `schist` allows to seed the plot using the graph tree.
 
 ```python
 adata = schist.io.read('adata')
