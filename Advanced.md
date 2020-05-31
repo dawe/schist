@@ -57,7 +57,7 @@ title(f'Group marginals for level {level}')
 
 <img src="docs/figures/gm.png" width=400>
 
-Prior to version 0.3.4, this option would have collected posterior probabilities of cells to belong to a certain group. Since this quantity is interesting and it would have required a long time to compute, we'd rather calculate variation of global entropy by moving all cells to all identified groups and transform that into a probaility, which is now stored into `adata.uns['nsbm']['cell_affinity']`. Here, a dictionary keyed with NSBM levels counts the times a cell has been successfully moved to a group. These probabilities can be efficiently used as covariates when looking for marker genes, this approach will weight the belief that a cell belongs to a group. We have prepared a [notebook](https://github.com/dawe/scNSBM-notebooks/blob/master/Cell_Marginals.ipynb) showing an example. 
+Prior to version 0.3.4, this option would have collected posterior probabilities of cells to belong to a certain group. Since this quantity is interesting and it would have required a long time to compute, we'd rather calculate variation of global entropy by moving all cells to all identified groups and transform that into a probaility, which is now stored into `adata.uns['nsbm']['cell_affinity']`. Here, a dictionary keyed with NSBM levels counts the times a cell has been successfully moved to a group. These probabilities can be efficiently used as covariates when looking for marker genes, this approach will weight the belief that a cell belongs to a group. We have prepared a [notebook](https://github.com/dawe/schist-notebooks/blob/master/Cell_Marginals.ipynb) showing an example. 
 
 ## Plotting
 

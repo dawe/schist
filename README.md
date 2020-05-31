@@ -29,8 +29,8 @@ More details can be found at [this page](Advanced.md)
 `schist` is not (yet) available on PyPI. You have to install from source as:
 
 ```
-git clone https://github.com/dawe/scNSBM.git
-cd scNSBM
+git clone https://github.com/dawe/schist.git
+cd schist
 pip install .
 ```
 
@@ -80,7 +80,7 @@ graph_tool/draw/cairo_draw.py:1494: RuntimeWarning: Error importing Gtk module: 
 ```
 
 ### Saving objects
-scNSBM allows to return the `NestedBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
+`schist` allows to return the `NestedBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
 
 ```python
 state = adata.uns['nsbm'].pop('state')
