@@ -66,24 +66,24 @@ Prior to version 0.3.4, this option would have collected posterior probabilities
 scNSBM provides an interface to `graph-tool` to infer Nested Stochastic Block Models from single cell data in `scanpy`. Once models are built, data are partitioned in multiple groups, linked together in hierarchical way. In order to represent a hierarchy, scNSBM implements a simple plot function that represents data using alluvial plots:
 
 ```python
-adata = scnsbm.io.read('adata')
-scnsbm.pl.alluvial(adata)
+adata = schist.io.read('adata')
+schist.pl.alluvial(adata)
 ```
 <img src="docs/figures/alluvial_01.png"  width=400>
 
 This function will plot all levels in hierarchy by default. As many level are uninformative, they can be excluded from the plot
 
 ```python
-adata = scnsbm.io.read('adata')
-scnsbm.pl.alluvial(adata, level_end=5)
+adata = schist.io.read('adata')
+schist.pl.alluvial(adata, level_end=5)
 ```
 <img src="docs/figures/alluvial_02.png" width=400>
 
 Leaf levels can be also excluded
 
 ```python
-adata = scnsbm.io.read('adata')
-scnsbm.pl.alluvial(adata, level_end=5, level_start=2)               
+adata = schist.io.read('adata')
+schist.pl.alluvial(adata, level_end=5, level_start=2)               
 ```
 <img src="docs/figures/alluvial_03.png" width=400>
 
@@ -92,8 +92,8 @@ scnsbm.pl.alluvial(adata, level_end=5, level_start=2)
 `graph-tools` has built-in functionalities to plot graphs. Some of these have been implemented into scNSBM using a syntax compatibile with `scanpy`'s functions. Note that Fruchterman-Reingold spring-block layout is already implemented into `scanpy`, and it gives the same output. 
 
 ```python
-adata = scnsbm.io.read('adata')
-scnsbm.tl.draw_graph(adata, layout='fr') 
+adata = schist.io.read('adata')
+schist.tl.draw_graph(adata, layout='fr') 
 sc.pl.draw_graph(adata, layout='fr', color='nsbm_level_2', legend_loc='on data')     
 ```
 
@@ -102,8 +102,8 @@ sc.pl.draw_graph(adata, layout='fr', color='nsbm_level_2', legend_loc='on data')
 However, scNSBM allows to seed the plot using the graph tree.
 
 ```python
-adata = scnsbm.io.read('adata')
-scnsbm.tl.draw_graph(adata, layout='fr', use_tree=True) 
+adata = schist.io.read('adata')
+schist.tl.draw_graph(adata, layout='fr', use_tree=True) 
 sc.pl.draw_graph(adata, layout='fr', color='nsbm_level_2')
 ```
 
@@ -112,8 +112,8 @@ sc.pl.draw_graph(adata, layout='fr', color='nsbm_level_2')
 Default layout is SFDP spring-block layout
 
 ```python
-adata = scnsbm.io.read('adata')
-scnsbm.tl.draw_graph(adata)
+adata = schist.io.read('adata')
+schist.tl.draw_graph(adata)
 sc.pl.draw_graph(adata, layout='sfdp', color='nsbm_level_2', legend_loc='on data')     
 ```
 
@@ -122,8 +122,8 @@ sc.pl.draw_graph(adata, layout='sfdp', color='nsbm_level_2', legend_loc='on data
 With tree information
 
 ```python
-adata = scnsbm.io.read('adata')
-scnsbm.tl.draw_graph(adata, use_tree=True)
+adata = schist.io.read('adata')
+schist.tl.draw_graph(adata, use_tree=True)
 sc.pl.draw_graph(adata, layout='sfdp', color='nsbm_level_2')     
 ```
 

@@ -22,7 +22,7 @@ except ImportError:
             """
     )    
 
-setup(name='scnsbm',
+setup(name='schist',
       version=version,
       description='Nested Stochastic Block Model applied to single cell data.',
       long_description='Partitioning of neighborhood graphs in Scanpy using Nested Stochastic Block Model.',

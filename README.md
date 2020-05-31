@@ -16,7 +16,7 @@ An interface for Nested Stochastic Block Model for single cell analysis.
 Once scNSBM has been installed, it can be used out of the box on `scanpy` objects:
 
 ```python
-from scnsbm.inference import nested_model
+from schist.inference import nested_model
 
 nested_model(adata)
 ```
@@ -94,7 +94,7 @@ with open('state.pkl', 'wb') as pkl_state:
 Since version 0.2 it is possible to save `AnnData` objects like above simply issuing
 
 ```python
-scnsbm.io.write(adata, prefix='myfile')
+schist.io.write(adata, prefix='myfile')
 ```
 
 This will create two files: `myfile.h5ad`, containing the actual `AnnData`, and 
@@ -102,7 +102,7 @@ This will create two files: `myfile.h5ad`, containing the actual `AnnData`, and
 are in the same place, issuing
 
 ```python
-adata = scnsbm.io.read('myfile')
+adata = schist.io.read('myfile')
 ```
 
 will read the `.h5ad` and the `.pkl` files and create the proper `AnnData` object
