@@ -1,4 +1,7 @@
-|<img src="https://travis-ci.org/dawe/scNSBM.svg?branch=master" title="Build status"> |<img src="https://img.shields.io/github/commit-activity/m/dawe/scNSBM" title="Commit activity">|
+<img src='garnet.png' alt='logo' width="200" height="200">
+
+<img src="https://travis-ci.org/dawe/scNSBM.svg?branch=master" title="Build status"> 
+
 
 
 # SCHIST
