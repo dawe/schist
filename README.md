@@ -1,5 +1,5 @@
-<img src="https://travis-ci.org/dawe/scNSBM.svg?branch=master" title="Build status">
-<img src="https://img.shields.io/github/commit-activity/m/dawe/scNSBM" title="Commit activity">
+|<img src="https://travis-ci.org/dawe/scNSBM.svg?branch=master" title="Build status"> |<img src="https://img.shields.io/github/commit-activity/m/dawe/scNSBM" title="Commit activity">|
+
 
 # SCHIST
 An interface for Nested Stochastic Block Model for single cell analysis.
