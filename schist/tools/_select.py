@@ -51,6 +51,8 @@ def select_affinity(
     
     adata = adata.copy() if copy else adata
 
+    level = str(level) # ensure it is a string
+    
     if level not in adata.uns[key]['cell_affinity']:
         logg.error(f'Level {level} was not found in your data')
         raise
