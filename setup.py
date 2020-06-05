@@ -7,7 +7,7 @@ _path = Path('requirements.txt')
 with _path.open() as requirements:
     requires = [l.strip() for l in requirements]
 
-version='0.4.0'
+version='0.4.1'
 
     
 try:
