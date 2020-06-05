@@ -13,5 +13,6 @@ __email__ = ', '.join([
     'l.morelli2@studenti.unisr.it',
 ])
 
-# one day I will figure out how to make this automagically
-__version__ = '0.4.1'
+from ._version import get_versions
+__version__ = get_versions()['version']
+del get_versions

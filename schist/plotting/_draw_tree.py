@@ -93,6 +93,7 @@ def draw_tree(
             fill_color[v] = node_color[v]
     elif color:
         # let's give the opportunity to color by properties other than nsbm
+        obs_key = color
         color_series = adata.obs[color]
         if color_series.dtype.name == 'category':
             # categorical type, use their colors
@@ -144,6 +145,7 @@ def draw_tree(
             ax.text(text_p[0], text_p[1], f'{pn}')
     ax.set_xticks([])    
     ax.set_yticks([])
+    ax.set_title(obs_key)
     
     if save:
         try:

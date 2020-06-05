@@ -2,12 +2,12 @@ from os import cpu_count
 from setuptools import setup
 from pathlib import Path
 from setuptools import setup, find_packages
+import versioneer
 
 _path = Path('requirements.txt')
 with _path.open() as requirements:
     requires = [l.strip() for l in requirements]
 
-version='0.4.1'
 
     
 try:
@@ -46,4 +46,7 @@ setup(name='schist',
           'Programming Language :: Python :: 3.7',          
       ],
       python_requires='>=3.4',
-      zip_safe=False)
+      zip_safe=False
+      version=versioneer.get_version(),
+      cmdclass=versioneer.get_cmdclass(),
+      )
