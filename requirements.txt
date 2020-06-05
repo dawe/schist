@@ -3,4 +3,3 @@ scipy
 anndata
 pandas
 scanpy
-versioneer
