@@ -81,6 +81,7 @@ def draw_tree(
         for v in range(g.num_vertices()):
             fill_color[v] = [0.502, 0.502, 0.502, 1.0] #gray
     elif level:
+        level = int(level)
         obs_key = f'{key}_level_{level}'
         uns_key = f'{key}_level_{level}_colors'
         adata_colors = adata.uns[uns_key]
