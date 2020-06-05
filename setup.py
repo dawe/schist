@@ -23,7 +23,6 @@ except ImportError:
     )    
 
 setup(name='schist',
-      version=version,
       description='Nested Stochastic Block Model applied to single cell data.',
       long_description='Partitioning of neighborhood graphs in Scanpy using Nested Stochastic Block Model.',
       url='http://github.com/dawe/scNSBM',
@@ -46,7 +45,7 @@ setup(name='schist',
           'Programming Language :: Python :: 3.7',          
       ],
       python_requires='>=3.4',
-      zip_safe=False
+      zip_safe=False,
       version=versioneer.get_version(),
       cmdclass=versioneer.get_cmdclass(),
       )
