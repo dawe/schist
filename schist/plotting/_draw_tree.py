@@ -95,7 +95,7 @@ def draw_tree(
         # let's give the opportunity to color by properties other than nsbm
         obs_key = color
         if color in adata.obs_keys():
-	        color_series = adata.obs[color]
+            color_series = adata.obs[color]
             if color_series.dtype.name == 'category':
                 # categorical type, use their colors
                 try:
@@ -116,7 +116,7 @@ def draw_tree(
                     cmap = mpl.cm.get_cmap(plt.rcParams['image.cmap'])
                 elif type(color_map) == str:
                     cmap = mpl.cm.get_cmap(color_map)
-        
+
                 map_values = MinMaxScaler().fit_transform(adata.obs[color][:, None]).ravel()
                 node_color = cmap(map_values)
                 for v in range(len(node_color)):
