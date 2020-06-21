@@ -94,34 +94,41 @@ def draw_tree(
     elif color:
         # let's give the opportunity to color by properties other than nsbm
         obs_key = color
-        color_series = adata.obs[color]
-        if color_series.dtype.name == 'category':
-            # categorical type, use their colors
-            try:
-                adata_colors = adata.uns[f'{color}_colors']
-                categories = adata.obs[color].cat.categories
-                colors = [mpl.colors.to_rgba(x) for x in adata_colors]
-                colors = dict(zip(categories, colors))
-                node_color = [colors[x] for x in adata.obs[color]]
+        if color in adata.obs_keys():
+	        color_series = adata.obs[color]
+            if color_series.dtype.name == 'category':
+                # categorical type, use their colors
+                try:
+                    adata_colors = adata.uns[f'{color}_colors']
+                    categories = adata.obs[color].cat.categories
+                    colors = [mpl.colors.to_rgba(x) for x in adata_colors]
+                    colors = dict(zip(categories, colors))
+                    node_color = [colors[x] for x in adata.obs[color]]
+                    for v in range(len(node_color)):
+                        fill_color[v] = node_color[v]
+                except KeyError:
+                    # no color is present for that annotation
+                    logg.warning(f'No color is defined for {color}, switching to default')
+            elif color_series.dtype.kind in 'biufc':
+                # numeric type, use a colormap
+                cmap = color_map
+                if not color_map:
+                    cmap = mpl.cm.get_cmap(plt.rcParams['image.cmap'])
+                elif type(color_map) == str:
+                    cmap = mpl.cm.get_cmap(color_map)
+        
+                map_values = MinMaxScaler().fit_transform(adata.obs[color][:, None]).ravel()
+                node_color = cmap(map_values)
                 for v in range(len(node_color)):
                     fill_color[v] = node_color[v]
-            except KeyError:
-                # no color is present for that annotation
-                logg.warning(f'No color is defined for {color}, switching to default')
-        elif color_series.dtype.kind in 'biufc':
-            # numeric type, use a colormap
+        elif color in adata.var_names:
             cmap = color_map
             if not color_map:
                 cmap = mpl.cm.get_cmap(plt.rcParams['image.cmap'])
             elif type(color_map) == str:
                 cmap = mpl.cm.get_cmap(color_map)
-        
-            map_values = MinMaxScaler().fit_transform(adata.obs[color][:, None]).ravel()
+            map_values = MinMaxScaler().fit_transform(np.array(adata[:, color].X)).ravel()    
             node_color = cmap(map_values)
-            for v in range(len(node_color)):
-                fill_color[v] = node_color[v]
-        
-    
 
     fig = plt.figure(figsize=(10, 10), frameon=False)
     ax = fig.add_subplot(111)
