@@ -17,3 +17,5 @@ schist.inference.flat_model(adata, fast_model=True, use_weights=False, wait=10, 
 schist.inference.nested_model(adata, resume=True, wait=10)
 schist.inference.flat_model(adata, resume=True, wait=10)
 schist.inference.nested_model(adata, n_init=2, equilibrate=False) 
+schist.tools.cell_stability(adata)
+schist.tools.cluster_consistency(adata, level=2)
