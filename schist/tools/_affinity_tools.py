@@ -65,11 +65,8 @@ def cluster_consistency(
 
     # now assign consistency to each cell, according to their group
     e_dict = dict(zip(adata.obs[group].cat.categories, entropy))
-    e_vals = np.ones(adata.shape[0])
     g = adata.obs[group].values
-    for x in range(e_vals):
-        e_vals[x] = e_dict[g[x]]
-    adata.obs['cluster_consistency'] = e_vals
+    adata.obs['cluster_consistency'] = [e_dict[g[x]] for x in range(adata.shape[0])]
     
     return adata if copy else None
 
