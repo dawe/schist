@@ -36,7 +36,7 @@ def get_cell_loglikelihood(
     # get the graph from state
     g = state.g
     
-    if type(state) == gt.NestedBlockState:
+    if isinstance(state, gt.NestedBlockState):
         if level < 0 or level > len(state.get_levels()):
             # by now return the lowest level if invalid 
             level = 0
