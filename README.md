@@ -112,7 +112,7 @@ adata = schist.io.read('myfile')
 
 will read the `.h5ad` and the `.pkl` files and create the proper `AnnData` object
 
-### Cite
+## Cite
 We are preparing the manuscript. In the meantime, if you use `schist` you may cite the preprint:
 
 ```
@@ -130,5 +130,5 @@ doi = {10.1101/2020.06.28.176180},
 ```
 
 
-### Name
+## Name
 `schist` is a [type of rock](https://en.wikipedia.org/wiki/Schist). Previous name for this project was `scNSBM`, which was hard to pronounce and caused typos when writing (`scnbsm` or `scbsnm` and so on…). We looked for a name which should have "single cell" in it (sc), something about the stochastic model (st) and something about the hierarchy (hi). That's were `schist` comes from. 
