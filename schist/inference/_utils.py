@@ -41,10 +41,10 @@ def get_cell_loglikelihood(
             # by now return the lowest level if invalid 
             level = 0
         B = gt.BlockState(g, b=state.project_partition(level, 0))
-    elif isinstance(state, gt.PPBlockState):
-        # PP doesn't support virtual moves, so we transform it into
-        # a blockstate 
-        B = gt.BlockState(g, b=state.get_blocks())
+#    elif isinstance(state, gt.PPBlockState):
+#        # PP doesn't support virtual moves, so we transform it into
+#        # a blockstate 
+#        B = gt.BlockState(g, b=state.get_blocks())
     else:
         B = state
     
