@@ -148,7 +148,6 @@ def planted_model(
     check_gt_version()
     
     if resume: 
-        # if the fast_model is chosen perform equilibration anyway
         equilibrate=True
         
     if resume and (key not in adata.uns or 'state' not in adata.uns[key]):
@@ -232,7 +231,6 @@ def planted_model(
         equilibrate_args['wait'] = wait
         equilibrate_args['nbreaks'] = nbreaks
         equilibrate_args['max_niter'] = max_iterations
-        equilibrate_args['multiflip'] = multiflip
         equilibrate_args['mcmc_args'] = {'niter':10}
         
         dS, nattempts, nmoves = gt.mcmc_anneal(state, 
@@ -250,7 +248,7 @@ def planted_model(
             group_marginals[s.get_B()] += 1
 
         gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
-                            max_niter=max_iterations, multiflip=False,
+                            max_niter=max_iterations, multiflip=True,
                             force_niter=niter_collect, mcmc_args=dict(niter=10),
                             callback=_collect_marginals)
         logg.info('    done', time=start)
@@ -289,15 +287,14 @@ def planted_model(
 
     # calculate log-likelihood of cell moves over the remaining levels
     
-    adata.uns[key]['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
+    adata.uns[key]['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
     
     # last step is recording some parameters used in this analysis
-    adata.uns['sbm']['params'] = dict(
+    adata.uns[key]['params'] = dict(
         epsilon=epsilon,
         wait=wait,
         nbreaks=nbreaks,
         equilibrate=equilibrate,
-        fast_model=fast_model,
         collect_marginals=collect_marginals,
         random_seed=random_seed
     )
@@ -307,7 +304,7 @@ def planted_model(
         '    finished',
         time=start,
         deep=(
-            f'found {state.get_nonempty_B()} clusters and added\n'
+            f'found {state.get_B()} clusters and added\n'
             f'    {key_added!r}, the cluster labels (adata.obs, categorical)'
         ),
     )
