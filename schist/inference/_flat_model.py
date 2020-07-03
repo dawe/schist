@@ -144,6 +144,10 @@ def flat_model(
         The BlockModel state object
     """
 
+    raise DeprecationWarning("""This function has been deprecated since version 
+    0.5.0, please consider usage of planted_model instead.
+    """)
+
     if fast_model or resume: 
         # if the fast_model is chosen perform equilibration anyway
         equilibrate=True
