@@ -170,7 +170,7 @@ def planted_model(
                 "`collect_marginals` to `False`"
             )
 
-    start = logg.info('minimizing the Stochastic Block Model')
+    start = logg.info('minimizing the Planted Partition Block Model')
     adata = adata.copy() if copy else adata
     # are we clustering a user-provided graph or the default AnnData one?
     if adjacency is None:
