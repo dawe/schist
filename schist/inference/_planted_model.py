@@ -45,7 +45,7 @@ def planted_model(
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
-    key_added: str = 'psbm',
+    key_added: str = 'ppbm',
     adjacency: Optional[sparse.spmatrix] = None,
     neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
