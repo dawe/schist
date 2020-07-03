@@ -23,7 +23,7 @@ def check_gt_version(min_v=2.33):
     import graph_tool.all as gt
     raw_v = gt.__version__[:4]
     if float(raw_v) < min_v:
-        raise VersionError(f"""
+        raise ImportError(f"""
         You should install graph-tool version {min_v} to use this Feature.
         You have version {raw_v}
         """)
