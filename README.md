@@ -8,6 +8,7 @@
 An interface for Nested Stochastic Block Model for single cell analysis.
 
 ## Status
+- Version 0.5.0 Introduces Planted Partition model
 - Version 0.4.2 Introduces functions to calculate cluster consistency.
 - Version 0.4.0 Some bugfixes and name change to `schist`
 - Version 0.3.1 It is possible to resume operatons on a previously modeled state (i.e. you can do two step analysis)
