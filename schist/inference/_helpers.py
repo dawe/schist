@@ -8,8 +8,10 @@ def pp_virtual_vertex_move(state, v, s):
     
     """
     
-    blocks = state.get_blocks()
-    E0 = state.entropy()
+    blocks = np.array(state.get_blocks().get_array())
+    # IDK what's going on here, but apparently entropy of state and of 
+    # reinitialied state is different, take this one
+    E0 = gt.PPBlockState(g, b=blocks).entropy() 
     blocks[v] = s 
     E1 = gt.PPBlockState(g, b=blocks).entropy()  
     return E1 - E0
