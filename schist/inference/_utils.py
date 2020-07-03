@@ -41,20 +41,19 @@ def get_cell_loglikelihood(
             # by now return the lowest level if invalid 
             level = 0
         B = gt.BlockState(g, b=state.project_partition(level, 0))
-    elif isinstance(state, gt.PPBlockState):
-        # PP doesn't support virtual moves, so we transform it into
-        # a blockstate 
-        B = gt.BlockState(g, b=state.get_blocks())
     else:
         B = state
     
     
     n_cells = g.num_vertices()
-    n_blocks = B.get_nonempty_B()
-    
-    shape = (n_cells, n_blocks)
-    
-    M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
+    if isinstance(B, gt.PPBlockState):
+        blocks = B.get_blocks().get_array()
+        n_blocks = len(blocks)
+        M = np.array([pp_virtual_vertex_move(B, v, s) for v in range(n_cells) for s in blocks])
+    else:
+        n_blocks = B.get_nonempty_B()
+        shape = (n_cells, n_blocks)
+        M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
     
     if rescale:
         # some cells may be better in other groups, hence their LL
