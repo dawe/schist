@@ -1,6 +1,8 @@
 import graph_tool.all as gt
 import numpy as np
 
+from ._helpers import *
+
 def get_cell_loglikelihood(
     state,
     level: int = 0,
@@ -46,14 +48,14 @@ def get_cell_loglikelihood(
     
     
     n_cells = g.num_vertices()
-    if isinstance(B, gt.PPBlockState):
-        blocks = B.get_blocks().get_array()
-        n_blocks = len(blocks)
-        M = np.array([pp_virtual_vertex_move(B, v, s) for v in range(n_cells) for s in blocks])
-    else:
+    if isinstance(B, gt.BlockState):
         n_blocks = B.get_nonempty_B()
         shape = (n_cells, n_blocks)
         M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
+    elif isinstance(B, gt.PPBlockState):
+        blocks = B.get_blocks().get_array()
+        n_blocks = len(blocks)
+        M = np.array([pp_virtual_vertex_move(B, v, s) for v in range(n_cells) for s in np.unique(blocks)])
     
     if rescale:
         # some cells may be better in other groups, hence their LL

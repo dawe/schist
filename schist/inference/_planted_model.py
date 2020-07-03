@@ -150,7 +150,7 @@ def planted_model(
     if resume: 
         equilibrate=True
         
-    if resume and (key not in adata.uns or 'state' not in adata.uns[key]):
+    if resume and (key_added not in adata.uns or 'state' not in adata.uns[key_added]):
         # let the model proceed as default
         logg.warning('Resuming has been specified but a state was not found\n'
                      'Will continue with default minimization step')
@@ -207,7 +207,7 @@ def planted_model(
 
     if resume:
         # create the state and make sure sampling is performed
-        state = adata.uns[key]['state'].copy()
+        state = adata.uns[key_added]['state'].copy()
         g = state.g
     else:
         if n_init < 1:
@@ -217,11 +217,20 @@ def planted_model(
         states = [gt.PPBlockState(g) for x in range(n_init)]
         
         # perform a mcmc sweep on each 
-        [x.multiflip_mcmc_sweep(beta=beta, niter=n_sweep) for x in states]
+        # no list comprehension as I need to collect stats
         
-        # select the best
-                  
-        state = states[np.argmin([s.entropy() for s in states])]    
+        _dS = np.zeros(n_init)
+        _nattempts = np.zeros(n_init)
+        _nmoves = np.zeros(n_init)
+        for x in range(n_init):
+            _dS[x], _nattempts[x], _nmoves[x] = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
+
+        _amin = np.argmin([s.entropy() for s in states])            
+        state = states[_amin]
+        dS = _dS[_amin]
+        nattempts = _nattempts[_amin]
+        nmoves = _nmoves[_amin]
+        
 
         logg.info('    done', time=start)
     
@@ -269,28 +278,28 @@ def planted_model(
 
     # add some unstructured info
 
-    adata.uns[key] = {}
-    adata.uns[key]['stats'] = dict(
+    adata.uns[key_added] = {}
+    adata.uns[key_added]['stats'] = dict(
     dS=dS,
     nattempts=nattempts,
     nmoves=nmoves,
     modularity=gt.modularity(g, state.get_blocks())
     )
-    adata.uns[key]['state'] = state
+    adata.uns[key_added]['state'] = state
 
     # now add marginal probabilities.
 
     if collect_marginals:
         # cell marginals will be a list of arrays with probabilities
         # of belonging to a specific group
-        adata.uns[key]['group_marginals'] = group_marginals
+        adata.uns[key_added]['group_marginals'] = group_marginals
 
     # calculate log-likelihood of cell moves over the remaining levels
     
-    adata.uns[key]['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
+    # adata.uns[key_added]['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
     
     # last step is recording some parameters used in this analysis
-    adata.uns[key]['params'] = dict(
+    adata.uns[key_added]['params'] = dict(
         epsilon=epsilon,
         wait=wait,
         nbreaks=nbreaks,
