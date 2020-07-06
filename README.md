@@ -31,7 +31,14 @@ Once the MCMC has converged, the `adata.obs` object will contain additional colu
 More details can be found at [this page](Advanced.md)
 
 ## Installation
-`schist` is not (yet) available on PyPI. You have to install from source as:
+The key component (`graph-tool`) is not available through pip and requires extra compilation by the user, refer to its [installation page](https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions). Note, however, that a conda package is available from conda-forge, that means you may install it (and `schist` dependencies) just issuing
+
+```
+conda create -n schist -c conda-forge -c bioconda numpy scipy anndata pandas graph-tool>=2.33 scanpy
+conda activate schist
+```
+
+After that, `schist` can be installed from source:
 
 ```
 git clone https://github.com/dawe/schist.git
@@ -39,51 +46,8 @@ cd schist
 pip install .
 ```
 
-The following dependencies will be managed by pip itself
-
-- `numpy`
-- `scipy`
-- `anndata`
-- `pandas`
-- `scanpy`
-
-Alas, the key component (`graph-tool`) is not available through pip and requires extra compilation by the user, refer to its [installation page](https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions). Note, however, that a conda package is available from conda-forge, that means you may install it just issuing
-
-```
-conda install -c conda-forge graph-tool
-```
-
-Since version 0.3.0 MCMC is performed by simulated annealing. This relies on the `gt.mcmc_anneal()` function by `graph_tool`. Unfortunately v 2.29 has a bug in this function, so you are required to patch it (until is fixed).  First identify the path of `graph_tool` library, which is likely something
-
-```
-${CONDA_PREFIX}/lib/${PYTHON_VERSION}/site-packages/graph_tool/
-```
-
-or
-
-```
-${PYTHON_INSTALL_DIR}/lib/${PYTHON_VERSION}/site-packages/graph_tool/
-```
-
-then you'll need to apply the patch `patch.mcmc.txt` file, to fix the variable `attempts` into `nattempts` at line 266. Simply do 
-
-```bash
-cd ${GRAPH_TOOL}/inference
-patch -p0 < ${PATH_TO_PATCH}/patch.mcmc.txt
-```
-
-where `$GRAPH_TOOL` is the directory where `graph_tool` is installed, and `$PATH_TO_PATCH` is the path where you downloaded this repository.
-
 
 ## Known issues
-### Cairo interface
-`graph-tool` requilres `Gtk` to plot graphs. We do not plan to use those capabilities natively. This means that you may safely disregard the following warning:
-
-```python
-graph_tool/draw/cairo_draw.py:1494: RuntimeWarning: Error importing Gtk module: No module named 'gi'; GTK+ drawing will not work.
-  warnings.warn(msg, RuntimeWarning)
-```
-
 ### Saving objects
 `schist` allows to return the `NestedBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
 
