@@ -38,6 +38,7 @@ def nested_model(
     deg_corr: bool = True,
     multiflip: bool = True,
     fast_model: bool = False,
+    fast_tol: float = 1e-6,
     n_init: int = 1,
     beta_range: Tuple[float] = (1., 100.),
     steps_anneal: int = 5,
@@ -110,8 +111,10 @@ def nested_model(
         the hood it allows for a more efficient space exploration.
     fast_model
         Whether to skip initial minization step and let the MCMC find a solution. 
-        This approach tend to be faster and consume less memory, but 
+        This approach tend to be faster and consume less memory, but may be
         less accurate.
+    fast_tol
+        Tolerance for fast model convergence.
     n_init
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
@@ -167,7 +170,7 @@ def nested_model(
         The NestedBlockModel state object
     """
 
-    if fast_model or resume: 
+    if resume: 
         # if the fast_model is chosen perform equilibration anyway
         # also if a model has previously created
         equilibrate=True
@@ -178,7 +181,6 @@ def nested_model(
                      'Will continue with default minimization step')
 
         resume=False
-        fast_model=False
         
     if random_seed:
         np.random.seed(random_seed)
@@ -230,12 +232,17 @@ def nested_model(
 
     if fast_model:
         # do not minimize, start with a dummy state and perform only equilibrate
-        bs = [np.zeros(1)] * hierarchy_length
-        state = gt.NestedBlockState(g=g, bs=bs, sampling=True,
+        state = gt.NestedBlockState(g=g,
                                     state_args=dict(deg_corr=deg_corr,
                                     recs=recs,
                                     rec_types=rec_types
                                     ))
+        dS = 1
+        while np.abs(dS) > fast_tol:
+            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=10, beta=np.inf)
+        bs = state.get_bs()    
+        logg.info('    done', time=start)
+        
     elif resume:
         # create the state and make sure sampling is performed
         state = adata.uns['nsbm']['state'].copy(sampling=True)
