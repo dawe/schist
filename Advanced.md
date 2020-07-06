@@ -25,13 +25,13 @@ One of the main limitations of `schist` is that it requires significantly more t
 
 ### Fast model vs standard approach
 
-In the standard approach, the model is initialized by minimizing the description length (entropy) before running the MCMC algorithm. This requires extra time but, in general, returns better results. It is possible to skip the initial minimization and the sweep step of MCMC setting 
+In the standard approach, the model is initialized by minimizing the description length (entropy). This requires extra time but, in general, returns better results. It is possible to achieve good results with lower memory footprint and in shorter times settting `fast_model`:
 
 ```python
-nested_model(adata, fast_model=True, equilibrate=True)
+nested_model(adata, fast_model=True)
 ```
 
-This will seed the model with a dummy description of the graph where every cell belongs to its own partition. This approach is generally faster and requires less memory, but it could be less precise. Note that since v0.3.3 MCMC equilibration is not performed by default.
+This will seed the model with a dummy partition scheme, then a greedy merge-split MCMC will explore solutions until it converges.
 
 ### Marginals
 
