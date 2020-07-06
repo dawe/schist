@@ -39,9 +39,11 @@ def nested_model(
     multiflip: bool = True,
     fast_model: bool = False,
     fast_tol: float = 1e-6,
+    n_sweep: int = 10,
+    beta: float = np.inf,
     n_init: int = 1,
-    beta_range: Tuple[float] = (1., 100.),
-    steps_anneal: int = 5,
+    beta_range: Tuple[float] = (1., 1000.),
+    steps_anneal: int = 3,
     resume: bool = False,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
@@ -115,6 +117,10 @@ def nested_model(
         less accurate.
     fast_tol
         Tolerance for fast model convergence.
+    n_sweep 
+        Number of iterations to be performed in the fast model MCMC greedy approach
+    beta
+        Inverse temperature for MCMC greedy approach    
     n_init
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
@@ -230,16 +236,29 @@ def nested_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
+    if n_init < 1:
+        n_init = 1
+
     if fast_model:
         # do not minimize, start with a dummy state and perform only equilibrate
-        state = gt.NestedBlockState(g=g,
+
+        states = [gt.NestedBlockState(g=g,
                                     state_args=dict(deg_corr=deg_corr,
                                     recs=recs,
                                     rec_types=rec_types
-                                    ))
-        dS = 1
-        while np.abs(dS) > fast_tol:
-            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=10, beta=np.inf)
+                                    )) for n in range(n_init)]
+        for x in range(n_init):
+            dS = 1
+            while np.abs(dS) > fast_tol:
+                # perform sweep until a tolerance is reached
+                dS, _, _ = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
+
+        _amin = np.argmin([s.entropy() for s in states])            
+        state = states[_amin]
+        
+#        dS = 1
+#        while np.abs(dS) > fast_tol:
+#            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=10, beta=np.inf)
         bs = state.get_bs()    
         logg.info('    done', time=start)
         
@@ -250,8 +269,8 @@ def nested_model(
         # get the graph from state
         g = state.g
     else:
-        if n_init < 1:
-            n_init = 1
+        
+        
         
         states = [gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
                   state_args=dict(recs=recs,  rec_types=rec_types), 
