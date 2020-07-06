@@ -28,8 +28,9 @@ from ._helpers import *
 
 def planted_model(
     adata: AnnData,
-    n_sweep: int = 1000,
+    n_sweep: int = 10,
     beta: float = np.inf, 
+    tolerance = 1e-6,
     max_iterations: int = 1000000,
     epsilon: float = 0,
     equilibrate: bool = False,
@@ -72,7 +73,9 @@ def planted_model(
     n_sweep
         Number of MCMC sweeps to get the initial guess
     beta
-        Inverse temperature for the initial MCMC sweep            
+        Inverse temperature for the initial MCMC sweep        
+    tolerance
+        Difference in description length to stop MCMC sweep iterations        
     max_iterations
         Maximal number of iterations to be performed by the equilibrate step.
     epsilon
@@ -223,7 +226,13 @@ def planted_model(
         _nattempts = np.zeros(n_init)
         _nmoves = np.zeros(n_init)
         for x in range(n_init):
-            _dS[x], _nattempts[x], _nmoves[x] = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
+            t_ds = 1
+            while np.abs(t_ds) > tolerance:
+                # perform sweep until a tolerance is reached
+                t_ds, t_natt, t_nm = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
+                _dS[x] += t_ds
+                _nattempts[x] += t_natt
+                _nmoves[x] += t_nm
 
         _amin = np.argmin([s.entropy() for s in states])            
         state = states[_amin]
