@@ -38,11 +38,13 @@ Marginals
 When using the following invocation 
 
 ::
+
 	nested_model(adata, collect_marginals=True, equilibrate=True)
 
 an additional step (with fixed number of iterations) is added to execution. During this step, `schist` collects the probability of having a certain number of groups for each level of the hierarchy. These are stored into `adata.uns['nsbm']['group_marginals']`:
 
 ::
+
 	level = 2
 	S = adata.uns['nsbm']['group_marginals'][level].sum()
 	p = adata.uns['nsbm']['group_marginals'][level] / S
@@ -54,7 +56,7 @@ an additional step (with fixed number of iterations) is added to execution. Duri
 	title(f'Group marginals for level {level}')
 
 .. image:: ./figures/gm.png
-    :width: 200px
+    :width: 600px
     :align: center
-    :height: 100px
+    :height: 600px
     :alt: alternate text
