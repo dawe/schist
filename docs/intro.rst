@@ -16,7 +16,9 @@ Cell to cell relations are commonly represented as a neighborhood graph (typical
 
 	n_{\mathrm{offset}} = \sum_{k=0}^{N-1} s_k n_k
 
-:math:`P(b|A) =\frac{P(A|\Theta ,b)P(\Theta,b)}{P(A)}\`
+
+
+:math:`<img src="https://latex.codecogs.com/gif.latex?P(b|A)&space;=\frac{P(A|\Theta&space;,b)P(\Theta,b)}{P(A)}" title="P(b|A) =\frac{P(A|\Theta ,b)P(\Theta,b)}{P(A)}" />`
 
 Where **P(A|θ,b)** is the probability of obtaining the network _A_ given the partition _b_ and additional parameters _θ_; **P(θ,b)** is the probability of occurrence of the partition _b_ having observed the netwok _A_; **P(A)** is the “model evidence” and it is the same for all possible partitions. Refer to the excellent `graph-tool` documentation `<https://graph-tool.skewed.de/static/doc/demos/inference/inference.html`>_ for more details. Note that maximising this quantity is equivalent to minimizing the entropy
 
