@@ -1,13 +1,13 @@
 ************************
-scnsbm.inference package
+schist.inference package
 ************************
 
-scnsbm.inference._flat_model
+schist.inference._flat_model
 ############################
 
 ::
 
-    scnsbm.inference._flat_model(adata: AnnData, max_iterations: 1000000, epsilon: 1e-3, equilibrate: True, wait: 1000, nbreaks: 2, collect_marginals: False, niter_collect: 10000, deg_corr: False, multiflip: True, fast_model: False, beta_range: 1.0,100.0, steps_anneal: int=5, restrict_to: Optional=None, random_seed: Optional=None, key_added:sbm, adjacency: Optional=None, directed: False, use_weights: False, save_state: False, copy:False, minimize_args: Optional={}, equilibrate_args: Optional={})
+    schist.inference._flat_model(adata: AnnData, max_iterations: 1000000, epsilon: 1e-3, equilibrate: True, wait: 1000, nbreaks: 2, collect_marginals: False, niter_collect: 10000, deg_corr: False, multiflip: True, fast_model: False, beta_range: 1.0,100.0, steps_anneal: int=5, restrict_to: Optional=None, random_seed: Optional=None, key_added:sbm, adjacency: Optional=None, directed: False, use_weights: False, save_state: False, copy:False, minimize_args: Optional={}, equilibrate_args: Optional={})
 
 Cluster cells into subgroups,using the Stochastic Block Model [Peixoto14]_, performing Bayesian inference on node groups. 
 
