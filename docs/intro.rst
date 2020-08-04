@@ -57,7 +57,7 @@ an additional step (with fixed number of iterations) is added to execution. Duri
 	title(f'Group marginals for level {level}')
 
 .. image:: ./figures/gm.png
-    :width: 600px
+    :width: 500px
     :align: center
-    :height: 600px
+    :height: 400px
     :alt: alternate text
