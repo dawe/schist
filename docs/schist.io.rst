@@ -1,13 +1,13 @@
 *****************
-scnsbm.io package
+schist.io package
 *****************
 
-scnsbm.io.read
+schist.io.read
 ##############
 
 ::
 
-    scnsbm.io.read(prefix: 'adata', key: 'nsbm', h5ad_fname: None, pkl_fname: None)
+    schist.io.read(prefix: 'adata', key: 'nsbm', h5ad_fname: None, pkl_fname: None)
 
 Read anndata object when a NestedBlockState has been saved separately. 
 
@@ -24,12 +24,12 @@ Parameters
     *   **pkl_filename**: Optional [ ``str`` ] (default: ``None`` )
             If ``prefix`` is not shared between h5ad and pkl, specify the pkl file here.
 
-scnsbm.io.write
+schist.io.write
 ###############
 
 ::
 
-    scnsbm.io.write(adata: AnnData, prefix: 'adata', key: 'nsbm', h5ad_fname: None, pkl_fname: None)
+    schist.io.write(adata: AnnData, prefix: 'adata', key: 'nsbm', h5ad_fname: None, pkl_fname: None)
 
 Save anndata object when a NestedBlockState has been retained during inference. 
 
@@ -48,7 +48,7 @@ Parameters
     *   **pkl_filename**: Optional [ ``str`` ] (default: ``None`` )
             Specify a file name for ``state`` pickle.
 
-.. automodule:: scnsbm.io
+.. automodule:: schist.io
    :members:
    :undoc-members:
    :show-inheritance:

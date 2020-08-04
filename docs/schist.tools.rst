@@ -1,14 +1,14 @@
 ********************
-scnsbm.tools package
+schist.tools package
 ********************
 
-scnsbm.tools._draw_graph
+schist.tools._draw_graph
 ########################
 
 
 ::
 
-    scnsbm.tools._draw_graph(adata: AnnData, layout: 'sfdp', use_tree: False, random_seed: None, adjacency: None, key_added_ext: None, key: 'nsbm', copy: False, **kwds)
+    schist.tools._draw_graph(adata: AnnData, layout: 'sfdp', use_tree: False, random_seed: None, adjacency: None, key_added_ext: None, key: 'nsbm', copy: False, **kwds)
 
 Extends scanpy.tools.draw_graph function using some layouts available in graph-tool library. 
 

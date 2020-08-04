@@ -1,4 +1,4 @@
-scnsbm package
+schist package
 ==============
 
 Subpackages
@@ -6,15 +6,15 @@ Subpackages
 
 .. toctree::
 
-   scnsbm.inference
-   scnsbm.io
-   scnsbm.plotting
-   scnsbm.tools
+   schist.inference
+   schist.io
+   schist.plotting
+   schist.tools
 
 Module contents
 ---------------
 
-.. automodule:: scnsbm
+.. automodule:: schist
    :members:
    :undoc-members:
    :show-inheritance:
