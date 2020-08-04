@@ -1,4 +1,4 @@
-Welcome to scNSBM's documentation!
+Welcome to schist's documentation!
 ==================================
 
 .. toctree::
