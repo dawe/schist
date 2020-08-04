@@ -16,7 +16,9 @@ Cell to cell relations are commonly represented as a neighborhood graph (typical
 
 	n_{\mathrm{offset}} = \sum_{k=0}^{N-1} s_k n_k
 
+.. math::
 
+   \frac{ \sum_{t=0}^{N}f(t,k) }{N}
 
 :math:`<img src="https://latex.codecogs.com/gif.latex?P(b|A)&space;=\frac{P(A|\Theta&space;,b)P(\Theta,b)}{P(A)}" title="P(b|A) =\frac{P(A|\Theta ,b)P(\Theta,b)}{P(A)}" />`
 
