@@ -6,4 +6,4 @@ Welcome to schist's documentation!
 
    modules
    quick
-
+   intro
