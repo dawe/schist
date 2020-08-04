@@ -28,6 +28,7 @@ Fast model vs standard approach
 In the standard approach, the model is initialized by minimizing the description length (entropy). This requires extra time but, in general, returns better results. It is possible to achieve good results with lower memory footprint and in shorter times settting `fast_model`:
 
 ::
+
 	nested_model(adata, fast_model=True)
 
 This will seed the model with a dummy partition scheme, then a greedy merge-split MCMC will explore solutions until it converges.
