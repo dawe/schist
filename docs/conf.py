@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'scNSBM'
+project = 'schist'
 copyright = '2020, Davide Cittaro, Leonardo Morelli'
 author = 'Davide Cittaro, Leonardo Morelli'
 
