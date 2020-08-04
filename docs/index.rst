@@ -5,5 +5,5 @@ Welcome to schist's documentation!
    :maxdepth: 2
 
    modules
-
+   quick
 
