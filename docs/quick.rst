@@ -32,7 +32,9 @@ Once the MCMC has converged, the `adata.obs` object will contain additional colu
 Installation
 ############
 
-The key component (`graph-tool`) is not available through pip and requires extra compilation by the user, refer to its [installation page]_(https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions). Note, however, that a conda package is available from conda-forge, that means you may install it (and `schist` dependencies) just issuing
+The key component (`graph-tool`) is not available through pip and requires extra compilation by the user, refer to its [installation page]_.
+.. _[installation page]: https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions 
+Note, however, that a conda package is available from conda-forge, that means you may install it (and `schist` dependencies) just issuing
 
 ::
 
@@ -42,11 +44,11 @@ The key component (`graph-tool`) is not available through pip and requires extra
 
 After that, `schist` can be installed from source:
 
-```
-git clone https://github.com/dawe/schist.git
-cd schist
-pip install .
-```
+::
+	git clone https://github.com/dawe/schist.git
+	cd schist
+	pip install .
+
 
 Known issues
 ############
