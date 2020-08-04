@@ -1,7 +1,7 @@
-scNSBM
+schist
 ======
 
 .. toctree::
    :maxdepth: 4
 
-   scnsbm
+   schist
