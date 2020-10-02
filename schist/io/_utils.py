@@ -6,7 +6,7 @@ from scanpy import logging as logg
 
 def read(
     prefix: str = 'adata', 
-    key: str = 'nsbm', 
+    key: str = 'schist', 
     h5ad_fname: Optional[str] = None, 
     pkl_fname: Optional[str] = None
     ) -> Optional[AnnData]:
@@ -35,6 +35,11 @@ def read(
     # read the anndata
     adata = read_h5ad(h5ad_fname)
     
+    if not key in adata.uns:
+        raise KeyError(
+            f"Your dataset does not contain {key}, did you run schist?"
+        )
+    
     try:
         with open(pkl_fname, 'rb') as fh:
             state = pickle.load(fh)
@@ -51,7 +56,7 @@ def read(
 def write(
     adata: AnnData, 
     prefix: str = 'adata', 
-    key: str = 'nsbm', 
+    key: str = 'schist', 
     h5ad_fname: Optional[str] = None, 
     pkl_fname: Optional[str] = None
     ) -> Optional[AnnData]:
