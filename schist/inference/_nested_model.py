@@ -165,14 +165,14 @@ def nested_model(
     `adata.obs[key_added]`
         Array of dim (number of samples) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell. 
-    `adata.uns['nsbm']['params']`
+    `adata.uns['schist']['params']`
         A dict with the values for the parameters `resolution`, `random_state`,
         and `n_iterations`.
-    `adata.uns['nsbm']['stats']`
+    `adata.uns['schist']['stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.uns['nsbm']['cell_affinity']`
+    `adata.uns['schist']['cell_affinity']`
         A `np.ndarray` with cell probability of belonging to a specific group
-    `adata.uns['nsbm']['state']`
+    `adata.uns['schist']['state']`
         The NestedBlockModel state object
     """
 
@@ -181,7 +181,7 @@ def nested_model(
         # also if a model has previously created
         equilibrate=True
         
-    if resume and ('nsbm' not in adata.uns or 'state' not in adata.uns['nsbm']):
+    if resume and ('schist' not in adata.uns or 'state' not in adata.uns['schist']):
         # let the model proceed as default
         logg.warning('Resuming has been specified but a state was not found\n'
                      'Will continue with default minimization step')
@@ -264,7 +264,7 @@ def nested_model(
         
     elif resume:
         # create the state and make sure sampling is performed
-        state = adata.uns['nsbm']['state'].copy(sampling=True)
+        state = adata.uns['schist']['state'].copy(sampling=True)
         bs = state.get_bs()
         # get the graph from state
         g = state.g
@@ -366,29 +366,29 @@ def nested_model(
 
     # add some unstructured info
 
-    adata.uns['nsbm'] = {}
-    adata.uns['nsbm']['stats'] = dict(
+    adata.uns['schist'] = {}
+    adata.uns['schist']['stats'] = dict(
     level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
     modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     )
     if equilibrate:
-        adata.uns['nsbm']['stats']['dS'] = dS
-        adata.uns['nsbm']['stats']['nattempts'] = nattempts
-        adata.uns['nsbm']['stats']['nmoves'] = nmoves
+        adata.uns['schist']['stats']['dS'] = dS
+        adata.uns['schist']['stats']['nattempts'] = nattempts
+        adata.uns['schist']['stats']['nmoves'] = nmoves
 
 
-    adata.uns['nsbm']['state'] = state
+    adata.uns['schist']['state'] = state
 
     # now add marginal probabilities.
 
     if collect_marginals:
         # refrain group marginals. We collected data in vector as long as
         # the number of cells, cut them into appropriate length data
-        adata.uns['nsbm']['group_marginals'] = {}
+        adata.uns['schist']['group_marginals'] = {}
         for nl, level_marginals in enumerate(group_marginals):
             idx = np.where(level_marginals > 0)[0] + 1
-            adata.uns['nsbm']['group_marginals'][nl] = np.array(level_marginals[:np.max(idx)])
+            adata.uns['schist']['group_marginals'][nl] = np.array(level_marginals[:np.max(idx)])
 
     # prune uninformative levels, if any
     if prune:
@@ -402,10 +402,10 @@ def nested_model(
     # we have to calculate events at level 0 and propagate to upper levels
     logg.info('    calculating cell affinity to groups')
     levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
-    adata.uns['nsbm']['cell_affinity'] = dict.fromkeys([str(x) for x in levels])
+    adata.uns['schist']['cell_affinity'] = dict.fromkeys([str(x) for x in levels])
     p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
     
-    adata.uns['nsbm']['cell_affinity'][0] = p0
+    adata.uns['schist']['cell_affinity'][0] = p0
     l0 = "%s_level_0" % key_added
     for nl, level in enumerate(groups.columns[1:]):
         cross_tab = pd.crosstab(groups.loc[:, l0], groups.loc[:, level])
@@ -414,10 +414,11 @@ def nested_model(
             # sum counts of level_0 groups corresponding to
             # this group at current level
             cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
-        adata.uns['nsbm']['cell_affinity'][str(nl + 1)] = cl / np.sum(cl, axis=1)[:, None]
+        adata.uns['schist']['cell_affinity'][str(nl + 1)] = cl / np.sum(cl, axis=1)[:, None]
     
     # last step is recording some parameters used in this analysis
-    adata.uns['nsbm']['params'] = dict(
+    adata.uns['schist']['params'] = dict(
+        model='nested',
         epsilon=epsilon,
         wait=wait,
         nbreaks=nbreaks,
