@@ -11,7 +11,7 @@ def cluster_consistency(
     adata: AnnData,
     level: int = 1,
     group: Optional[str] = None,
-    key: Optional[str] = 'nsbm',
+    key: Optional[str] = 'schist',
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
@@ -52,7 +52,7 @@ def cluster_consistency(
         raise KeyError(
             f"Your dataset does not contain cell affinities, did you run nSBM?"
         )
-    elif not f'{level}' in adata.uns['nsbm']['cell_affinity'].keys():
+    elif not f'{level}' in adata.uns['schist']['cell_affinity'].keys():
         raise ValueError(
             f"Affinitity for the specfified level {level} do not exist"
         )
@@ -73,7 +73,7 @@ def cluster_consistency(
 
 def cell_stability(
     adata: AnnData,
-    key: Optional[str] = 'nsbm',
+    key: Optional[str] = 'schist',
     copy: bool = False
 ) -> Optional[AnnData]:
     """\

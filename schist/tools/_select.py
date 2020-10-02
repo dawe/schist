@@ -13,7 +13,7 @@ def select_affinity(
     level: str = '1',
     threshold: float = 0.9999,
     inverse: bool = False,
-    key: Optional[str] = 'nsbm',
+    key: Optional[str] = 'schist',
     update_state: Optional[bool] = False,
     filter: Optional[bool] = True,
     copy: bool = False

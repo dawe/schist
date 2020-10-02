@@ -71,7 +71,7 @@ def draw_tree(
         logg.warning(f'Cannot show the plot here, saving to `default_tree.png`')
         save = 'default_tree.png'
     
-    state = adata.uns[key]['state'] #the NestedBlockState
+    state = adata.uns['schist']['state'] #the NestedBlockState
     g = state.g # the graph in graph-tool format
 
     fill_color = g.new_vertex_property('vector<double>')

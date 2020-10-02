@@ -23,7 +23,7 @@ def draw_graph(
     random_seed: Optional[int] = None,
     adjacency: Optional[spmatrix] = None,
     key_added_ext: Optional[str] = None,
-    key: Optional[str] = 'nsbm',
+    key: Optional[str] = 'schist',
     copy: bool = False,
     **kwds,
 ):

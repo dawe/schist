@@ -133,14 +133,14 @@ def flat_model(
     `adata.obs[key_added]`
         Array of dim (number of samples) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell.
-    `adata.uns['sbm']['params']`
+    `adata.uns['schist']['params']`
         A dict with the values for the parameters `resolution`, `random_state`,
         and `n_iterations`.
-    `adata.uns['sbm']['stats']`
+    `adata.uns['schist']['stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.uns['sbm']['cell_affinity']`
+    `adata.uns['schist']['cell_affinity']`
         A `np.ndarray` with cell probability of belonging to a specific group
-    `adata.uns['sbm']['state']`
+    `adata.uns['schist']['state']`
         The BlockModel state object
     """
 
@@ -152,7 +152,7 @@ def flat_model(
         # if the fast_model is chosen perform equilibration anyway
         equilibrate=True
         
-    if resume and ('sbm' not in adata.uns or 'state' not in adata.uns['sbm']):
+    if resume and ('schist' not in adata.uns or 'state' not in adata.uns['schist']):
         # let the model proceed as default
         logg.warning('Resuming has been specified but a state was not found\n'
                      'Will continue with default minimization step')
@@ -217,7 +217,7 @@ def flat_model(
                               ))
     elif resume:
         # create the state and make sure sampling is performed
-        state = adata.uns['sbm']['state'].copy(sampling=True)
+        state = adata.uns['schist']['state'].copy(sampling=True)
         g = state.g
     else:
         if n_init < 1:
@@ -277,28 +277,29 @@ def flat_model(
 
     # add some unstructured info
 
-    adata.uns['sbm'] = {}
-    adata.uns['sbm']['stats'] = dict(
+    adata.uns['schist'] = {}
+    adata.uns['schist']['stats'] = dict(
     dS=dS,
     nattempts=nattempts,
     nmoves=nmoves,
     modularity=gt.modularity(g, state.get_blocks())
     )
-    adata.uns['sbm']['state'] = state
+    adata.uns['schist']['state'] = state
 
     # now add marginal probabilities.
 
     if collect_marginals:
         # cell marginals will be a list of arrays with probabilities
         # of belonging to a specific group
-        adata.uns['sbm']['group_marginals'] = group_marginals
+        adata.uns['schist']['group_marginals'] = group_marginals
 
     # calculate log-likelihood of cell moves over the remaining levels
     
-    adata.uns['sbm']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
+    adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
     
     # last step is recording some parameters used in this analysis
-    adata.uns['sbm']['params'] = dict(
+    adata.uns['schist']['params'] = dict(
+        model='flat',
         epsilon=epsilon,
         wait=wait,
         nbreaks=nbreaks,
