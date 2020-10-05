@@ -13,7 +13,7 @@ def select_affinity(
     level: str = '1',
     threshold: float = 0.9999,
     inverse: bool = False,
-    key: Optional[str] = 'schist',
+    key: Optional[str] = 'nsbm',
     update_state: Optional[bool] = False,
     filter: Optional[bool] = True,
     copy: bool = False
@@ -33,7 +33,7 @@ def select_affinity(
     inverse
         Whether to return cells with affinity lower than the threshold
     key
-        key of the `adata.uns` slot storing the affinities
+        key of the groupings used to evaluate the model
     update_state
         Whether to update the state removing unselected cells
     filter
@@ -53,29 +53,25 @@ def select_affinity(
 
     level = str(level) # ensure it is a string
     
-    if level not in adata.uns[key]['cell_affinity']:
+    if f'CA_{key}_level_{level}' not in adata.obsm_keys():
         logg.error(f'Level {level} was not found in your data')
         raise
     
-    affinities = adata.uns[key]['cell_affinity'][level]
+    affinities = adata.obsm[f'CA_{key}_level_{level}']
     max_aff = np.max(affinities, axis=1)
     if inverse:
         mask = max_aff < threshold
     else:
         mask = max_aff >= threshold
     
-    adata.obs['selected'] = pd.Categorical(mask)
+    adata.obs['selected'] = mask#pd.Categorical(mask)
     
     if filter:
-        for l in adata.uns[key]['cell_affinity'].keys():
-            # filter affinities
-            adata.uns[key]['cell_affinity'][l] = adata.uns[key]['cell_affinity'][l][mask]
+        adata = adata[adata.obs['selected']] #actually filter cells
     
-        adata = adata[mask] #actually filter cells
-    
-        if update_state and adata.uns[key]['state']:
+        if update_state and adata.uns['schist']['state']:
             logg.warning('Removing a vertex from a BlockState may result in inconsistent data')
             v_idx = np.where(np.bitwise_not(mask)) #vertex to be removed
-            adata.uns[key]['state'].remove_vertex(v_idx)
+            adata.uns['schist']['state'].remove_vertex(v_idx)
     
     return adata if copy else None

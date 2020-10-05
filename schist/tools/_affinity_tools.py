@@ -11,8 +11,7 @@ def cluster_consistency(
     adata: AnnData,
     level: int = 1,
     group: Optional[str] = None,
-    group_key: Optional[str] = 'nsbm',
-    key: Optional[str] = 'schist',
+    key: Optional[str] = 'nsbm',
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
@@ -24,12 +23,9 @@ def cluster_consistency(
     level
         The NSBM level, as an alternative of full group name
     group
-        The name of the NSBM level for which consistency should be calculated
-        
-    group_key
-        The key used to store NSBM groupings
+        The name of the NSBM level for which consistency should be calculated        
     key
-        The key in adata.uns storing cell affinities
+        The key used to store NSBM groupings
     copy
         Return a copy instead of writing to adata.
 
@@ -42,26 +38,18 @@ def cluster_consistency(
     if group:
         level = group.split('_')[-1]
     else:
-        group = f'{group_key}_level_{level}'
+        group = f'{key}_level_{level}'
 
     if not group and not level:
         raise ValueError("You should specify at least one of group or level")
 
-    if not key in adata.uns.keys():
-        raise KeyError(
-            f"Your dataset does not contain {key}, did you run nSBM?"
-        )
-    elif not 'cell_affinity' in adata.uns[key]:
-        raise KeyError(
-            f"Your dataset does not contain cell affinities, did you run nSBM?"
-        )
-    elif not f'{level}' in adata.uns['schist']['cell_affinity'].keys():
+    if not f'CA_{key}_level_{level}' in adata.obsm_keys():
         raise ValueError(
             f"Affinitity for the specfified level {level} do not exist"
         )
         
 
-    affinity = adata.uns[key]['cell_affinity'][f'{level}']
+    affinity = adata.obsm[f'CA_{key}_level_{level}']
     entropy = scipy.stats.entropy(affinity, axis=0) / np.log(adata.shape[0]) #normalized entropy
 
     adata.uns['cluster_consistency'] = entropy
@@ -76,7 +64,7 @@ def cluster_consistency(
 
 def cell_stability(
     adata: AnnData,
-    key: Optional[str] = 'schist',
+    key: Optional[str] = 'nsbm', # dummy default
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
@@ -86,7 +74,7 @@ def cell_stability(
     adata
         Annotated data matrix. 
     key
-        The key used to store NSBM groupings
+        The prefix of CA matrices in adata.obsm to evaluate
     copy
         Return a copy instead of writing to adata.
 
@@ -96,18 +84,13 @@ def cell_stability(
     in adata.obs['cell_stability']
 """    
 
-    if not key in adata.uns.keys():
-        raise KeyError(
-            f"Your dataset does not contain {key}, did you run nSBM?"
-        )
-    elif not 'cell_affinity' in adata.uns[key]:
+    obsm_names = [x for x in adata.obsm_keys() if x.startswith(f'CA_{key}_level')]
+    if len(obsm_names) == 0:
         raise KeyError(
             f"Your dataset does not contain cell affinities, did you run nSBM?"
         )
 
-    aff_dict = adata.uns[key]['cell_affinity']
-   
-    _S = np.array([scipy.stats.entropy(aff_dict[x], axis=1) /np.log(aff_dict[x].shape[1]) for x in aff_dict.keys()]).T
+    _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
     adata.obs['cell_stability'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
 
     return adata if copy else None

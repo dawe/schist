@@ -173,7 +173,7 @@ def nested_model(
         and `n_iterations`.
     `adata.uns['schist']['stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.uns['schist']['cell_affinity']`
+    `adata.obsm['CA_nsbm_level_{n}']`
         A `np.ndarray` with cell probability of belonging to a specific group
     `adata.uns['schist']['state']`
         The NestedBlockModel state object

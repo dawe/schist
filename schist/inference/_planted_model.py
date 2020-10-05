@@ -142,7 +142,7 @@ def planted_model(
         and `n_iterations`.
     `adata.uns['schist']['stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.uns['schist']['cell_affinity']`
+    `adata.obsm['CA_ppbm_level_1']`
         A `np.ndarray` with cell probability of belonging to a specific group
     `adata.uns['schist']['state']`
         The BlockModel state object
@@ -309,7 +309,7 @@ def planted_model(
         logg.info('    calculating cell affinity to groups')
         
 #        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
-        adata.obsm[f'CA_{key_added}'] = get_cell_loglikelihood(state, as_prob=True)
+        adata.obsm[f'CA_{key_added}_level_1'] = get_cell_loglikelihood(state, as_prob=True)
     
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
