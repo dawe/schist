@@ -2,20 +2,6 @@
 import numpy as np
 import graph_tool.all as gt
 
-def pp_virtual_vertex_move(state, v, s):
-    """
-    A a function that calculates the difference in entropy when a cell
-    is moved in another cluster of a PPBlockState
-    
-    """
-    
-    blocks = np.array(state.get_blocks().get_array())
-    # IDK what's going on here, but apparently entropy of state and of 
-    # reinitialied state is different, take this one
-    E0 = gt.PPBlockState(state.g, b=blocks).entropy() 
-    blocks[v] = s 
-    E1 = gt.PPBlockState(state.g, b=blocks).entropy()  
-    return E1 - E0
 
 def check_gt_version(min_v=2.33):
     # this should be written in a more general way
