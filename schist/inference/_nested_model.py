@@ -55,6 +55,7 @@ def nested_model(
     use_weights: bool = False,
     prune: bool = False,
     return_low: bool = False,
+    calculate_affinity: bool = True,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
     equilibrate_args: Optional[Dict] = {},
@@ -155,6 +156,8 @@ def nested_model(
         Whether or not return nsbm_level_0 in adata.obs. This level usually contains
         so many groups that it cannot be plot anyway, but it may be useful for particular
         analysis. By default it is not returned
+    calculate_affinity
+        Whether or not calculate cell affinities. For large datasets it may save some time
     copy
         Whether to copy `adata` or modify it inplace.
     random_seed
@@ -400,21 +403,22 @@ def nested_model(
         
     # calculate log-likelihood of cell moves over the remaining levels
     # we have to calculate events at level 0 and propagate to upper levels
-    logg.info('    calculating cell affinity to groups')
-    levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
-    adata.uns['schist']['cell_affinity'] = dict.fromkeys([str(x) for x in levels])
-    p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
+    if calculate_affinity:
+        logg.info('    calculating cell affinity to groups')
+        levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
+        adata.uns['schist']['cell_affinity'] = dict.fromkeys([str(x) for x in levels])
+        p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
     
-    adata.uns['schist']['cell_affinity'][0] = p0
-    l0 = "%s_level_0" % key_added
-    for nl, level in enumerate(groups.columns[1:]):
-        cross_tab = pd.crosstab(groups.loc[:, l0], groups.loc[:, level])
-        cl = np.zeros((p0.shape[0], cross_tab.shape[1]), dtype=p0.dtype)
-        for x in range(cl.shape[1]):
-            # sum counts of level_0 groups corresponding to
-            # this group at current level
-            cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
-        adata.uns['schist']['cell_affinity'][str(nl + 1)] = cl / np.sum(cl, axis=1)[:, None]
+        adata.uns['schist']['cell_affinity'][0] = p0
+        l0 = "%s_level_0" % key_added
+        for nl, level in enumerate(groups.columns[1:]):
+            cross_tab = pd.crosstab(groups.loc[:, l0], groups.loc[:, level])
+            cl = np.zeros((p0.shape[0], cross_tab.shape[1]), dtype=p0.dtype)
+            for x in range(cl.shape[1]):
+                # sum counts of level_0 groups corresponding to
+                # this group at current level
+                cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
+            adata.uns['schist']['cell_affinity'][str(nl + 1)] = cl / np.sum(cl, axis=1)[:, None]
     
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
@@ -427,6 +431,7 @@ def nested_model(
         collect_marginals=collect_marginals,
         hierarchy_length=hierarchy_length,
         random_seed=random_seed,
+        calculate_affinity=calculate_affinity,
         prune=prune,
     )
 

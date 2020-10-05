@@ -11,6 +11,7 @@ def cluster_consistency(
     adata: AnnData,
     level: int = 1,
     group: Optional[str] = None,
+    group_key: Optional[str] = 'nsbm',
     key: Optional[str] = 'schist',
     copy: bool = False
 ) -> Optional[AnnData]:
@@ -25,8 +26,10 @@ def cluster_consistency(
     group
         The name of the NSBM level for which consistency should be calculated
         
-    key
+    group_key
         The key used to store NSBM groupings
+    key
+        The key in adata.uns storing cell affinities
     copy
         Return a copy instead of writing to adata.
 
@@ -39,7 +42,7 @@ def cluster_consistency(
     if group:
         level = group.split('_')[-1]
     else:
-        group = f'{key}_level_{level}'
+        group = f'{group_key}_level_{level}'
 
     if not group and not level:
         raise ValueError("You should specify at least one of group or level")
