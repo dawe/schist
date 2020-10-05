@@ -43,6 +43,7 @@ def planted_model(
     beta_range: Tuple[float] = (1., 100.),
     steps_anneal: int = 5,
     resume: bool = False,
+    calculate_affinity: bool = True,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -304,8 +305,10 @@ def planted_model(
         adata.uns['schist']['group_marginals'] = group_marginals
 
     # calculate log-likelihood of cell moves over the remaining levels
-    
-    # adata.uns[key_added]['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
+    if calculate_affinity:
+        logg.info('    calculating cell affinity to groups')
+        
+        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
     
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
