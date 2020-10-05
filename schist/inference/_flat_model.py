@@ -40,6 +40,7 @@ def flat_model(
     beta_range: Tuple[float] = (1., 100.),
     steps_anneal: int = 5,
     resume: bool = False,
+    calculate_affinity: bool = True,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -294,8 +295,8 @@ def flat_model(
         adata.uns['schist']['group_marginals'] = group_marginals
 
     # calculate log-likelihood of cell moves over the remaining levels
-    
-    adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
+    if calculate_affinity:    
+        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
     
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
@@ -306,7 +307,8 @@ def flat_model(
         equilibrate=equilibrate,
         fast_model=fast_model,
         collect_marginals=collect_marginals,
-        random_seed=random_seed
+        random_seed=random_seed,
+        calculate_affinity=calculate_affinity
     )
 
 
