@@ -1,13 +1,18 @@
+from typing import Optional, Tuple, Sequence, Type, Union, Dict
+
+import graph_tool
 import graph_tool.all as gt
 import numpy as np
+import numba
 
 from ._helpers import *
 
+#@numba.jit(forceobj=True, parallel=True)
 def get_cell_loglikelihood(
-    state,
+    state: Union[graph_tool.inference.nested_blockmodel.NestedBlockState, graph_tool.inference.planted_partition.PPBlockState],
     level: int = 0,
     rescale: bool = False, 
-    as_prob: bool = False
+    as_prob: bool = False,
     
 ):
     """
@@ -36,27 +41,27 @@ def get_cell_loglikelihood(
     """
     
     # get the graph from state
-    g = state.g
+#    g = state.g
     
-    if isinstance(state, gt.NestedBlockState):
+    try:
         if level < 0 or level > len(state.get_levels()):
             # by now return the lowest level if invalid 
             level = 0
-        B = gt.BlockState(g, b=state.project_partition(level, 0))
-    else:
+        B = gt.BlockState(state.g, b=state.project_partition(level, 0))
+    except AttributeError:
         B = state
     
     
-    n_cells = g.num_vertices()
-    if isinstance(B, gt.BlockState):
-        n_blocks = B.get_nonempty_B()
-        shape = (n_cells, n_blocks)
-        M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
-    elif isinstance(B, gt.PPBlockState):
-        blocks = B.get_blocks().get_array()
-        n_blocks = len(blocks)
-        M = np.array([pp_virtual_vertex_move(B, v, s) for v in range(n_cells) for s in np.unique(blocks)])
-    
+    n_cells = state.g.num_vertices()
+    n_blocks = B.get_nonempty_B()
+#    M = np.zeros((n_cells, n_blocks))
+#    for v in range(n_cells): #one day this will be parallel
+#        for s in range(n_blocks):
+#            M[v, s] = B.virtual_vertex_move(v, s)
+    shape = (n_cells, n_blocks)
+    M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
+
+   
     if rescale:
         # some cells may be better in other groups, hence their LL
         # is negative when moved. Rescaling sets the minimum LL in the
