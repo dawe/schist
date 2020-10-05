@@ -296,7 +296,8 @@ def flat_model(
 
     # calculate log-likelihood of cell moves over the remaining levels
     if calculate_affinity:    
-        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
+#        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
+        adata.obsm[f'CA_{key_added}'] = get_cell_loglikelihood(state, as_prob=True)
     
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(

@@ -308,7 +308,8 @@ def planted_model(
     if calculate_affinity:
         logg.info('    calculating cell affinity to groups')
         
-        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
+#        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
+        adata.obsm[f'CA_{key_added}'] = get_cell_loglikelihood(state, as_prob=True)
     
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
