@@ -8,6 +8,7 @@
 An interface for Nested Stochastic Block Model for single cell analysis.
 
 ## Status
+- Version 0.6.0 PlantedModel fully supported. Also, some changes in the data structure (affinities in obsm)
 - Version 0.5.2 Fast model for NSBM (and PP).
 - Version 0.5.0 Introduces Planted Partition model
 - Version 0.4.2 Introduces functions to calculate cluster consistency.
