@@ -403,6 +403,7 @@ def nested_model(
         
     # calculate log-likelihood of cell moves over the remaining levels
     # we have to calculate events at level 0 and propagate to upper levels
+    # Should I use virtual vertex moves for all levels, instead?
     if calculate_affinity:
         logg.info('    calculating cell affinity to groups')
         levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
