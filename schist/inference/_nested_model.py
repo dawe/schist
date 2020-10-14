@@ -407,10 +407,8 @@ def nested_model(
     if calculate_affinity:
         logg.info('    calculating cell affinity to groups')
         levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
-        adata.uns['schist']['cell_affinity'] = dict.fromkeys([str(x) for x in levels])
         p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
     
-        adata.uns['schist']['cell_affinity'][0] = p0
         adata.obsm[f'CA_{key_added}_level_0'] = p0
         l0 = "%s_level_0" % key_added
         for nl, level in enumerate(groups.columns[1:]):
