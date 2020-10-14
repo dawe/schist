@@ -90,7 +90,7 @@ def cell_stability(
             f"Your dataset does not contain cell affinities, did you run nSBM?"
         )
 
-    _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
-    adata.obs['cell_stability'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
+    _S = np.array([scipy.stats.entropy(np.log(adata.obsm[x]), axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
+    adata.obs['cell_stability'] = np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
 
     return adata if copy else None
