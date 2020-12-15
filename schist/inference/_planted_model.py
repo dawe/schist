@@ -284,7 +284,7 @@ def planted_model(
         groups.index = adata.obs_names
 
     # add column names
-    adata.obs.loc[:, key_added] = groups
+    adata.obs[key_added] = groups
 
     # add some unstructured info
 

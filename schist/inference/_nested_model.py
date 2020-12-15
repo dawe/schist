@@ -345,8 +345,8 @@ def nested_model(
 
     # rename categories from 0 to n
     for c in groups.columns:
-        new_cat_names = dict([(cx, u'%s' % cn) for cn, cx in enumerate(groups.loc[:, c].cat.categories)])
-        groups.loc[:, c].cat.rename_categories(new_cat_names, inplace=True)
+        new_cat_names = dict([(cx, u'%s' % cn) for cn, cx in enumerate(groups[c].cat.categories)])
+        groups[c].cat.rename_categories(new_cat_names, inplace=True)
 
     if restrict_to is not None:
         groups.index = adata.obs[restrict_key].index
@@ -358,7 +358,7 @@ def nested_model(
 
     # remove any column with the same key
     keep_columns = [x for x in adata.obs.columns if not x.startswith('%s_level_' % key_added)]
-    adata.obs = adata.obs.loc[:, keep_columns]
+    adata.obs = adata.obs[keep_columns]
     # concatenate obs with new data, skipping level_0 which is usually
     # crap. In the future it may be useful to reintegrate it
     # we need it in this function anyway, to match groups with node marginals
@@ -412,7 +412,7 @@ def nested_model(
         adata.obsm[f'CA_{key_added}_level_0'] = p0
         l0 = "%s_level_0" % key_added
         for nl, level in enumerate(groups.columns[1:]):
-            cross_tab = pd.crosstab(groups.loc[:, l0], groups.loc[:, level])
+            cross_tab = pd.crosstab(groups[l0], groups[level])
             cl = np.zeros((p0.shape[0], cross_tab.shape[1]), dtype=p0.dtype)
             for x in range(cl.shape[1]):
                 # sum counts of level_0 groups corresponding to
