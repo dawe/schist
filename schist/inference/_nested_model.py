@@ -27,23 +27,23 @@ from ._utils import get_cell_loglikelihood
 
 def nested_model(
     adata: AnnData,
-    max_iterations: int = 1000000,
-    epsilon: float = 0,
-    equilibrate: bool = False,
-    wait: int = 1000,
-    nbreaks: int = 2,
-    collect_marginals: bool = False,
-    niter_collect: int = 10000,
+#    max_iterations: int = 1000000,
+#    epsilon: float = 0,
+#    equilibrate: bool = False,
+#    wait: int = 1000,
+#    nbreaks: int = 2,
+#    collect_marginals: bool = False,
+#    niter_collect: int = 10000,
     hierarchy_length: int = 10,
     deg_corr: bool = True,
-    multiflip: bool = True,
+#    multiflip: bool = True,
     fast_model: bool = False,
     fast_tol: float = 1e-6,
     n_sweep: int = 10,
     beta: float = np.inf,
     n_init: int = 1,
-    beta_range: Tuple[float] = (1., 1000.),
-    steps_anneal: int = 3,
+#    beta_range: Tuple[float] = (1., 1000.),
+#    steps_anneal: int = 3,
     resume: bool = False,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
@@ -58,7 +58,7 @@ def nested_model(
     calculate_affinity: bool = True,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
-    equilibrate_args: Optional[Dict] = {},
+#    equilibrate_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -77,28 +77,6 @@ def nested_model(
     ----------
     adata
         The annotated data matrix.
-    max_iterations
-        Maximal number of iterations to be performed by the equilibrate step.
-    epsilon
-        Relative changes in entropy smaller than epsilon will
-        not be considered as record-breaking.
-    equilibrate
-        Whether or not perform the mcmc_equilibrate step.
-        Equilibration should always be performed. Note, also, that without
-        equilibration it won't be possible to collect marginals.
-    collect_marginals
-        Whether or not collect node probability of belonging
-        to a specific partition.
-    niter_collect
-        Number of iterations to force when collecting marginals. This will
-        increase the precision when calculating probabilites
-    wait
-        Number of iterations to wait for a record-breaking event.
-        Higher values result in longer computations. Set it to small values
-        when performing quick tests.
-    nbreaks
-        Number of iteration intervals (of size `wait`) without
-        record-breaking events necessary to stop the algorithm.
     hierarchy_length
         Initial length of the hierarchy. When large values are
         passed, the top-most levels will be uninformative as they
@@ -108,10 +86,6 @@ def nested_model(
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    multiflip
-        Whether to perform MCMC sweep with multiple simultaneous moves to sample
-        network partitions. It may result in slightly longer runtimes, but under
-        the hood it allows for a more efficient space exploration.
     fast_model
         Whether to skip initial minization step and let the MCMC find a solution. 
         This approach tend to be faster and consume less memory, but may be
@@ -125,10 +99,6 @@ def nested_model(
     n_init
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
-    beta_range
-        Inverse temperature at the beginning and the end of the equilibration
-    steps_anneal
-        Number of steps in which the simulated annealing is performed
     resume
         Start from a previously created model, if any, without initializing a novel
         model    
@@ -243,26 +213,27 @@ def nested_model(
         n_init = 1
 
     if fast_model:
-        # do not minimize, start with a dummy state and perform only equilibrate
+        # do not minimize, start with a dummy state and perform only a sweep
+        # also, use consensus partitio from all models
 
         states = [gt.NestedBlockState(g=g,
                                     state_args=dict(deg_corr=deg_corr,
                                     recs=recs,
                                     rec_types=rec_types
                                     )) for n in range(n_init)]
+        bs = []
         for x in range(n_init):
             dS = 1
             while np.abs(dS) > fast_tol:
                 # perform sweep until a tolerance is reached
                 dS, _, _ = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+                bs.append(states[x].get_bs())
 
-        _amin = np.argmin([s.entropy() for s in states])            
-        state = states[_amin]
+        logg.info(f'Getting consensus over {len(bs)} models', time=start)
+        pmode = gt.PartitionModeState(bs, nested=True, converge=True)
+        bs = pmode.get_max_nested() # get consensus
+        state = states[0].copy(bs = bs)
         
-#        dS = 1
-#        while np.abs(dS) > fast_tol:
-#            dS, nattempts, nmoves = state.multiflip_mcmc_sweep(niter=10, beta=np.inf)
-        bs = state.get_bs()    
         logg.info('    done', time=start)
         
     elif resume:
@@ -272,9 +243,6 @@ def nested_model(
         # get the graph from state
         g = state.g
     else:
-        
-        
-        
         states = [gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
                   state_args=dict(recs=recs,  rec_types=rec_types), 
                   **minimize_args) for n in range(n_init)]
@@ -300,36 +268,36 @@ def nested_model(
                                     rec_types=rec_types), sampling=True)
     
     # equilibrate the Markov chain
-    if equilibrate:
-        logg.info('running MCMC equilibration step')
-        # equlibration done by simulated annealing
-        
-        equilibrate_args['wait'] = wait
-        equilibrate_args['nbreaks'] = nbreaks
-        equilibrate_args['max_niter'] = max_iterations
-        equilibrate_args['multiflip'] = multiflip
-        equilibrate_args['mcmc_args'] = {'niter':10}
-        
-        dS, nattempts, nmoves = gt.mcmc_anneal(state, 
-                                               mcmc_equilibrate_args=equilibrate_args,
-                                               niter=steps_anneal,
-                                               beta_range=beta_range)
-    if collect_marginals and equilibrate:
-        # we here only retain level_0 counts, until I can't figure out
-        # how to propagate correctly counts to higher levels
-        # I wonder if this should be placed after group definition or not
-        logg.info('    collecting marginals')
-        group_marginals = [np.zeros(g.num_vertices() + 1) for s in state.get_levels()]
-        def _collect_marginals(s):
-            levels = s.get_levels()
-            for l, sl in enumerate(levels):
-                group_marginals[l][sl.get_nonempty_B()] += 1
-
-        gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
-                            max_niter=max_iterations, multiflip=True,
-                            force_niter=niter_collect, mcmc_args=dict(niter=10),
-                            callback=_collect_marginals)
-        logg.info('    done', time=start)
+#    if equilibrate:
+#        logg.info('running MCMC equilibration step')
+#        # equlibration done by simulated annealing
+#        
+#        equilibrate_args['wait'] = wait
+#        equilibrate_args['nbreaks'] = nbreaks
+#        equilibrate_args['max_niter'] = max_iterations
+#        equilibrate_args['multiflip'] = multiflip
+#        equilibrate_args['mcmc_args'] = {'niter':10}
+#        
+#        dS, nattempts, nmoves = gt.mcmc_anneal(state, 
+#                                               mcmc_equilibrate_args=equilibrate_args,
+#                                               niter=steps_anneal,
+#                                               beta_range=beta_range)
+#    if collect_marginals and equilibrate:
+#        # we here only retain level_0 counts, until I can't figure out
+#        # how to propagate correctly counts to higher levels
+#        # I wonder if this should be placed after group definition or not
+#        logg.info('    collecting marginals')
+#        group_marginals = [np.zeros(g.num_vertices() + 1) for s in state.get_levels()]
+#        def _collect_marginals(s):
+#            levels = s.get_levels()
+#            for l, sl in enumerate(levels):
+#                group_marginals[l][sl.get_nonempty_B()] += 1
+#
+#        gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
+#                            max_niter=max_iterations, multiflip=True,
+#                            force_niter=niter_collect, mcmc_args=dict(niter=10),
+#                            callback=_collect_marginals)
+#        logg.info('    done', time=start)
 
     # everything is in place, we need to fill all slots
     # first build an array with
@@ -345,16 +313,19 @@ def nested_model(
 
     # rename categories from 0 to n
     for c in groups.columns:
-        new_cat_names = dict([(cx, u'%s' % cn) for cn, cx in enumerate(groups[c].cat.categories)])
-        groups[c].cat.rename_categories(new_cat_names, inplace=True)
+        ncat = len(groups[c].cat.categories)
+        new_cat = [u'%s' % x for x in range(ncat)]
+        groups[c].cat.rename_categories(new_cat, inplace=True)
 
+    levels = groups.columns
+    
     if restrict_to is not None:
         groups.index = adata.obs[restrict_key].index
     else:
         groups.index = adata.obs_names
 
     # add column names
-    groups.columns = ["%s_level_%d" % (key_added, level) for level in range(len(bs))]
+    groups.columns = [f"{key_added}_level_{level}" for level in range(len(bs))]
 
     # remove any column with the same key
     keep_columns = [x for x in adata.obs.columns if not x.startswith('%s_level_' % key_added)]
@@ -375,23 +346,23 @@ def nested_model(
     modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     )
-    if equilibrate:
-        adata.uns['schist']['stats']['dS'] = dS
-        adata.uns['schist']['stats']['nattempts'] = nattempts
-        adata.uns['schist']['stats']['nmoves'] = nmoves
+#    if equilibrate:
+#        adata.uns['schist']['stats']['dS'] = dS
+#        adata.uns['schist']['stats']['nattempts'] = nattempts
+#        adata.uns['schist']['stats']['nmoves'] = nmoves
 
 
     adata.uns['schist']['state'] = state
 
     # now add marginal probabilities.
 
-    if collect_marginals:
-        # refrain group marginals. We collected data in vector as long as
-        # the number of cells, cut them into appropriate length data
-        adata.uns['schist']['group_marginals'] = {}
-        for nl, level_marginals in enumerate(group_marginals):
-            idx = np.where(level_marginals > 0)[0] + 1
-            adata.uns['schist']['group_marginals'][nl] = np.array(level_marginals[:np.max(idx)])
+#    if collect_marginals:
+#        # refrain group marginals. We collected data in vector as long as
+#        # the number of cells, cut them into appropriate length data
+#        adata.uns['schist']['group_marginals'] = {}
+#        for nl, level_marginals in enumerate(group_marginals):
+#            idx = np.where(level_marginals > 0)[0] + 1
+#            adata.uns['schist']['group_marginals'][nl] = np.array(level_marginals[:np.max(idx)])
 
     # prune uninformative levels, if any
     if prune:
@@ -406,7 +377,7 @@ def nested_model(
     # Should I use virtual vertex moves for all levels, instead?
     if calculate_affinity:
         logg.info('    calculating cell affinity to groups')
-        levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
+#        levels = [int(x.split('_')[-1]) for x in adata.obs.columns if x.startswith(f'{key_added}_level')]    
         p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
     
         adata.obsm[f'CA_{key_added}_level_0'] = p0
@@ -426,9 +397,9 @@ def nested_model(
         epsilon=epsilon,
         wait=wait,
         nbreaks=nbreaks,
-        equilibrate=equilibrate,
+#        equilibrate=equilibrate,
         fast_model=fast_model,
-        collect_marginals=collect_marginals,
+#        collect_marginals=collect_marginals,
         hierarchy_length=hierarchy_length,
         random_seed=random_seed,
         calculate_affinity=calculate_affinity,
