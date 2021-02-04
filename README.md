@@ -8,6 +8,7 @@
 An interface for Nested Stochastic Block Model for single cell analysis.
 
 ## Status
+- Version 0.7.0 Some changes in the way nested model is calculated. Also, advanced functions have been eliminated, one should use `graph_tool` for that
 - Version 0.6.0 PlantedModel fully supported. Also, some changes in the data structure (affinities in obsm)
 - Version 0.5.2 Fast model for NSBM (and PP).
 - Version 0.5.0 Introduces Planted Partition model
