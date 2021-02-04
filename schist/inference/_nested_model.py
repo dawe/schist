@@ -149,10 +149,10 @@ def nested_model(
         The NestedBlockModel state object
     """
 
-    if resume: 
-        # if the fast_model is chosen perform equilibration anyway
-        # also if a model has previously created
-        equilibrate=True
+#    if resume: 
+#        # if the fast_model is chosen perform equilibration anyway
+#        # also if a model has previously created
+#        equilibrate=True
         
     if resume and ('schist' not in adata.uns or 'state' not in adata.uns['schist']):
         # let the model proceed as default
@@ -165,14 +165,14 @@ def nested_model(
         np.random.seed(random_seed)
         gt.seed_rng(random_seed)
 
-    if collect_marginals:
-        logg.warning('Collecting marginals has a large impact on running time')
-        if not equilibrate:
-            raise ValueError(
-                "You can't collect marginals without MCMC equilibrate "
-                "step. Either set `equlibrate` to `True` or "
-                "`collect_marginals` to `False`"
-            )
+#    if collect_marginals:
+#        logg.warning('Collecting marginals has a large impact on running time')
+#        if not equilibrate:
+#            raise ValueError(
+#                "You can't collect marginals without MCMC equilibrate "
+#                "step. Either set `equlibrate` to `True` or "
+#                "`collect_marginals` to `False`"
+#            )
 
     start = logg.info('minimizing the nested Stochastic Block Model')
     adata = adata.copy() if copy else adata
@@ -394,9 +394,9 @@ def nested_model(
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
         model='nested',
-        epsilon=epsilon,
-        wait=wait,
-        nbreaks=nbreaks,
+#        epsilon=epsilon,
+#        wait=wait,
+#        nbreaks=nbreaks,
 #        equilibrate=equilibrate,
         fast_model=fast_model,
 #        collect_marginals=collect_marginals,
