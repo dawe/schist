@@ -254,7 +254,7 @@ def nested_model(
             dS = 1
             while np.abs(dS) > fast_tol:
                 # perform sweep until a tolerance is reached
-                dS, _, _ = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
+                dS, _, _ = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
 
         _amin = np.argmin([s.entropy() for s in states])            
         state = states[_amin]
