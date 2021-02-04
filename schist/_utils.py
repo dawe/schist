@@ -1,7 +1,10 @@
+from typing import Optional, Tuple, Sequence, Type, Union, Dict
+
 import numpy as np
-import anndata
+from anndata import AnnData
 from scanpy import logging as logg
 import pickle
+from scipy import sparse
 from sklearn.metrics import adjusted_mutual_info_score as ami
 
 try:
@@ -54,3 +57,38 @@ def prune_groups(groups, inverse=False):
     
     return groups.columns[np.where(mi_groups == 1)]
 
+def get_graph_tool_from_adata(adata: AnnData,
+    restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
+    random_seed: Optional[int] = None,
+    key_added: str = 'nsbm',
+    adjacency: Optional[sparse.spmatrix] = None,
+    neighbors_key: Optional[str] = 'neighbors',
+    directed: bool = False,
+    use_weights: bool = False,
+
+):
+    """Get graph-tool graph from adata."""
+    if adjacency is None:
+        if neighbors_key not in adata.uns:
+            raise ValueError(
+                'You need to run `pp.neighbors` first '
+                'to compute a neighborhood graph.'
+            )
+        elif 'connectivities_key' in adata.uns[neighbors_key]:
+            # scanpy>1.4.6 has matrix in another slot
+            conn_key = adata.uns[neighbors_key]['connectivities_key']
+            adjacency = adata.obsp[conn_key]
+        else:
+            # scanpy<=1.4.6 has sparse matrix here
+            adjacency = adata.uns[neighbors_key]['connectivities']
+    if restrict_to is not None:
+        restrict_key, restrict_categories = restrict_to
+        adjacency, restrict_indices = restrict_adjacency(
+            adata,
+            restrict_key,
+            restrict_categories,
+            adjacency,
+        )
+    # convert it to igraph
+    g = get_graph_tool_from_adjacency(adjacency, directed=directed)
+    return g
