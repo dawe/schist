@@ -124,6 +124,12 @@ def plug_state(adata: AnnData,
     adata = adata.copy() if copy else adata
     g = state.g
     
+    model_type = 'nested'
+    if type(state) == gt.PPBlockState:
+        model_type = 'planted'
+    elif type(state) == gt.BlockState:
+        model_type = 'flat'
+    
     if type(state) == gt.NestedBlockState:
         bs = state.get_bs()
         if not nested:
@@ -138,6 +144,7 @@ def plug_state(adata: AnnData,
             groups[c].cat.rename_categories(new_cat, inplace=True)
         levels = groups.columns
         groups.columns = [f"{key_added}_level_{level}" for level in range(len(bs))]
+        groups.index = adata.obs_names
         # remove any column with the same key
         keep_columns = [x for x in adata.obs.columns if not x.startswith('%s_level_' % key_added)]
         adata.obs = adata.obs[keep_columns]
@@ -164,11 +171,25 @@ def plug_state(adata: AnnData,
                     cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
                 adata.obsm[f'CA_{key_added}_level_{nl + 1}'] = cl / np.sum(cl, axis=1)[:, None]
 
-        adata.uns['schist']['params'] = dict(
-        model='nested',
-        calculate_affinity=calculate_affinity,
-    )
     else:
-    
-        2
+        
+        groups = pd.Series(state.get_blocks().get_array()).astype('category')
+        ncat = len(groups.cat.categories)
+        new_cat = [u'%s' % x for x in range(ncat)]
+        groups.cat.rename_categories(new_cat, inplace=True)
+        groups.index = adata.obs_names
+        adata.obs[key_added] = groups
+        adata.uns['schist'] = {}
+        adata.uns['schist']['stats'] = dict(
+            modularity=gt.modularity(g, state.get_blocks())
+        )
+        adata.uns['schist']['state'] = state
+        if calculate_affinity:
+            adata.obsm[f'CA_{key_added}_level_1'] = get_cell_loglikelihood(state, as_prob=True)
+            
+    adata.uns['schist']['params'] = dict(
+    model=model_type,
+    calculate_affinity=calculate_affinity,)
+
+
     return adata if copy else None
