@@ -6,6 +6,7 @@ from scanpy import logging as logg
 import pickle
 from scipy import sparse
 from sklearn.metrics import adjusted_mutual_info_score as ami
+import pandas as pd
 
 try:
     import graph_tool.all as gt
@@ -92,3 +93,82 @@ def get_graph_tool_from_adata(adata: AnnData,
     # convert it to igraph
     g = get_graph_tool_from_adjacency(adjacency, directed=directed)
     return g
+
+def plug_state(adata: AnnData,
+    state: Union[gt.NestedBlockState, 
+                gt.BlockState, 
+                gt.PPBlockState],
+    nested: bool = True,
+    key_added: str = 'nsbm',
+    calculate_affinity: bool = False,
+    copy: bool = False
+
+) -> Optional[AnnData]:
+    """\
+    Add a state to a dataset, populate the AnnData.obs consistenly 
+
+    Parameters
+    ----------
+    adata
+        The annotated data matrix.
+    state
+        The graph_tool state. Supported types are NestedBlockState
+        BlockState and PPBlockState
+    nested
+        If False plug only the lowest level, otherwise the full hierarchy
+    key_added
+        The prefix for annotations
+
+    """
+
+    adata = adata.copy() if copy else adata
+    g = state.g
+    
+    if type(state) == gt.NestedBlockState:
+        bs = state.get_bs()
+        if not nested:
+            bs = bs[:1]
+        groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
+        for x in range(len(bs)):
+            groups[:, x] = state.project_partition(x, 0).get_array()
+        groups = pd.DataFrame(groups).astype('category')
+        for c in groups.columns:
+            ncat = len(groups[c].cat.categories)
+            new_cat = [u'%s' % x for x in range(ncat)]
+            groups[c].cat.rename_categories(new_cat, inplace=True)
+        levels = groups.columns
+        groups.columns = [f"{key_added}_level_{level}" for level in range(len(bs))]
+        # remove any column with the same key
+        keep_columns = [x for x in adata.obs.columns if not x.startswith('%s_level_' % key_added)]
+        adata.obs = adata.obs[keep_columns]
+        adata.obs = pd.concat([adata.obs, groups], axis=1)
+
+        adata.uns['schist'] = {}
+        adata.uns['schist']['stats'] = dict(
+        level_entropy=np.array([state.level_entropy(x) for x in range(len(bs))]),
+        modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
+                         for x in range(len(bs))])
+        )
+        adata.uns['schist']['state'] = state
+        
+        if calculate_affinity:
+            p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
+            adata.obsm[f'CA_{key_added}_level_0'] = p0
+            l0 = "%s_level_0" % key_added
+            for nl, level in enumerate(groups.columns[1:]):
+                cross_tab = pd.crosstab(groups[l0], groups[level])
+                cl = np.zeros((p0.shape[0], cross_tab.shape[1]), dtype=p0.dtype)
+                for x in range(cl.shape[1]):
+                    # sum counts of level_0 groups corresponding to
+                    # this group at current level
+                    cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
+                adata.obsm[f'CA_{key_added}_level_{nl + 1}'] = cl / np.sum(cl, axis=1)[:, None]
+
+        adata.uns['schist']['params'] = dict(
+        model='nested',
+        calculate_affinity=calculate_affinity,
+    )
+    else:
+    
+        2
+    return adata if copy else None
