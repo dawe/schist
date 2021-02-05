@@ -221,18 +221,16 @@ def nested_model(
                                     recs=recs,
                                     rec_types=rec_types
                                     )) for n in range(n_init)]
-        bs = []
         for x in range(n_init):
             dS = 1
             while np.abs(dS) > fast_tol:
                 # perform sweep until a tolerance is reached
                 dS, _, _ = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
-                bs.append(states[x].get_bs())
 
         logg.info(f'Getting consensus over {len(bs)} models', time=start)
-        pmode = gt.PartitionModeState(bs, nested=True, converge=True)
-        bs = pmode.get_max_nested() # get consensus
-        state = states[0].copy(bs = bs)
+
+        state = states[np.argmin([s.entropy() for s in states])]
+        bs = state.get_bs()
         
         logg.info('    done', time=start)
         
