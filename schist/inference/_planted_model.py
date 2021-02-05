@@ -275,8 +275,9 @@ def planted_model(
     # everything is in place, we need to fill all slots
     # first build an array with
     groups = pd.Series(state.get_blocks().get_array()).astype('category')
-    new_cat_names = dict([(cx, u'%s' % cn) for cn, cx in enumerate(groups.cat.categories)])
-    groups.cat.rename_categories(new_cat_names, inplace=True)
+    ncat = len(groups.cat.categories)
+    new_cat = [u'%s' % x for x in range(ncat)]
+    groups.cat.rename_categories(new_cat, inplace=True)
 
     if restrict_to is not None:
         groups.index = adata.obs[restrict_key].index
