@@ -227,8 +227,6 @@ def nested_model(
                 # perform sweep until a tolerance is reached
                 dS, _, _ = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
 
-        logg.info(f'Getting consensus over {len(bs)} models', time=start)
-
         state = states[np.argmin([s.entropy() for s in states])]
         bs = state.get_bs()
         
