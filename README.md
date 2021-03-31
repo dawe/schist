@@ -8,6 +8,7 @@
 An interface for Nested Stochastic Block Model for single cell analysis.
 
 ## Status
+- Version 0.7.2 It is now possible to run leiden clustering, but this is performed many times (default 100), a consensus is calculated as well as marginals for cluster assignments.
 - Version 0.7.0 Some changes in the way nested model is calculated. Also, advanced functions have been eliminated, one should use `graph_tool` for that
 - Version 0.6.0 PlantedModel fully supported. Also, some changes in the data structure (affinities in obsm)
 - Version 0.5.2 Fast model for NSBM (and PP).
