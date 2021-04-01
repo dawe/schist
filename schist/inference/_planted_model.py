@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 from scipy import sparse
+from joblib import delayed, Parallel
 
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
@@ -44,6 +45,7 @@ def planted_model(
     steps_anneal: int = 5,
     resume: bool = False,
     calculate_affinity: bool = True,
+    n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -131,6 +133,8 @@ def planted_model(
         Whether to copy `adata` or modify it inplace.
     random_seed
         Random number to be used as seed for graph-tool
+    n_jobs
+        Number of parallel computations used during model initialization
 
     Returns
     -------
@@ -218,28 +222,26 @@ def planted_model(
             n_init = 1
         
         # initialize  the block states
+        def fast_min(state, beta, n_sweep, fast_tol):
+            dS = 1
+            while np.abs(dS) > fast_tol:
+                dS, natt, nm = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
+            return state, dS, natt, nm
+
         states = [gt.PPBlockState(g) for x in range(n_init)]
         
         # perform a mcmc sweep on each 
         # no list comprehension as I need to collect stats
         
-        _dS = np.zeros(n_init)
-        _nattempts = np.zeros(n_init)
-        _nmoves = np.zeros(n_init)
-        for x in range(n_init):
-            t_ds = 1
-            while np.abs(t_ds) > tolerance:
-                # perform sweep until a tolerance is reached
-                t_ds, t_natt, t_nm = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
-                _dS[x] += t_ds
-                _nattempts[x] += t_natt
-                _nmoves[x] += t_nm
-
-        _amin = np.argmin([s.entropy() for s in states])            
-        state = states[_amin]
-        dS = _dS[_amin]
-        nattempts = _nattempts[_amin]
-        nmoves = _nmoves[_amin]
+        states = Parallel(n_jobs=3, prefer='threads')(
+            delayed(fast_min)(state, beta, n_sweep, tolerance) for state in states
+        )
+        
+        _amin = np.argmin([s[0].entropy() for s in states])            
+        state = states[_amin][0]
+        dS = states[_amin][1]
+        nattempts = states[_amin][2]
+        nmoves = states[_amin][3]
         
 
         logg.info('    done', time=start)
