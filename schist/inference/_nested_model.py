@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 from scipy import sparse
+from joblib import delayed, Parallel
 
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
@@ -45,6 +46,7 @@ def nested_model(
 #    beta_range: Tuple[float] = (1., 1000.),
 #    steps_anneal: int = 3,
     resume: bool = False,
+    n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -102,6 +104,8 @@ def nested_model(
     resume
         Start from a previously created model, if any, without initializing a novel
         model    
+    n_jobs
+        Number of parallel computations used during model initialization
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -221,11 +225,16 @@ def nested_model(
                                     recs=recs,
                                     rec_types=rec_types
                                     )) for n in range(n_init)]
-        for x in range(n_init):
+
+        def fast_min(state, beta, n_sweep, fast_tol):
             dS = 1
             while np.abs(dS) > fast_tol:
-                # perform sweep until a tolerance is reached
-                dS, _, _ = states[x].multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+                dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+            return state                            
+            
+        states = Parallel(n_jobs=n_jobs)(
+            delayed(fast_min)(state, beta, n_sweep, fast_tol) for state in pstates
+        )
 
         state = states[np.argmin([s.entropy() for s in states])]
         bs = state.get_bs()
@@ -239,10 +248,12 @@ def nested_model(
         # get the graph from state
         g = state.g
     else:
-        states = [gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
+        states = Parallel(n_jobs=n_jobs)(
+            delayed(gt.minimize_nested_blockmodel_dl)(g, deg_corr=deg_corr, 
                   state_args=dict(recs=recs,  rec_types=rec_types), 
-                  **minimize_args) for n in range(n_init)]
-                  
+                  **minimize_args) for n in range(n_init)
+        )
+
         state = states[np.argmin([s.entropy() for s in states])]    
 #        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
 #                                                 state_args=dict(recs=recs,
