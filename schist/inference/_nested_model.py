@@ -248,17 +248,14 @@ def nested_model(
         # get the graph from state
         g = state.g
     else:
-        states = Parallel(n_jobs=n_jobs)(
+        states = Parallel(n_jobs=n_jobs, prefer='threads')(
             delayed(gt.minimize_nested_blockmodel_dl)(g, deg_corr=deg_corr, 
                   state_args=dict(recs=recs,  rec_types=rec_types), 
                   **minimize_args) for n in range(n_init)
         )
 
         state = states[np.argmin([s.entropy() for s in states])]    
-#        state = gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
-#                                                 state_args=dict(recs=recs,
-#                                                 rec_types=rec_types), 
-#                                                 **minimize_args)
+
         logg.info('    done', time=start)
         bs = state.get_bs()
         if len(bs) <= hierarchy_length:
