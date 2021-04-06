@@ -167,7 +167,7 @@ def max_marginal(
 def cell_similarity(
     adata: AnnData,
     key_added: Optional[str] = 'cell_similarity',
-    sim_type: Optional[str] = 'salton',
+    sim_type: Optional[str] = 'hub-promoted',
     use_weights: Optional[bool] = True,
     copy: bool = False,
     **neighbors_kwds
