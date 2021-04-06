@@ -204,7 +204,7 @@ def leiden(
         categories=natsorted(map(str, np.unique(groups))),
     )
     if get_marginals:
-        adata.obsm[f"{key_added}_marginal"] = pv_array
+        adata.obsm[f"CM_{key_added}"] = pv_array
     # store information on the clustering parameters
     adata.uns['leiden'] = {}
     adata.uns['leiden']['params'] = dict(
