@@ -102,7 +102,7 @@ def max_marginal(
     key_added: Optional[str] = 'max_marginal',
     copy: bool = False,
     n_iter: int = 100,
-    state: None
+    state: Optional = None
 ) -> Optional[AnnData]:
     """\
     Perform a MCMC sweep and calculate the maximal marginal probability
@@ -145,19 +145,20 @@ def max_marginal(
         if type(s) == gt.NestedBlockState:
             bs.append(s.get_bs())
         if type(s) == gt.PPBlockState:
-            bs.append(s.get_blocks())
+            bs.append(s.get_blocks().a.copy())
     
-    gt.mcmc_equilibrate(state, force_niter=n_iter, mcmc_args=dict(niter=10),
-                    callback=collect_partitions)
+    gt.mcmc_equilibrate(state, force_niter=n_iter, 
+                        mcmc_args=dict(niter=10),
+                        callback=collect_partitions)
                     
     # Disambiguate partitions and obtain marginals
     pmode = gt.PartitionModeState(bs, converge=True, nested=nested)
-    pv = pmode.get_marginal(g)
+    pv = pmode.get_marginal(state.g)
     
     if nested:
-        naaa
+        n_groups = state.get_levels()[0].get_nonempty_B()
     else:   
-        fooo
+        n_groups = state.get_nonempty_B()
     pv_array = pv.get_2d_array(np.arange(n_groups)) / (n_iter - 1)
     adata.obs[f'{key_added}'] = np.max(pv_array, axis=0)
     return adata if copy else None
