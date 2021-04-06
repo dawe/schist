@@ -164,3 +164,46 @@ def max_marginal(
     return adata if copy else None
 
 
+def cell_similarity(
+    adata: AnnData,
+    key_added: Optional[str] = 'cell_similarity',
+    sim_type: Optional[str] = 'salton',
+    use_weights: Optional[bool] = True,
+    copy: bool = False,
+    **neighbors_kwds
+) -> Optional[AnnData]:
+    """\
+    Calculate cell similarity score based on the kNN graph. Higher scores
+    are associated to cells mostly close to similar cells
+    Parameters
+    ----------
+    adata
+        Annotated data matrix. 
+    key_added
+        The name of the entry in adata.obs with calculated values
+    copy
+        Return a copy instead of writing to adata.
+    sim_type:
+        Similarity function. Can be one in 'dice', 'salton', 'hub-promoted', 
+        'hub-suppressed', 'jaccard', 'inv-log-weight', 'resource-allocation',
+        'leight-holme-newman'. For more information check here
+        https://graph-tool.skewed.de/static/doc/topology.html?highlight=distance#graph_tool.topology.vertex_similarity
+    state
+        A separate block state object
+
+    Returns
+    -------
+    Depending on `copy`, returns or updates `adata` with stability values 
+    in adata.obs['cell_stability']
+"""    
+    from .._utils import get_graph_tool_from_adata
+    logg.info("Adding cell similarity scores")
+    g = get_graph_tool_from_adata(adata, use_weights=use_weights, **neighbors_kwds)
+    n_cells = g.num_vertices()
+    S = gt.vertex_similarity(g, sim_type=sim_type).get_2d_array(range(n_cells))
+    D = np.dot(S, S)
+    D = np.diag(D / np.max(D)) # take the scaled diagonal 
+    adata.obs[f'{key_added}'] = D
+    return adata if copy else None
+
+
