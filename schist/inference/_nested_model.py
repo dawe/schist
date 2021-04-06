@@ -57,7 +57,7 @@ def nested_model(
     use_weights: bool = False,
     prune: bool = False,
     return_low: bool = True,
-    calculate_affinity: bool = False,
+    calculate_affinity: bool = True,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
 #    equilibrate_args: Optional[Dict] = {},
