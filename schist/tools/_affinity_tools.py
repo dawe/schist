@@ -102,7 +102,8 @@ def max_marginal(
     key_added: Optional[str] = 'max_marginal',
     copy: bool = False,
     n_iter: int = 100,
-    state: Optional = None
+    state: Optional = None,
+    level: Optional[int] = 0
 ) -> Optional[AnnData]:
     """\
     Perform a MCMC sweep and calculate the maximal marginal probability
@@ -160,6 +161,16 @@ def max_marginal(
     else:   
         n_groups = state.get_nonempty_B()
     pv_array = pv.get_2d_array(np.arange(n_groups)) / (n_iter - 1)
+
+    if nested and level > 0:
+        p0 = pd.Categorical(state.project_partition(0, 0))
+        pL = pd.Categorical(state.project_partition(level, 0))
+        ct = pd.crosstab(p0, pL, normalize='index')
+        pv_array = (pv_array.T @ ct.values)
+        pv_array = pv_array/np.sum(pv_array, axis=1)[:, None]
+        pv_array = pv_array.T
+
+    
     adata.obs[f'{key_added}'] = np.max(pv_array, axis=0)
     return adata if copy else None
 
