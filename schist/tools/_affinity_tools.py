@@ -172,6 +172,7 @@ def max_marginal(
 
     
     adata.obs[f'{key_added}'] = np.max(pv_array, axis=0)
+    adata.obsm[f"{key_added}_marginal"] = pv_array.T
     return adata if copy else None
 
 
