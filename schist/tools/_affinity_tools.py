@@ -5,6 +5,7 @@ from anndata import AnnData
 import scipy.stats
 
 from scanpy import logging as logg
+import graph_tool.all as gt
 
 
 def cluster_consistency(
@@ -94,3 +95,71 @@ def cell_stability(
     adata.obs['cell_stability'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
 
     return adata if copy else None
+
+def max_marginal(
+    adata: AnnData,
+    key: Optional[str] = 'nsbm', # dummy default
+    key_added: Optional[str] = 'max_marginal',
+    copy: bool = False,
+    n_iter: int = 100,
+    state: None
+) -> Optional[AnnData]:
+    """\
+    Perform a MCMC sweep and calculate the maximal marginal probability
+    for a cell. For Nested Model returns the max probability at the lowest level.
+    Parameters
+    ----------
+    adata
+        Annotated data matrix. 
+    key
+        The prefix of CA matrices in adata.obsm to evaluate
+    key_added
+        The name of the entry in adata.obs with calculated values
+    copy
+        Return a copy instead of writing to adata.
+    n_iter:
+        Number of iterations to collect. The higher this number, the higher the 
+        precision
+    state
+        A separate block state object
+
+    Returns
+    -------
+    Depending on `copy`, returns or updates `adata` with stability values 
+    in adata.obs['cell_stability']
+"""    
+    if not adata.uns['schist']['state'] and not state:
+        raise ValueError(
+            "A BlockState should be passed to this function"
+        )
+    if not state:
+        state = adata.uns['schist']['state']
+
+    logg.info(f'Collecting marginals for {n_iter} iterations')
+    
+    nested = False
+    if type(state) == gt.NestedBlockState:
+        nested = True
+    bs = []
+    def collect_partitions(s):
+        if type(s) == gt.NestedBlockState:
+            bs.append(s.get_bs())
+        if type(s) == gt.PPBlockState:
+            bs.append(s.get_blocks())
+    
+    gt.mcmc_equilibrate(state, force_niter=n_iter, mcmc_args=dict(niter=10),
+                    callback=collect_partitions)
+                    
+    # Disambiguate partitions and obtain marginals
+    pmode = gt.PartitionModeState(bs, converge=True, nested=nested)
+    pv = pmode.get_marginal(g)
+    
+    if nested:
+        naaa
+    else:   
+        fooo
+    pv_array = pv.get_2d_array(np.arange(n_groups)) / (n_iter - 1)
+    adata.obs[f'{key_added}'] = np.max(pv_array, axis=0)
+    return adata if copy else None
+
+

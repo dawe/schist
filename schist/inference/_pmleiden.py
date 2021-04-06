@@ -179,7 +179,8 @@ def leiden(
         for p in pv:
             pv_array[x][:len(p)] = p
             x += 1
-        pv_array = pv_array[:, np.unique(groups)] / samples
+#        pv_array = pv_array[:, np.unique(groups)] / samples
+        pv_array = pv.get_2d_array(np.arange(n_groups)).T / (samples - 1)
     # rename groups to ensure they are a continuous range
     u_groups = np.unique(groups)
     rosetta = dict(zip(u_groups, range(len(u_groups))))
