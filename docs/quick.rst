@@ -5,6 +5,9 @@ Quick start
 Status
 ######
 
+- Version 0.7.2 It is now possible to run leiden clustering, but this is performed many times (default 100), a consensus is calculated as well as marginals for cluster assignments.
+- Version 0.7.0 Some changes in the way nested model is calculated. Also, advanced functions have been eliminated, one should use `graph_tool` for that
+- Version 0.6.0 PlantedModel fully supported. Also, some changes in the data structure (affinities in obsm)
 - Version 0.5.2 Fast model for NSBM (and PP).
 - Version 0.5.0 Introduces Planted Partition model
 - Version 0.4.2 Introduces functions to calculate cluster consistency.
@@ -22,9 +25,9 @@ Once `schist` has been installed, it can be used out of the box on `scanpy` obje
 
 ::
 
-	from schist.inference import nested_model
+	import schist
 
-	nested_model(adata)
+	schist.inference.nested_model(adata)
 
 
 Once the MCMC has converged, the `adata.obs` object will contain additional columns for multiple levels, named `nsbm_level_1`, `nsbm_level_2` and so on (by default up to `nsbm_level_10`).
@@ -36,7 +39,7 @@ The key component (`graph-tool`) is not available through pip and requires extra
 
 ::
 
-	conda create -n schist -c conda-forge -c bioconda numpy scipy anndata pandas 'graph-tool>=2.33' scanpy	
+	conda create -n schist -c conda-forge -c bioconda numpy scipy anndata pandas 'graph-tool>=2.37' scanpy	
 	conda activate schist
 
 
@@ -55,7 +58,7 @@ Known issues
 Saving objects
 **************
 
-`schist` allows to return the `NestedBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
+`schist` allows to return the `NestedBlockState` or `PPBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
 
 ::
 

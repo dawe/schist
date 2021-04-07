@@ -38,7 +38,7 @@ More details can be found at [this page](Advanced.md)
 The key component (`graph-tool`) is not available through pip and requires extra compilation by the user, refer to its [installation page](https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions). Note, however, that a conda package is available from conda-forge, that means you may install it (and `schist` dependencies) just issuing
 
 ```
-conda create -n schist -c conda-forge -c bioconda numpy scipy anndata pandas 'graph-tool>=2.35' scanpy
+conda create -n schist -c conda-forge -c bioconda numpy scipy anndata pandas 'graph-tool>=2.37' scanpy
 conda activate schist
 ```
 
