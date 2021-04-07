@@ -6,6 +6,87 @@ import scipy.stats
 
 from scanpy import logging as logg
 import graph_tool.all as gt
+import pandas as pd
+from ._utils import get_cell_loglikelihood
+
+
+def calculate_affinity(
+    adata: AnnData,
+    level: int = 1,
+    block_key: Optional[str] = 'nsbm',
+    groups: Optional[str] = None,
+    state: Optional = None,
+    copy: bool = False
+    
+) -> Optional[AnnData]:
+    
+    """\
+    Calculate cell affinity given a partition scheme
+    Parameters
+    ----------
+    adata:
+        The AnnData object. Should have been already processed with schist
+    level:
+        The level to calculate affinity. This parameter is effective
+        only for Nested partitions
+    block_key:
+        The prefix for partitions. This parameter is ignored if the state
+        is not gt.NestedBlockState
+    groups:
+        The key for group names used for calculations. Setting this will override
+        level and block_key. This is effective only for NestedBlockState partitions
+    state:
+        Optionally calculate affinities on this state.
+    copy:
+        Return a new object or do everything in place
+        
+    Returns
+    -------
+    Depending on `copy`, returns or updates `adata` with affinity values 
+    in adata.obsm[f'CA_{block_key}_level_{level}']
+        
+"""    
+
+    if groups:
+        logg.info(f'Calculating cell affinity to {groups}')
+    else:
+        logg.info(f'Calculating cell affinity to level {level}')
+        
+    if not state:
+        if not adata.uns['schist']['state']:
+            raise ValueError("No state detected")
+        else:
+            state = adata.uns['schist']['state']
+    
+    if type(state) == gt.NestedBlockState:
+        p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
+        group_col = None
+        if groups and groups in adata.obs.columns:
+            group_col = groups
+        else:
+            g_name = f'{block_key}_level_{level}'
+            if g_name in adata.obs.columns:
+                group_col = g_name
+        if not group_col:
+            raise ValueError("The provided groups or level/blocks do not exist")
+            
+        g0 = pd.Categorical(state.project_partition(0, 0).a.astype(str)) 
+        cross_tab = pd.crosstab(g0, adata.obs[group_col])
+        cl = np.zeros((p0.shape[0], cross_tab.shape[1]), dtype=p0.dtype)
+        for x in range(cl.shape[1]):
+            # sum counts of level_0 groups corresponding to
+            # this group at current level
+            cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
+        ca_matrix = cl / np.sum(cl, axis=1)[:, None]
+
+    elif type(state) == gt.PPBlockState:
+        ca_matrix = get_cell_loglikelihood(state, as_prob=True)
+        level = 1
+        block_key = 'ppbm'
+    
+    adata.obsm[f'CA_{block_key}_level_{level}'] = ca_matrix 
+    
+    return adata if copy else None
 
 
 def cluster_consistency(
@@ -65,7 +146,9 @@ def cluster_consistency(
 
 def cell_stability(
     adata: AnnData,
-    key: Optional[str] = 'nsbm', # dummy default
+    block_key: Optional[str] = 'nsbm', # dummy default
+    key_added: Optional[str] = 'cell_staibilty',
+    state: Optional = None,
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
@@ -85,14 +168,30 @@ def cell_stability(
     in adata.obs['cell_stability']
 """    
 
-    obsm_names = [x for x in adata.obsm_keys() if x.startswith(f'CA_{key}_level')]
+    if not state:
+        if not adata.uns['schist']['state']:
+            raise ValueError("No state detected")
+        else:
+            state = adata.uns['schist']['state']
+
+
+    obsm_names = [x for x in adata.obsm_keys() if x.startswith(f'CA_{block_key}_level')]
     if len(obsm_names) == 0:
         raise KeyError(
             f"Your dataset does not contain cell affinities, did you run nSBM?"
         )
+    if len(obsm_names) < len(state.get_levels()):
+        logg.warning("Your dataset doesn't contain all the required affinities\n"
+                     "They will be recalculated from scratch")
+        adata.obsm[f'CA_{block_key}_level_0'] = get_cell_loglikelihood(state, level=0, 
+                                                                      as_prob=True)
+        obsm_names = [f'CA_{block_key}_level_0']
+        for n in range(1, len(state.get_levels())):
+            calculate_affinity(adata, level = n, block_key=block_key, state=state)
+            obsm_names.append(f'CA_{block_key}_level_{n}')
 
     _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
-    adata.obs['cell_stability'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
+    adata.obs[f'{key_added}'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
 
     return adata if copy else None
 

@@ -23,9 +23,8 @@ except ImportError:
         """
     )
 
-from ._utils import get_cell_loglikelihood
 
-from ._helpers import *
+from .._helpers import *
 
 def planted_model(
     adata: AnnData,
@@ -44,7 +43,6 @@ def planted_model(
     beta_range: Tuple[float] = (1., 100.),
     steps_anneal: int = 5,
     resume: bool = False,
-    calculate_affinity: bool = True,
     n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
@@ -307,13 +305,6 @@ def planted_model(
         # of belonging to a specific group
         adata.uns['schist']['group_marginals'] = group_marginals
 
-    # calculate log-likelihood of cell moves over the remaining levels
-    if calculate_affinity:
-        logg.info('    calculating cell affinity to groups')
-        
-#        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True, rescale=True)}
-        adata.obsm[f'CA_{key_added}_level_1'] = get_cell_loglikelihood(state, as_prob=True)
-    
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
         model='planted',
