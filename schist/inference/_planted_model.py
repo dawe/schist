@@ -24,6 +24,8 @@ except ImportError:
     )
 
 
+from .._helpers import *
+
 def planted_model(
     adata: AnnData,
     n_sweep: int = 10,
