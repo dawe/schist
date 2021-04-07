@@ -159,7 +159,7 @@ def leiden(
         partition_kwargs['weights'] = np.array(g.es['weight']).astype(np.float64)
     partition_kwargs['n_iterations'] = n_iterations
     np.random.seed(random_state)
-    seeds = np.random.randint(0, samples**2, size=samples)
+    seeds = np.random.choice(range(0, samples**2), size=samples, replace=False)
     
 
     if resolution is not None:
@@ -180,7 +180,7 @@ def leiden(
             pv_array[x][:len(p)] = p
             x += 1
 #        pv_array = pv_array[:, np.unique(groups)] / samples
-        pv_array = pv.get_2d_array(np.arange(n_groups)).T / (samples - 1)
+        pv_array = pv.get_2d_array(np.arange(n_groups)).T / samples
     # rename groups to ensure they are a continuous range
     u_groups = np.unique(groups)
     rosetta = dict(zip(u_groups, range(len(u_groups))))
