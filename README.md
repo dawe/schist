@@ -47,7 +47,7 @@ After that, `schist` can be installed from source:
 ```
 git clone https://github.com/dawe/schist.git
 cd schist
-pip install .
+python setup.py install
 ```
 
 
