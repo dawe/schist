@@ -4,15 +4,7 @@ schist.inference package
 Submodules
 ----------
 
-schist.inference.\_flat\_model module
--------------------------------------
-
-.. automodule:: schist.inference._flat_model
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-schist.inference.\_nested\_model module
+schist.inference.nested\_model module
 ---------------------------------------
 
 .. automodule:: schist.inference._nested_model
@@ -20,7 +12,7 @@ schist.inference.\_nested\_model module
    :undoc-members:
    :show-inheritance:
 
-schist.inference.\_planted\_model module
+schist.inference.planted\_model module
 ----------------------------------------
 
 .. automodule:: schist.inference._planted_model
@@ -28,7 +20,7 @@ schist.inference.\_planted\_model module
    :undoc-members:
    :show-inheritance:
 
-schist.inference.\_pmleiden module
+schist.inference.pmleiden module
 ----------------------------------
 
 .. automodule:: schist.inference._pmleiden

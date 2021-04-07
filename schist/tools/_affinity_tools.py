@@ -147,7 +147,7 @@ def cluster_consistency(
 def cell_stability(
     adata: AnnData,
     block_key: Optional[str] = 'nsbm', # dummy default
-    key_added: Optional[str] = 'cell_staibilty',
+    key_added: Optional[str] = 'cell_stability',
     state: Optional = None,
     copy: bool = False
 ) -> Optional[AnnData]:
@@ -174,20 +174,17 @@ def cell_stability(
         else:
             state = adata.uns['schist']['state']
 
-
-    obsm_names = [x for x in adata.obsm_keys() if x.startswith(f'CA_{block_key}_level')]
-    if len(obsm_names) == 0:
-        raise KeyError(
-            f"Your dataset does not contain cell affinities, did you run nSBM?"
-        )
-    if len(obsm_names) < len(state.get_levels()):
+    n_effective_levels = sum([x.get_nonempty_B() > 1 for x in state.get_levels()])
+    n_effective_levels = min(n_effective_levels, len(state.get_levels()))
+    obsm_names = [x for x in adata.obsm if x.startswith(f"CA_{block_key}_level")]    
+    if len(obsm_names) < n_effective_levels:
         logg.warning("Your dataset doesn't contain all the required affinities\n"
                      "They will be recalculated from scratch")
         adata.obsm[f'CA_{block_key}_level_0'] = get_cell_loglikelihood(state, level=0, 
                                                                       as_prob=True)
         obsm_names = [f'CA_{block_key}_level_0']
-        for n in range(1, len(state.get_levels())):
-            calculate_affinity(adata, level = n, block_key=block_key, state=state)
+        for n in range(n_effective_levels):
+            calculate_affinity(adata, level = n+1, block_key=block_key, state=state)
             obsm_names.append(f'CA_{block_key}_level_{n}')
 
     _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
