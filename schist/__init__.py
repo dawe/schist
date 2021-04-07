@@ -10,7 +10,7 @@ __author__ = ', '.join([
 ])
 __email__ = ', '.join([
     'cittaro.davide@hsr.it',
-    'l.morelli2@studenti.unisr.it',
+    'morelli.leonardo@hsr.it',
 ])
 
 from ._version import get_versions
