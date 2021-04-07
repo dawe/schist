@@ -13,6 +13,7 @@ from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 
 from .._utils import get_graph_tool_from_adjacency 
+from joblib import Parallel, delayed
 
 try:
     from leidenalg.VertexPartition import MutableVertexPartition
@@ -51,6 +52,7 @@ def leiden(
     neighbors_key: Optional[str] = None,
     obsp: Optional[str] = None,
     get_marginals: bool = False,
+    n_jobs: int = -1,
     copy: bool = False,
     **partition_kwargs,
 ) -> Optional[AnnData]:
@@ -109,6 +111,8 @@ def leiden(
         `obsp` and `neighbors_key` at the same time.
     get_marginals
     	Wheter to retrieve the marginal probability to belong to a group
+    n_jobs
+        Number of parallel jobs to calculate partitions
     copy
         Whether to copy `adata` or modify it inplace.
     **partition_kwargs
@@ -165,8 +169,14 @@ def leiden(
     if resolution is not None:
         partition_kwargs['resolution_parameter'] = resolution
     # clustering proper
-    parts = [leidenalg.find_partition(g, partition_type, seed=seeds[x],
-                                       **partition_kwargs).membership for x in range(samples)]
+    def membership(g, partition_type, seed, **partition_kwargs):
+        return leidenalg.find_partition(g, partition_type, 
+                                        seed=seed, **partition_kwargs).membership
+    
+    parts = Parallel(n_jobs=n_jobs)(
+                    delayed(membership)(g, partition_type, 
+                                        seeds[i], **partition_kwargs) 
+                                        for i in range(samples))
 
     pmode = gt.PartitionModeState(parts, converge=True) 
     groups = np.array(pmode.get_max(g_gt).get_array())     
