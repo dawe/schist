@@ -51,7 +51,7 @@ def leiden(
     partition_type: Optional[Type[MutableVertexPartition]] = None,
     neighbors_key: Optional[str] = None,
     obsp: Optional[str] = None,
-    get_marginals: bool = True,
+    collect_marginals: bool = True,
     n_jobs: int = -1,
     copy: bool = False,
     **partition_kwargs,
@@ -109,7 +109,7 @@ def leiden(
     obsp
         Use .obsp[obsp] as adjacency. You can't specify both
         `obsp` and `neighbors_key` at the same time.
-    get_marginals
+    collect_marginals
     	Wheter to retrieve the marginal probability to belong to a group
     n_jobs
         Number of parallel jobs to calculate partitions
@@ -180,17 +180,8 @@ def leiden(
 
     pmode = gt.PartitionModeState(parts, converge=True) 
     groups = np.array(pmode.get_max(g_gt).get_array())     
-    if get_marginals:
-        pv = pmode.get_marginal(g_gt)
-        #n_groups = pmode.get_B()
-        n_groups = max([len(x) for x in pv])
-        pv_array = np.zeros((adata.shape[0], n_groups))
-        x = 0
-        for p in pv:
-            pv_array[x][:len(p)] = p
-            x += 1
-#        pv_array = pv_array[:, np.unique(groups)] / samples
-        pv_array = pv.get_2d_array(np.arange(n_groups)).T / samples
+    if collect_marginals:
+        pv_array = pmode.get_marginal(g_gt).get_2d_array(range(n_samples)).T / n_samples
     # rename groups to ensure they are a continuous range
     u_groups = np.unique(groups)
     rosetta = dict(zip(u_groups, range(len(u_groups))))
@@ -213,7 +204,7 @@ def leiden(
         values=groups.astype('U'),
         categories=natsorted(map(str, np.unique(groups))),
     )
-    if get_marginals:
+    if collect_marginals:
         adata.obsm[f"CM_{key_added}"] = pv_array
     # store information on the clustering parameters
     adata.uns['leiden'] = {}
@@ -222,7 +213,7 @@ def leiden(
         random_state=random_state,
         n_iterations=n_iterations,
         samples=samples,
-        get_marginals=get_marginals
+        collect_marginals=collect_marginals
     )
     logg.info(
         '    finished',

@@ -5,7 +5,7 @@ import pandas as pd
 from anndata import AnnData
 from scipy import sparse
 from joblib import delayed, Parallel
-
+from natsort import natsorted
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 
@@ -31,18 +31,9 @@ def planted_model(
     n_sweep: int = 10,
     beta: float = np.inf, 
     tolerance = 1e-6,
-    max_iterations: int = 1000000,
-    epsilon: float = 0,
-    equilibrate: bool = False,
-    wait: int = 1000,
-    nbreaks: int = 2,
-    collect_marginals: bool = False,
-    niter_collect: int = 10000,
+    collect_marginals: bool = True,
     deg_corr: bool = True,
-    n_init: int = 1,
-    beta_range: Tuple[float] = (1., 100.),
-    steps_anneal: int = 5,
-    resume: bool = False,
+    n_samples: int = 100,
     n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
@@ -54,7 +45,6 @@ def planted_model(
     use_weights: bool = False,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
-    equilibrate_args: Optional[Dict] = {},    
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -77,42 +67,16 @@ def planted_model(
         Inverse temperature for the initial MCMC sweep        
     tolerance
         Difference in description length to stop MCMC sweep iterations        
-    max_iterations
-        Maximal number of iterations to be performed by the equilibrate step.
-    epsilon
-        Relative changes in entropy smaller than epsilon will
-        not be considered as record-breaking.
-    equilibrate
-        Whether or not perform the mcmc_equilibrate step.
-        Equilibration should always be performed. Note, also, that without
-        equilibration it won't be possible to collect marginals.
     collect_marginals
         Whether or not collect node probability of belonging
         to a specific partition.
-    niter_collect
-        Number of iterations to force when collecting marginals. This will
-        increase the precision when calculating probabilites
-    wait
-        Number of iterations to wait for a record-breaking event.
-        Higher values result in longer computations. Set it to small values
-        when performing quick tests.
-    nbreaks
-        Number of iteration intervals (of size `wait`) without
-        record-breaking events necessary to stop the algorithm.
     deg_corr
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    n_init
+    n_samples
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
-    beta_range
-        Inverse temperature at the beginning and the end of the equilibration
-    steps_anneal
-        Number of steps in which the simulated annealing is performed
-    resume
-        Start from a previously created model, if any, without initializing a novel
-        model    
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -150,31 +114,13 @@ def planted_model(
         The BlockModel state object
     """
 
-    # first things first
-    check_gt_version()
-    
-    if resume: 
-        equilibrate=True
-        
-    if resume and ('schist' not in adata.uns or 'state' not in adata.uns['schist']):
-        # let the model proceed as default
-        logg.warning('Resuming has been specified but a state was not found\n'
-                     'Will continue with default minimization step')
-
-        resume=False
-
     if random_seed:
         np.random.seed(random_seed)
         gt.seed_rng(random_seed)
 
-    if collect_marginals:
-        logg.warning('Collecting marginals has a large impact on running time')
-        if not equilibrate:
-            raise ValueError(
-                "You can't collect marginals without MCMC equilibrate "
-                "step. Either set `equlibrate` to `True` or "
-                "`collect_marginals` to `False`"
-            )
+    if collect_marginals and n_samples < 100:
+        logg.warning('Collecting marginals requires sufficient number of samples\n'
+                     f'It is now set to {n_samples} and should be at least 100')
 
     start = logg.info('minimizing the Planted Partition Block Model')
     adata = adata.copy() if copy else adata
@@ -211,73 +157,38 @@ def planted_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if resume:
-        # create the state and make sure sampling is performed
-        state = adata.uns['schist']['state'].copy()
-        g = state.g
-    else:
-        if n_init < 1:
-            n_init = 1
+    if n_samples < 1:
+        n_samples = 1
         
-        # initialize  the block states
-        def fast_min(state, beta, n_sweep, fast_tol):
-            dS = 1
-            while np.abs(dS) > fast_tol:
-                dS, natt, nm = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
-            return state, dS, natt, nm
+    # initialize  the block states
+    def fast_min(state, beta, n_sweep, fast_tol):
+        dS = 1
+        while np.abs(dS) > fast_tol:
+            dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
+        return state
 
-        states = [gt.PPBlockState(g) for x in range(n_init)]
+    states = [gt.PPBlockState(g) for x in range(n_samples)]
         
-        # perform a mcmc sweep on each 
-        # no list comprehension as I need to collect stats
+    # perform a mcmc sweep on each 
+    # no list comprehension as I need to collect stats
         
-        states = Parallel(n_jobs=3, prefer='threads')(
-            delayed(fast_min)(state, beta, n_sweep, tolerance) for state in states
-        )
+    states = Parallel(n_jobs=n_jobs, prefer='threads')(
+             delayed(fast_min)(state, beta, n_sweep, tolerance) for state in states
+             )
         
-        _amin = np.argmin([s[0].entropy() for s in states])            
-        state = states[_amin][0]
-        dS = states[_amin][1]
-        nattempts = states[_amin][2]
-        nmoves = states[_amin][3]
+    pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True)
         
+    bs = pmode.get_max(g)
+    state = gt.PPBlockState(g, b=bs)
+    logg.info('    done', time=start)
 
-        logg.info('    done', time=start)
-    
-    # equilibrate the Markov chain
-    if equilibrate:
-        logg.info('running MCMC equilibration step')
-        equilibrate_args['wait'] = wait
-        equilibrate_args['nbreaks'] = nbreaks
-        equilibrate_args['max_niter'] = max_iterations
-        equilibrate_args['mcmc_args'] = {'niter':10}
-        
-        dS, nattempts, nmoves = gt.mcmc_anneal(state, 
-                                               mcmc_equilibrate_args=equilibrate_args,
-                                               niter=steps_anneal,
-                                               beta_range=beta_range)
+    groups = np.array(bs.get_array())
+    if collect_marginals:
+        pv_array = pmode.get_marginal(g).get_2d_array(range(n_samples)).T / n_samples
 
-    if collect_marginals and equilibrate:
-        # we here only retain level_0 counts, until I can't figure out
-        # how to propagate correctly counts to higher levels
-        # I wonder if this should be placed after group definition or not
-        logg.info('    collecting marginals')
-        group_marginals = np.zeros(g.num_vertices() + 1)
-        def _collect_marginals(s):
-            group_marginals[s.get_B()] += 1
-
-        gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
-                            max_niter=max_iterations, multiflip=True,
-                            force_niter=niter_collect, mcmc_args=dict(niter=10),
-                            callback=_collect_marginals)
-        logg.info('    done', time=start)
-
-    # everything is in place, we need to fill all slots
-    # first build an array with
-    groups = pd.Series(state.get_blocks().get_array()).astype('category')
-    ncat = len(groups.cat.categories)
-    new_cat = [u'%s' % x for x in range(ncat)]
-    groups.cat.rename_categories(new_cat, inplace=True)
+    u_groups = np.unique(groups)
+    rosetta = dict(zip(u_groups, range(len(u_groups))))
+    groups = np.array([rosetta[x] for x in groups])
 
     if restrict_to is not None:
         groups.index = adata.obs[restrict_key].index
@@ -285,15 +196,16 @@ def planted_model(
         groups.index = adata.obs_names
 
     # add column names
-    adata.obs[key_added] = groups
+    adata.obs[key_added] = pd.Categorical(
+        values=groups.astype('U'),
+        categories=natsorted(map(str, np.unique(groups))),
+    )
 
     # add some unstructured info
 
     adata.uns['schist'] = {}
     adata.uns['schist']['stats'] = dict(
-    dS=dS,
-    nattempts=nattempts,
-    nmoves=nmoves,
+    entropy=state.entropy(),
     modularity=gt.modularity(g, state.get_blocks())
     )
     adata.uns['schist']['state'] = state
@@ -303,15 +215,11 @@ def planted_model(
     if collect_marginals:
         # cell marginals will be a list of arrays with probabilities
         # of belonging to a specific group
-        adata.uns['schist']['group_marginals'] = group_marginals
+        adata.obsm[f"CM_{key_added}"] = pv_array
 
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
         model='planted',
-        epsilon=epsilon,
-        wait=wait,
-        nbreaks=nbreaks,
-        equilibrate=equilibrate,
         collect_marginals=collect_marginals,
         random_seed=random_seed
     )
