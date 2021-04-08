@@ -51,7 +51,7 @@ def leiden(
     partition_type: Optional[Type[MutableVertexPartition]] = None,
     neighbors_key: Optional[str] = None,
     obsp: Optional[str] = None,
-    get_marginals: bool = False,
+    get_marginals: bool = True,
     n_jobs: int = -1,
     copy: bool = False,
     **partition_kwargs,
