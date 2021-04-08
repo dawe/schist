@@ -33,7 +33,7 @@ def planted_model(
     tolerance = 1e-6,
     collect_marginals: bool = True,
     deg_corr: bool = True,
-    n_samples: int = 100,
+    samples: int = 100,
     n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
@@ -74,9 +74,9 @@ def planted_model(
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    n_samples
-        Number of initial minimizations to be performed. The one with smaller
-        entropy is chosen
+    samples
+        Number of initial minimizations to be performed. This influences also the 
+        precision for marginals
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -118,9 +118,9 @@ def planted_model(
         np.random.seed(random_seed)
         gt.seed_rng(random_seed)
 
-    if collect_marginals and n_samples < 100:
+    if collect_marginals and samples < 100:
         logg.warning('Collecting marginals requires sufficient number of samples\n'
-                     f'It is now set to {n_samples} and should be at least 100')
+                     f'It is now set to {samples} and should be at least 100')
 
     start = logg.info('minimizing the Planted Partition Block Model')
     adata = adata.copy() if copy else adata
@@ -157,8 +157,8 @@ def planted_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if n_samples < 1:
-        n_samples = 1
+    if samples < 1:
+        samples = 1
         
     # initialize  the block states
     def fast_min(state, beta, n_sweep, fast_tol):
@@ -167,7 +167,7 @@ def planted_model(
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
         return state
 
-    states = [gt.PPBlockState(g) for x in range(n_samples)]
+    states = [gt.PPBlockState(g) for x in range(samples)]
         
     # perform a mcmc sweep on each 
     # no list comprehension as I need to collect stats
@@ -184,16 +184,23 @@ def planted_model(
 
     groups = np.array(bs.get_array())
     if collect_marginals:
-        pv_array = pmode.get_marginal(g).get_2d_array(range(n_samples)).T / n_samples
+        pv_array = pmode.get_marginal(g).get_2d_array(range(samples)).T / samples
 
     u_groups = np.unique(groups)
     rosetta = dict(zip(u_groups, range(len(u_groups))))
     groups = np.array([rosetta[x] for x in groups])
 
     if restrict_to is not None:
-        groups.index = adata.obs[restrict_key].index
-    else:
-        groups.index = adata.obs_names
+        if key_added == 'ppbm':
+            key_added += '_R'
+        groups = rename_groups(
+            adata,
+            key_added,
+            restrict_key,
+            restrict_categories,
+            restrict_indices,
+            groups,
+        )
 
     # add column names
     adata.obs[key_added] = pd.Categorical(
@@ -220,6 +227,7 @@ def planted_model(
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
         model='planted',
+        samples=samples,
         collect_marginals=collect_marginals,
         random_seed=random_seed
     )

@@ -181,7 +181,7 @@ def leiden(
     pmode = gt.PartitionModeState(parts, converge=True) 
     groups = np.array(pmode.get_max(g_gt).get_array())     
     if collect_marginals:
-        pv_array = pmode.get_marginal(g_gt).get_2d_array(range(n_samples)).T / n_samples
+        pv_array = pmode.get_marginal(g_gt).get_2d_array(range(samples)).T / samples
     # rename groups to ensure they are a continuous range
     u_groups = np.unique(groups)
     rosetta = dict(zip(u_groups, range(len(u_groups))))
