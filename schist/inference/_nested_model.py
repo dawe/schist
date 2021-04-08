@@ -24,28 +24,15 @@ except ImportError:
         """
     )
 
-#from ._utils import get_cell_loglikelihood
-
 def nested_model(
     adata: AnnData,
-#    max_iterations: int = 1000000,
-#    epsilon: float = 0,
-#    equilibrate: bool = False,
-#    wait: int = 1000,
-#    nbreaks: int = 2,
-#    collect_marginals: bool = False,
-#    niter_collect: int = 10000,
-    hierarchy_length: int = 10,
     deg_corr: bool = True,
-#    multiflip: bool = True,
     fast_model: bool = False,
     fast_tol: float = 1e-6,
     n_sweep: int = 10,
     beta: float = np.inf,
-    n_init: int = 1,
-#    beta_range: Tuple[float] = (1., 1000.),
-#    steps_anneal: int = 3,
-    resume: bool = False,
+    samples: int = 100,
+    collect_marginals: bool = True,
     n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
@@ -55,8 +42,6 @@ def nested_model(
     neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
     use_weights: bool = False,
-    prune: bool = False,
-    return_low: bool = True,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
 #    equilibrate_args: Optional[Dict] = {},
@@ -78,31 +63,19 @@ def nested_model(
     ----------
     adata
         The annotated data matrix.
-    hierarchy_length
-        Initial length of the hierarchy. When large values are
-        passed, the top-most levels will be uninformative as they
-        will likely contain the very same groups. Increase this valus
-        if a very large number of cells is analyzed (>100.000).
     deg_corr
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    fast_model
-        Whether to skip initial minization step and let the MCMC find a solution. 
-        This approach tend to be faster and consume less memory, but may be
-        less accurate.
     fast_tol
         Tolerance for fast model convergence.
     n_sweep 
         Number of iterations to be performed in the fast model MCMC greedy approach
     beta
         Inverse temperature for MCMC greedy approach    
-    n_init
+    samples
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
-    resume
-        Start from a previously created model, if any, without initializing a novel
-        model    
     n_jobs
         Number of parallel computations used during model initialization
     key_added
@@ -119,16 +92,6 @@ def nested_model(
         If `True`, edge weights from the graph are used in the computation
         (placing more emphasis on stronger edges). Note that this
         increases computation times
-    prune
-        Some high levels in hierarchy may contain the same information in terms of 
-        cell assignments, even if they apparently have different group names. When this
-        option is set to `True`, the function only returns informative levels.
-        Note, however, that cell affinities are still reported for all levels. Pruning
-        does not rename group levels
-    return_low
-        Whether or not return nsbm_level_0 in adata.obs. This level usually contains
-        so many groups that it cannot be plot anyway, but it may be useful for particular
-        analysis. By default it is not returned
     copy
         Whether to copy `adata` or modify it inplace.
     random_seed
@@ -150,30 +113,14 @@ def nested_model(
         The NestedBlockModel state object
     """
 
-#    if resume: 
-#        # if the fast_model is chosen perform equilibration anyway
-#        # also if a model has previously created
-#        equilibrate=True
-        
-    if resume and ('schist' not in adata.uns or 'state' not in adata.uns['schist']):
-        # let the model proceed as default
-        logg.warning('Resuming has been specified but a state was not found\n'
-                     'Will continue with default minimization step')
-
-        resume=False
-        
     if random_seed:
         np.random.seed(random_seed)
         gt.seed_rng(random_seed)
 
-#    if collect_marginals:
-#        logg.warning('Collecting marginals has a large impact on running time')
-#        if not equilibrate:
-#            raise ValueError(
-#                "You can't collect marginals without MCMC equilibrate "
-#                "step. Either set `equlibrate` to `True` or "
-#                "`collect_marginals` to `False`"
-#            )
+    if collect_marginals and samples < 100:
+        logg.warning('Collecting marginals requires sufficient number of samples\n'
+                     f'It is now set to {samples} and should be at least 100')
+        
 
     start = logg.info('minimizing the nested Stochastic Block Model')
     adata = adata.copy() if copy else adata
@@ -210,98 +157,37 @@ def nested_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if n_init < 1:
-        n_init = 1
+    if samples < 1:
+        samples = 1
 
-    if fast_model:
-        # do not minimize, start with a dummy state and perform only a sweep
-        # also, use consensus partitio from all models
+    states = [gt.NestedBlockState(g=g,
+                                  state_args=dict(deg_corr=deg_corr,
+                                  recs=recs,
+                                  rec_types=rec_types
+                                  )) for n in range(samples)]
 
-        states = [gt.NestedBlockState(g=g,
-                                    state_args=dict(deg_corr=deg_corr,
-                                    recs=recs,
-                                    rec_types=rec_types
-                                    )) for n in range(n_init)]
-
-        def fast_min(state, beta, n_sweep, fast_tol):
-            dS = 1
-            while np.abs(dS) > fast_tol:
-                dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
-            return state                            
+    def fast_min(state, beta, n_sweep, fast_tol):
+        dS = 1
+        while np.abs(dS) > fast_tol:
+            dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+        return state                            
             
-        states = Parallel(n_jobs=n_jobs, prefer='threads')(
-            delayed(fast_min)(state, beta, n_sweep, fast_tol) for state in states
-        )
+    states = Parallel(n_jobs=n_jobs, prefer='threads')(
+        delayed(fast_min)(state, beta, n_sweep, fast_tol) for state in states
+    )
 
-        state = states[np.argmin([s.entropy() for s in states])]
-        bs = state.get_bs()
-        
-        logg.info('    done', time=start)
-        
-    elif resume:
-        # create the state and make sure sampling is performed
-        state = adata.uns['schist']['state'].copy(sampling=True)
-        bs = state.get_bs()
-        # get the graph from state
-        g = state.g
-    else:
-        states = Parallel(n_jobs=n_jobs, prefer='threads')(
-            delayed(gt.minimize_nested_blockmodel_dl)(g, deg_corr=deg_corr, 
-                  state_args=dict(recs=recs,  rec_types=rec_types), 
-                  **minimize_args) for n in range(n_init)
-        )
+    pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
+    bs = pmode.get_max_nested()
+    state = gt.NestedBlockState(g, bs)
 
-        state = states[np.argmin([s.entropy() for s in states])]    
-
-        logg.info('    done', time=start)
-        bs = state.get_bs()
-        if len(bs) <= hierarchy_length:
-            # increase hierarchy length up to the specified value
-            # according to Tiago Peixoto 10 is reasonably large as number of
-            # groups decays exponentially
-            bs += [np.zeros(1)] * (hierarchy_length - len(bs))
-        else:
-            logg.warning(f'A hierarchy length of {hierarchy_length} has been specified\n'
-                         f'but the minimized model contains {len(bs)} levels')
-            pass    
-        # create a new state with inferred blocks   
-        state = gt.NestedBlockState(g, bs, state_args=dict(recs=recs,
-                                    rec_types=rec_types), sampling=True)
+    logg.info('    done', time=start)
     
-    # equilibrate the Markov chain
-#    if equilibrate:
-#        logg.info('running MCMC equilibration step')
-#        # equlibration done by simulated annealing
-#        
-#        equilibrate_args['wait'] = wait
-#        equilibrate_args['nbreaks'] = nbreaks
-#        equilibrate_args['max_niter'] = max_iterations
-#        equilibrate_args['multiflip'] = multiflip
-#        equilibrate_args['mcmc_args'] = {'niter':10}
-#        
-#        dS, nattempts, nmoves = gt.mcmc_anneal(state, 
-#                                               mcmc_equilibrate_args=equilibrate_args,
-#                                               niter=steps_anneal,
-#                                               beta_range=beta_range)
-#    if collect_marginals and equilibrate:
-#        # we here only retain level_0 counts, until I can't figure out
-#        # how to propagate correctly counts to higher levels
-#        # I wonder if this should be placed after group definition or not
-#        logg.info('    collecting marginals')
-#        group_marginals = [np.zeros(g.num_vertices() + 1) for s in state.get_levels()]
-#        def _collect_marginals(s):
-#            levels = s.get_levels()
-#            for l, sl in enumerate(levels):
-#                group_marginals[l][sl.get_nonempty_B()] += 1
-#
-#        gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
-#                            max_niter=max_iterations, multiflip=True,
-#                            force_niter=niter_collect, mcmc_args=dict(niter=10),
-#                            callback=_collect_marginals)
-#        logg.info('    done', time=start)
-
-    # everything is in place, we need to fill all slots
-    # first build an array with
+    if collect_marginals:
+        # note that the size of this will be equal to the number of the groups in Mode
+        # but some entries won't sum to 1 as in the collection there may be differently
+        # sized partitions
+        pv_array = pmode.get_marginal(g).get_2d_array(range(len(np.unique(bs[0])))).T / samples
+         
     groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
 
     for x in range(len(bs)):
@@ -331,13 +217,7 @@ def nested_model(
     # remove any column with the same key
     keep_columns = [x for x in adata.obs.columns if not x.startswith('%s_level_' % key_added)]
     adata.obs = adata.obs[keep_columns]
-    # concatenate obs with new data, skipping level_0 which is usually
-    # crap. In the future it may be useful to reintegrate it
-    # we need it in this function anyway, to match groups with node marginals
-    if return_low:
-        adata.obs = pd.concat([adata.obs, groups], axis=1)
-    else:
-        adata.obs = pd.concat([adata.obs, groups.iloc[:, 1:]], axis=1)
+    adata.obs = pd.concat([adata.obs, groups], axis=1)
 
     # add some unstructured info
 
@@ -347,45 +227,25 @@ def nested_model(
     modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     )
-#    if equilibrate:
-#        adata.uns['schist']['stats']['dS'] = dS
-#        adata.uns['schist']['stats']['nattempts'] = nattempts
-#        adata.uns['schist']['stats']['nmoves'] = nmoves
-
 
     adata.uns['schist']['state'] = state
 
     # now add marginal probabilities.
 
-#    if collect_marginals:
-#        # refrain group marginals. We collected data in vector as long as
-#        # the number of cells, cut them into appropriate length data
-#        adata.uns['schist']['group_marginals'] = {}
-#        for nl, level_marginals in enumerate(group_marginals):
-#            idx = np.where(level_marginals > 0)[0] + 1
-#            adata.uns['schist']['group_marginals'][nl] = np.array(level_marginals[:np.max(idx)])
+    if collect_marginals:
+        # add marginals for level 0, the sum up according to the hierarchy
+        adata.obsm[f"CM_{key_added}_level_0"] = pv_array
+        for group in groups.columns[1:]:
+            ct = pd.crosstab(groups[groups.columns[0]], groups[group], normalize='index')
+            adata.obsm[f'CM_{group}'] = pv_array @ ct.values
 
-    # prune uninformative levels, if any
-    if prune:
-        to_remove = prune_groups(groups)
-        logg.info(
-            f'    Removing levels f{to_remove}'
-        )
-        adata.obs.drop(to_remove, axis='columns', inplace=True)
-        
-    
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
         model='nested',
-#        epsilon=epsilon,
-#        wait=wait,
-#        nbreaks=nbreaks,
-#        equilibrate=equilibrate,
+        samples=samples,
         fast_model=fast_model,
-#        collect_marginals=collect_marginals,
-        hierarchy_length=hierarchy_length,
+        collect_marginals=collect_marginals,
         random_seed=random_seed,
-        prune=prune,
     )
 
 

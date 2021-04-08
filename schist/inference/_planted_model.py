@@ -11,20 +11,8 @@ from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 
 from .._utils import get_graph_tool_from_adjacency, prune_groups
 
-try:
-    import graph_tool.all as gt
-except ImportError:
-    raise ImportError(
-        """Please install the graph-tool>=2.33 library either visiting
+import graph_tool.all as gt
 
-        https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions
-
-        or by conda: `conda install -c conda-forge graph-tool`
-        """
-    )
-
-
-from .._helpers import *
 
 def planted_model(
     adata: AnnData,
@@ -49,7 +37,7 @@ def planted_model(
     """\
     Cluster cells into subgroups [Peixoto14]_.
 
-    Cluster cells using the  Stochastic Block Model [Peixoto14]_, performing
+    Cluster cells using the  Planted Partition Block Model [Peixoto14]_, performing
     Bayesian inference on node groups. This function, in particular, uses
     the Planted Block Model, which is particularly suitable in case of
     assortative graphs and it returns the optimal number of communities
@@ -183,10 +171,11 @@ def planted_model(
     logg.info('    done', time=start)
 
     groups = np.array(bs.get_array())
-    if collect_marginals:
-        pv_array = pmode.get_marginal(g).get_2d_array(range(samples)).T / samples
-
     u_groups = np.unique(groups)
+
+    if collect_marginals:
+        pv_array = pmode.get_marginal(g).get_2d_array(range(len(u_groups))).T / samples
+
     rosetta = dict(zip(u_groups, range(len(u_groups))))
     groups = np.array([rosetta[x] for x in groups])
 
