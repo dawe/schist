@@ -173,7 +173,7 @@ def nested_model(
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
         return state                            
             
-    states = Parallel(n_jobs=n_jobs, prefer='threads')(
+    states = Parallel(n_jobs=n_jobs)(
         delayed(fast_min)(state, beta, n_sweep, fast_tol) for state in states
     )
 

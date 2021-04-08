@@ -161,7 +161,7 @@ def planted_model(
     # perform a mcmc sweep on each 
     # no list comprehension as I need to collect stats
         
-    states = Parallel(n_jobs=n_jobs, prefer='threads')(
+    states = Parallel(n_jobs=n_jobs)(
              delayed(fast_min)(state, beta, n_sweep, tolerance) for state in states
              )
         
