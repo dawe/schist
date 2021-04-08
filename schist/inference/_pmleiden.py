@@ -12,7 +12,7 @@ from scanpy import _utils
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 
-from .._utils import get_graph_tool_from_adjacency 
+from scanpy._utils import get_igraph_from_adjacency
 from joblib import Parallel, delayed
 
 try:
@@ -150,8 +150,9 @@ def leiden(
             adjacency,
         )
     # convert it to igraph
-    g = _utils.get_igraph_from_adjacency(adjacency, directed=directed)
-    g_gt = get_graph_tool_from_adjacency(adjacency, directed=directed)
+    g = get_igraph_from_adjacency(adjacency, directed=directed)
+    g_gt = g.to_graph_tool()
+    gt.remove_parallel_edges(g_gt)
     # flip to the default partition type if not overriden by the user
     if partition_type is None:
         partition_type = leidenalg.RBConfigurationVertexPartition
