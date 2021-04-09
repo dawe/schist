@@ -70,7 +70,7 @@ def draw_tree(
     if not isnotebook() and not save:
 #        logg.warning(f'Cannot show the plot here, saving to `default_tree.png`')
         plt.switch_backend('GTK3Cairo')
-#        save = 'default_tree.png'
+        save = 'default_tree.png'
     
     state = adata.uns['schist']['state'] #the NestedBlockState
     g = state.g # the graph in graph-tool format
@@ -154,7 +154,8 @@ def draw_tree(
         max_rx = g_radius.max() + .8
         for group in g_coords.columns:
             text_p = g_coords[group] * max_rx / g_radius[group]
-            ax.text(text_p[0], text_p[1], f'{group}', horizontalalignment='center')
+            ax.text(text_p[0], text_p[1], f'{group}', 
+                    ha='center', va='center')
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title(obs_key)
