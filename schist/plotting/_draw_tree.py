@@ -82,6 +82,8 @@ def draw_tree(
             fill_color[v] = [0.502, 0.502, 0.502, 1.0] #gray
     elif level:
         level = int(level)
+        if level < 1:
+            logg.warning("Cannot plot level below 1, setting to level 1")
         obs_key = f'{key}_level_{level}'
         uns_key = f'{key}_level_{level}_colors'
         adata_colors = adata.uns[uns_key]
@@ -143,14 +145,15 @@ def draw_tree(
         # use levels to annotate on external crown
         coords = np.array([x for x in tpos])
         state_len = np.array([len(x) for x in state.get_bs()])
-        idx_s = sum(state_len[:(1 + level)])
-        idx_e = idx_s + state_len[(1 + level)]
-        max_rx = np.sqrt(np.sum(coords**2, axis=1)).max() + 1
-        for pn, pp in enumerate(coords[idx_s:idx_e]):
-            rx = np.sqrt(np.sum(pp**2))
-            text_p = pp * max_rx / rx
-            ax.text(text_p[0], text_p[1], f'{pn}')
-    ax.set_xticks([])    
+        dfc = pd.DataFrame(coords[:g.num_vertices()], index=adata.obs_names)
+        dfc = pd.concat([dfc, adata.obs[obs_key]], axis=1)
+        g_coords = dfc.groupby(obs_key).agg(mean).T
+        g_radius = np.sqrt(np.sum(g_coords**2, axis=0))
+        max_rx = g_radius.max() + 1
+        for group in g_coords.columns:
+            text_p = g_coords[group] * max_rx / g_radius[group]
+            ax.text(text_p[0], text_p[1], f'{group}')    
+    ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title(obs_key)
     
