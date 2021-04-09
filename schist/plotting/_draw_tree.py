@@ -147,7 +147,7 @@ def draw_tree(
         state_len = np.array([len(x) for x in state.get_bs()])
         dfc = pd.DataFrame(coords[:g.num_vertices()], index=adata.obs_names)
         dfc = pd.concat([dfc, adata.obs[obs_key]], axis=1)
-        g_coords = dfc.groupby(obs_key).agg(mean).T
+        g_coords = dfc.groupby(obs_key).agg('mean').T
         g_radius = np.sqrt(np.sum(g_coords**2, axis=0))
         max_rx = g_radius.max() + 1
         for group in g_coords.columns:
