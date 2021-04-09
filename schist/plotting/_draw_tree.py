@@ -151,7 +151,7 @@ def draw_tree(
         dfc = pd.concat([dfc, adata.obs[obs_key]], axis=1)
         g_coords = dfc.groupby(obs_key).agg('mean').T
         g_radius = np.sqrt(np.sum(g_coords**2, axis=0))
-        max_rx = g_radius.max() + 1
+        max_rx = g_radius.max() + .8
         for group in g_coords.columns:
             text_p = g_coords[group] * max_rx / g_radius[group]
             ax.text(text_p[0], text_p[1], f'{group}', horizontalalignment='center')
