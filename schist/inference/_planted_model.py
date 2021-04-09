@@ -95,7 +95,7 @@ def planted_model(
         and `n_iterations`.
     `adata.uns['schist']['stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.obsm['CA_ppbm_level_1']`
+    `adata.obsm['CM_ppbm']`
         A `np.ndarray` with cell probability of belonging to a specific group
     `adata.uns['schist']['state']`
         The BlockModel state object

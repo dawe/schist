@@ -4,43 +4,23 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 from scipy import sparse
-
+from joblib import delayed, Parallel
+from natsort import natsorted
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
+from scanpy._utils import get_igraph_from_adjacency
 
-from .._utils import get_graph_tool_from_adjacency, prune_groups
-
-try:
-    import graph_tool.all as gt
-except ImportError:
-    raise ImportError(
-        """Please install the graph-tool library either visiting
-
-        https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions
-
-        or by conda: `conda install -c conda-forge graph-tool`
-        """
-    )
-
-from ._utils import get_cell_loglikelihood
+import graph_tool.all as gt
 
 def flat_model(
     adata: AnnData,
-    max_iterations: int = 1000000,
-    epsilon: float = 0,
-    equilibrate: bool = False,
-    wait: int = 1000,
-    nbreaks: int = 2,
-    collect_marginals: bool = False,
-    niter_collect: int = 10000,
+    n_sweep: int = 10,
+    beta: float = np.inf,
+    tolerance: float = 1e-6,
+    collect_marginals: bool = True,
     deg_corr: bool = True,
-    multiflip: bool = True,
-    fast_model: bool = False,
-    n_init: int = 1,
-    beta_range: Tuple[float] = (1., 100.),
-    steps_anneal: int = 5,
-    resume: bool = False,
-    calculate_affinity: bool = True,
+    samples: int = 100,
+    n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -51,7 +31,6 @@ def flat_model(
     use_weights: bool = False,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
-    equilibrate_args: Optional[Dict] = {},    
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -66,50 +45,22 @@ def flat_model(
     ----------
     adata
         The annotated data matrix.
-    max_iterations
-        Maximal number of iterations to be performed by the equilibrate step.
-    epsilon
-        Relative changes in entropy smaller than epsilon will
-        not be considered as record-breaking.
-    equilibrate
-        Whether or not perform the mcmc_equilibrate step.
-        Equilibration should always be performed. Note, also, that without
-        equilibration it won't be possible to collect marginals.
+    n_sweep
+        Number of MCMC sweeps to get the initial guess
+    beta
+        Inverse temperature for the initial MCMC sweep        
+    tolerance
+        Difference in description length to stop MCMC sweep iterations        
     collect_marginals
         Whether or not collect node probability of belonging
         to a specific partition.
-    niter_collect
-        Number of iterations to force when collecting marginals. This will
-        increase the precision when calculating probabilites
-    wait
-        Number of iterations to wait for a record-breaking event.
-        Higher values result in longer computations. Set it to small values
-        when performing quick tests.
-    nbreaks
-        Number of iteration intervals (of size `wait`) without
-        record-breaking events necessary to stop the algorithm.
     deg_corr
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    multiflip
-        Whether to perform MCMC sweep with multiple simultaneous moves to sample
-        network partitions. It may result in slightly longer runtimes, but under
-        the hood it allows for a more efficient space exploration.
-    fast_model
-        Whether to skip initial minization step and let the MCMC find a solution. 
-        This approach tend to be faster and consume less memory, but 
-        less accurate.
-    n_init
-        Number of initial minimizations to be performed. The one with smaller
-        entropy is chosen
-    beta_range
-        Inverse temperature at the beginning and the end of the equilibration
-    steps_anneal
-        Number of steps in which the simulated annealing is performed
-    resume
-        Start from a previously created model, if any, without initializing a novel
-        model    
+    samples
+        Number of initial minimizations to be performed. This influences also the 
+        precision for marginals
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -128,6 +79,9 @@ def flat_model(
         Whether to copy `adata` or modify it inplace.
     random_seed
         Random number to be used as seed for graph-tool
+    n_jobs
+        Number of parallel computations used during model initialization
+
 
     Returns
     -------
@@ -139,40 +93,21 @@ def flat_model(
         and `n_iterations`.
     `adata.uns['schist']['stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.obsm['CA_sbm_level_1']`
+    `adata.obsm['CM_sbm']`
         A `np.ndarray` with cell probability of belonging to a specific group
     `adata.uns['schist']['state']`
         The BlockModel state object
     """
 
-    raise DeprecationWarning("""This function has been deprecated since version 
-    0.5.0, please consider usage of planted_model instead.
-    """)
-
-    if fast_model or resume: 
-        # if the fast_model is chosen perform equilibration anyway
-        equilibrate=True
-        
-    if resume and ('schist' not in adata.uns or 'state' not in adata.uns['schist']):
-        # let the model proceed as default
-        logg.warning('Resuming has been specified but a state was not found\n'
-                     'Will continue with default minimization step')
-
-        resume=False
-        fast_model=False
-
     if random_seed:
         np.random.seed(random_seed)
-        gt.seed_rng(random_seed)
+    
+    seeds = np.random.choice(range(samples**2), size=samples, replace=False)
 
-    if collect_marginals:
-        logg.warning('Collecting marginals has a large impact on running time')
-        if not equilibrate:
-            raise ValueError(
-                "You can't collect marginals without MCMC equilibrate "
-                "step. Either set `equlibrate` to `True` or "
-                "`collect_marginals` to `False`"
-            )
+    if collect_marginals and samples < 100:
+        logg.warning('Collecting marginals requires sufficient number of samples\n'
+                     f'It is now set to {samples} and should be at least 100')
+
 
     start = logg.info('minimizing the Stochastic Block Model')
     adata = adata.copy() if copy else adata
@@ -198,8 +133,10 @@ def flat_model(
             restrict_categories,
             adjacency,
         )
-    # convert it to igraph
-    g = get_graph_tool_from_adjacency(adjacency, directed=directed)
+    # convert it to igraph and graph-tool
+    g = get_igraph_from_adjacency(adjacency, directed=directed)
+    g = g.to_graph_tool()
+    gt.remove_parallel_edges(g)
 
     recs=[]
     rec_types=[]
@@ -209,80 +146,65 @@ def flat_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if fast_model:
-        # do not minimize, start with a dummy state and perform only equilibrate
-        state = gt.BlockState(g=g, B=1, sampling=True,
-                              state_args=dict(deg_corr=deg_corr,
-                              recs=recs,
-                              rec_types=rec_types
-                              ))
-    elif resume:
-        # create the state and make sure sampling is performed
-        state = adata.uns['schist']['state'].copy(sampling=True)
-        g = state.g
-    else:
-        if n_init < 1:
-            n_init = 1
+    if samples < 1:
+        samples = 1
         
-        states = [gt.minimize_nested_blockmodel_dl(g, deg_corr=deg_corr, 
-                  state_args=dict(recs=recs,  rec_types=rec_types), 
-                  **minimize_args) for n in range(n_init)]
-                  
-        state = states[np.argmin([s.entropy() for s in states])]    
+    # initialize  the block states
+    def fast_min(state, beta, n_sweep, fast_tol, seed=None):
+        if seed:
+            gt.seed_rng(seed)
+        dS = 1
+        while np.abs(dS) > fast_tol:
+            dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
+        return state
 
-        logg.info('    done', time=start)
-        state = state.copy(B=g.num_vertices())
+    states = [gt.BlockState(g) for x in range(samples)]
+        
+    # perform a mcmc sweep on each 
+    # no list comprehension as I need to collect stats
+        
+    states = Parallel(n_jobs=n_jobs)(
+             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
+             )
+        
+    pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True)                  
+    bs = pmode.get_max(g)
+    state = gt.BlockState(g, b=bs)
+
+    logg.info('    done', time=start)
     
-    # equilibrate the Markov chain
-    if equilibrate:
-        logg.info('running MCMC equilibration step')
-        equilibrate_args['wait'] = wait
-        equilibrate_args['nbreaks'] = nbreaks
-        equilibrate_args['max_niter'] = max_iterations
-        equilibrate_args['multiflip'] = multiflip
-        equilibrate_args['mcmc_args'] = {'niter':10}
-        
-        dS, nattempts, nmoves = gt.mcmc_anneal(state, 
-                                               mcmc_equilibrate_args=equilibrate_args,
-                                               niter=steps_anneal,
-                                               beta_range=beta_range)
+    groups = np.array(bs.get_array())
+    u_groups = np.unique(groups)
 
-    if collect_marginals and equilibrate:
-        # we here only retain level_0 counts, until I can't figure out
-        # how to propagate correctly counts to higher levels
-        # I wonder if this should be placed after group definition or not
-        logg.info('    collecting marginals')
-        group_marginals = np.zeros(g.num_vertices() + 1)
-        def _collect_marginals(s):
-            group_marginals[s.get_nonempty_B()] += 1
+    if collect_marginals:
+        pv_array = pmode.get_marginal(g).get_2d_array(range(len(u_groups))).T / samples
 
-        gt.mcmc_equilibrate(state, wait=wait, nbreaks=nbreaks, epsilon=epsilon,
-                            max_niter=max_iterations, multiflip=False,
-                            force_niter=niter_collect, mcmc_args=dict(niter=10),
-                            callback=_collect_marginals)
-        logg.info('    done', time=start)
-
-    # everything is in place, we need to fill all slots
-    # first build an array with
-    groups = pd.Series(state.get_blocks().get_array()).astype('category')
-    new_cat_names = dict([(cx, u'%s' % cn) for cn, cx in enumerate(groups.cat.categories)])
-    groups.cat.rename_categories(new_cat_names, inplace=True)
+    rosetta = dict(zip(u_groups, range(len(u_groups))))
+    groups = np.array([rosetta[x] for x in groups])
 
     if restrict_to is not None:
-        groups.index = adata.obs[restrict_key].index
-    else:
-        groups.index = adata.obs_names
+        if key_added == 'sbm':
+            key_added += '_R'
+        groups = rename_groups(
+            adata,
+            key_added,
+            restrict_key,
+            restrict_categories,
+            restrict_indices,
+            groups,
+        )
 
     # add column names
-    adata.obs.loc[:, key_added] = groups
+    adata.obs[key_added] = pd.Categorical(
+        values=groups.astype('U'),
+        categories=natsorted(map(str, np.unique(groups))),
+    )
 
     # add some unstructured info
 
     adata.uns['schist'] = {}
     adata.uns['schist']['stats'] = dict(
-    dS=dS,
-    nattempts=nattempts,
-    nmoves=nmoves,
+    entropy=state.entropy(),
     modularity=gt.modularity(g, state.get_blocks())
     )
     adata.uns['schist']['state'] = state
@@ -292,24 +214,14 @@ def flat_model(
     if collect_marginals:
         # cell marginals will be a list of arrays with probabilities
         # of belonging to a specific group
-        adata.uns['schist']['group_marginals'] = group_marginals
+        adata.obsm[f"CM_{key_added}"] = pv_array
 
-    # calculate log-likelihood of cell moves over the remaining levels
-    if calculate_affinity:    
-#        adata.uns['schist']['cell_affinity'] = {'1':get_cell_loglikelihood(state, as_prob=True)}
-        adata.obsm[f'CA_{key_added}_level_1'] = get_cell_loglikelihood(state, as_prob=True)
-    
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
         model='flat',
-        epsilon=epsilon,
-        wait=wait,
-        nbreaks=nbreaks,
-        equilibrate=equilibrate,
-        fast_model=fast_model,
+        samples=samples,
         collect_marginals=collect_marginals,
-        random_seed=random_seed,
-        calculate_affinity=calculate_affinity
+        random_seed=random_seed
     )
 
 
