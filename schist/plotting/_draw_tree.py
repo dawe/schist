@@ -85,6 +85,7 @@ def draw_tree(
         level = int(level)
         if level < 1:
             logg.warning("Cannot plot level below 1, setting to level 1")
+            level = 1
         obs_key = f'{key}_level_{level}'
         uns_key = f'{key}_level_{level}_colors'
         adata_colors = adata.uns[uns_key]
@@ -153,7 +154,7 @@ def draw_tree(
         max_rx = g_radius.max() + 1
         for group in g_coords.columns:
             text_p = g_coords[group] * max_rx / g_radius[group]
-            ax.text(text_p[0], text_p[1], f'{group}')    
+            ax.text(text_p[0], text_p[1], f'{group}', horizontalalignment='center')
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_title(obs_key)
