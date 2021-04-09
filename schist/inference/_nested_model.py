@@ -114,7 +114,9 @@ def nested_model(
 
     if random_seed:
         np.random.seed(random_seed)
-        gt.seed_rng(random_seed)
+    
+    seeds = np.random.choice(range(samples**2), size=samples, replace=False)
+        
 
     if collect_marginals and samples < 100:
         logg.warning('Collecting marginals requires sufficient number of samples\n'
@@ -167,14 +169,16 @@ def nested_model(
                                   rec_types=rec_types
                                   )) for n in range(samples)]
 
-    def fast_min(state, beta, n_sweep, fast_tol):
+    def fast_min(state, beta, n_sweep, fast_tol, seed=None):
+        if seed:
+            gt.seed_rng(seed)
         dS = 1
         while np.abs(dS) > fast_tol:
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
         return state                            
             
     states = Parallel(n_jobs=n_jobs)(
-        delayed(fast_min)(state, beta, n_sweep, fast_tol) for state in states
+        delayed(fast_min)(states[x], beta, n_sweep, fast_tol, seeds[x]) for x in range(samples)
     )
 
     pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
