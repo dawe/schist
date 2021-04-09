@@ -69,7 +69,7 @@ def draw_tree(
     
     if not isnotebook() and not save:
 #        logg.warning(f'Cannot show the plot here, saving to `default_tree.png`')
-        plt.switch_backend('GTK3cairo')
+        plt.switch_backend('GTK3Cairo')
 #        save = 'default_tree.png'
     
     state = adata.uns['schist']['state'] #the NestedBlockState
