@@ -176,9 +176,9 @@ def planted_model(
 
     groups = np.array(bs.get_array())
     u_groups = np.unique(groups)
-
+    n_groups = len(u_groups)
     if collect_marginals:
-        pv_array = pmode.get_marginal(g).get_2d_array(range(len(u_groups))).T / samples
+        pv_array = pmode.get_marginal(g).get_2d_array(range(n_groups)).T / samples
 
     rosetta = dict(zip(u_groups, range(len(u_groups))))
     groups = np.array([rosetta[x] for x in groups])
