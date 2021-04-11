@@ -27,7 +27,7 @@ def nested_model(
     adata: AnnData,
     deg_corr: bool = True,
     fast_model: bool = False,
-    fast_tol: float = 1e-6,
+    tolerance: float = 1e-6,
     n_sweep: int = 10,
     beta: float = np.inf,
     samples: int = 100,
@@ -66,7 +66,7 @@ def nested_model(
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    fast_tol
+    tolerance
         Tolerance for fast model convergence.
     n_sweep 
         Number of iterations to be performed in the fast model MCMC greedy approach
@@ -178,7 +178,7 @@ def nested_model(
         return state                            
             
     states = Parallel(n_jobs=n_jobs)(
-        delayed(fast_min)(states[x], beta, n_sweep, fast_tol, seeds[x]) for x in range(samples)
+        delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
     )
 
     pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
@@ -186,12 +186,15 @@ def nested_model(
     state = gt.NestedBlockState(g, bs)
 
     logg.info('    done', time=start)
-    
+    u_groups = np.unique(bs[0])
+    n_groups = len(u_groups)
+    last_group = np.max(u_groups) + 1
+
     if collect_marginals:
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pmode.get_marginal(g).get_2d_array(range(len(np.unique(bs[0])))).T / samples
+        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups]
          
     groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
 
