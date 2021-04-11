@@ -194,7 +194,7 @@ def nested_model(
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups]
+        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / samples
          
     groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
 
