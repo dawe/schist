@@ -185,7 +185,7 @@ def leiden(
     n_groups = len(u_groups)
     last_group = np.max(u_groups) + 1
     if collect_marginals:
-        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups]
+        pv_array = pmode.get_marginal(g_gt).get_2d_array(range(last_group)).T[:, u_groups]
     # rename groups to ensure they are a continuous range
     rosetta = dict(zip(u_groups, range(len(u_groups))))
     groups = np.array([rosetta[x] for x in groups])
