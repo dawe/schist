@@ -22,6 +22,7 @@ def calculate_affinity(
     adjacency: Optional[sparse.spmatrix] = None,
     directed: bool = True,
     use_weights: bool = True,
+    obsp: Optional[str] = None,
     copy: bool = False
     
 ) -> Optional[AnnData]:
