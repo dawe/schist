@@ -104,7 +104,7 @@ def calculate_affinity(
             
             g0 = pd.Categorical(state.project_partition(0, 0).a)
             cross_tab = pd.crosstab(g0, adata.obs[group_col], normalize='index')
-            ca_matrix = p0 @ cross_tab
+            ca_matrix = (p0 @ cross_tab).values
 
         elif type(state) == gt.PPBlockState:
             ca_matrix = get_cell_loglikelihood(state, as_prob=True)
