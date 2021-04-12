@@ -44,6 +44,19 @@ def calculate_affinity(
         level and block_key. This is effective only for NestedBlockState partitions
     state:
         Optionally calculate affinities on this state.
+    neighbors_key
+        Use neighbors connectivities as adjacency.
+        If not specified, leiden looks .obsp['connectivities'] for connectivities
+        (default storage place for pp.neighbors).
+        If specified, leiden looks
+        .obsp[.uns[neighbors_key]['connectivities_key']] for connectivities.
+    adjacency
+        Sparse adjacency matrix of the graph, defaults to neighbors connectivities.
+    directed
+        Whether to treat the graph as directed or undirected.
+    use_weights
+        If `True`, edge weights from the graph are used in the computation
+        (placing more emphasis on stronger edges).
     copy:
         Return a new object or do everything in place
         
@@ -117,9 +130,8 @@ def calculate_affinity(
 
 def cluster_consistency(
     adata: AnnData,
-    level: int = 1,
-    group: Optional[str] = None,
-    key: Optional[str] = 'nsbm',
+    groups: str = None,
+    key_added: Optional[str] = 'cluster_consistency',
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
@@ -128,12 +140,10 @@ def cluster_consistency(
     ----------
     adata
         Annotated data matrix. 
-    level
-        The NSBM level, as an alternative of full group name
-    group
-        The name of the NSBM level for which consistency should be calculated        
-    key
-        The key used to store NSBM groupings
+    groups
+        The key for clusters in adata.obs
+    key_added
+        The name of obs values that will be added to the adata
     copy
         Return a copy instead of writing to adata.
 
@@ -143,32 +153,24 @@ def cluster_consistency(
     in adata.uns['cluster_consistency'] and adata.obs['cluster_consistency']
 """    
 
-    if group:
-        level = group.split('_')[-1]
+    if not groups or not groups in adata.obs.columns:
+        raise ValueError("Valid groups should be specified")
     else:
-        group = f'{key}_level_{level}'
+         ca_key = f'CA_{groups}'
+         if not ca_key in adata.obsm.keys():
+             raise ValueError("Affinities for the provided group were not calculated")
 
-    if not group and not level:
-        raise ValueError("You should specify at least one of group or level")
-
-    if not f'CA_{key}_level_{level}' in adata.obsm_keys():
-        raise ValueError(
-            f"Affinitity for the specfified level {level} do not exist"
-        )
-        
-
-    affinity = adata.obsm[f'CA_{key}_level_{level}']
+    affinity = adata.obsm[ca_key]
     entropy = scipy.stats.entropy(affinity, axis=0) / np.log(adata.shape[0]) #normalized entropy
 
     adata.uns['cluster_consistency'] = entropy
 
     # now assign consistency to each cell, according to their group
-    e_dict = dict(zip(adata.obs[group].cat.categories, entropy))
-    g = adata.obs[group].values
+    e_dict = dict(zip(adata.obs[groups].cat.categories, entropy))
+    g = adata.obs[groups].values
     adata.obs['cluster_consistency'] = [e_dict[g[x]] for x in range(adata.shape[0])]
     
     return adata if copy else None
-
 
 def cell_stability(
     adata: AnnData,
