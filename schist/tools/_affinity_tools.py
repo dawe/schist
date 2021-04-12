@@ -75,7 +75,7 @@ def calculate_affinity(
         
     if not state:
         # if no state is provided, use the default to retrieve graph
-        if adata.uns['schist']['state']:
+        if 'schist' in adata.uns and 'state' in adata.uns['schist']:
             state = adata.uns['schist']['state']
             g = state.g
         elif not adjacency:
