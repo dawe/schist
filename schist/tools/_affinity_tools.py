@@ -9,6 +9,7 @@ from scanpy import logging as logg
 import graph_tool.all as gt
 import pandas as pd
 from ._utils import get_cell_loglikelihood
+from scanpy._utils import get_igraph_from_adjacency, _choose_graph
 
 
 def calculate_affinity(
@@ -78,13 +79,13 @@ def calculate_affinity(
         if 'schist' in adata.uns and 'state' in adata.uns['schist']:
             state = adata.uns['schist']['state']
             g = state.g
-        elif not adjacency:
+        elif not neighbors_key:
             # no state and no adjacency provided, raise an error
             raise ValueError("A state or an adjacency matrix should be given"
                              "Otherwise a graph cannot be computed")
         else:
             # get the graph from the adjacency    
-            adjacency = _utils._choose_graph(adata, obsp, neighbors_key)
+            adjacency = _choose_graph(adata, obsp, neighbors_key)
             g = get_igraph_from_adjacency(adjacency, directed=directed)
             g = g.to_graph_tool()
             gt.remove_parallel_edges(g)
