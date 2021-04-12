@@ -14,14 +14,16 @@ def calculate_affinity(
     adata: AnnData,
     level: int = 1,
     block_key: Optional[str] = 'nsbm',
-    groups: Optional[str] = None,
+    group_by: Optional[str] = None,
     state: Optional = None,
     copy: bool = False
     
 ) -> Optional[AnnData]:
     
     """\
-    Calculate cell affinity given a partition scheme
+    Calculate cell affinity given a partition scheme. It can be used for 
+    partitions calculated using schist or for any partition scheme, given
+    for example by cell annotations.
     Parameters
     ----------
     adata:
@@ -32,7 +34,7 @@ def calculate_affinity(
     block_key:
         The prefix for partitions. This parameter is ignored if the state
         is not gt.NestedBlockState
-    groups:
+    group_by:
         The key for group names used for calculations. Setting this will override
         level and block_key. This is effective only for NestedBlockState partitions
     state:
@@ -52,6 +54,11 @@ def calculate_affinity(
     else:
         logg.info(f'Calculating cell affinity to level {level}')
         
+    if group_by:
+        if group_by in adata.obs.columns and adata.obs[group_by].dtype.name == 'category':
+            partitions = adata.obs[group_by].cat.codes
+            
+
     if not state:
         if not adata.uns['schist']['state']:
             raise ValueError("No state detected")
@@ -70,14 +77,9 @@ def calculate_affinity(
         if not group_col:
             raise ValueError("The provided groups or level/blocks do not exist")
             
-        g0 = pd.Categorical(state.project_partition(0, 0).a.astype(str)) 
-        cross_tab = pd.crosstab(g0, adata.obs[group_col])
-        cl = np.zeros((p0.shape[0], cross_tab.shape[1]), dtype=p0.dtype)
-        for x in range(cl.shape[1]):
-            # sum counts of level_0 groups corresponding to
-            # this group at current level
-            cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
-        ca_matrix = cl / np.sum(cl, axis=1)[:, None]
+        g0 = pd.Categorical(state.project_partition(0, 0).a)
+        cross_tab = pd.crosstab(g0, adata.obs[group_col], normalize='index')
+        ca_matrix = p0 @ cross_tab
 
     elif type(state) == gt.PPBlockState:
         ca_matrix = get_cell_loglikelihood(state, as_prob=True)
