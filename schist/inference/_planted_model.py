@@ -221,6 +221,7 @@ def planted_model(
     # last step is recording some parameters used in this analysis
     adata.uns['schist']['params'] = dict(
         model='planted',
+        key_added=key_added,
         samples=samples,
         collect_marginals=collect_marginals,
         random_seed=random_seed

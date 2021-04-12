@@ -11,6 +11,7 @@ except TypeError:
     schist.inference.nested_model(adata, fast_model=True, )
 
 schist.inference.leiden(adata, neighbors_key='foo')
+schist.tools.calculate_affinity(adata, neighbors_key='foo', group_by='leiden')
 schist.tools.cell_similarity(adata, neighbors_key='foo')
 schist.io.write(adata, prefix='test')
 adata = schist.io.read(prefix='test')
