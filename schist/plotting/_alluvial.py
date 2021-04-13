@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Sequence, Type, Union
+from typing import Optional, Tuple, Sequence, Type, Union, Literal
 import numpy as np
 
 from matplotlib import pyplot as plt
@@ -18,6 +18,14 @@ def alluvial(
     level_end: int = None,
     key: str = 'nsbm',
     gap: float = 0.05,
+    legend_fontsize: Union[int, float, Literal['xx-small', 'x-small', 'small', 
+                           'medium', 'large', 'x-large', 'xx-large'], NoneType] = None,
+    legend_fontweight: Union[int, Literal['light', 'normal', 'medium', 
+                             'semibold', 'bold', 'heavy', 'black']] = 'bold',
+    axis_fontsize: Union[int, float, Literal['xx-small', 'x-small', 'small',
+                         'medium', 'large', 'x-large', 'xx-large'], NoneType] = None,
+    axis_fontweight: Union[int, Literal['light', 'normal', 'medium', 
+                           'semibold', 'bold', 'heavy', 'black']] = 'bold',
 ) :
     """
     Generate an alluvial plot for NSBM hierarchy
@@ -130,7 +138,9 @@ def alluvial(
             s_h, s_l = s_pos.loc[s]
             if l == 1:
                 # annotate groups of the rootmost groups
-                ax.text(l, (s_h + s_l) / 2, s)
+                ax.text(l, (s_h + s_l) / 2, s, 
+                        fontsize=legend_fontsize, 
+                        fontweight=legend_fontweight)
             for e in _tree[s]:
                 # for every ordered child block get the highest/lowest points
                 e_h, e_l = e_pos.loc[e]
@@ -157,13 +167,16 @@ def alluvial(
                 ax.add_patch(poly)
                 
                 # annotate the groups with the group names.
-                ax.text(l + 1, (e_h + e_l) / 2, e)
+                ax.text(l + 1, (e_h + e_l) / 2, e, 
+                        fontsize=legend_fontsize, 
+                        fontweight=legend_fontweight)
         
         
     ax.set_xlim(0, l)
     ax.set_xticks(range(len(levels)))
     # strip level key
     levels = [x.replace("%s_level_" % key, '') for x in levels]
-    ax.set_xticklabels(levels)
+    ax.set_xticklabels(levels, fontsize=axis_fontsize, 
+                       fontweight=axis_fontweight)
     ax.set_yticks([])
     ax.set_xlabel(f"{key} level")
