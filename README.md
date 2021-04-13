@@ -8,6 +8,7 @@
 An interface for Nested Stochastic Block Model for single cell analysis.
 
 ## Status
+- Version 0.7.6 Some bug fixes and more introduced. Also, better handling of affinities and marginals
 - Version 0.7.4 All functions now are initialized multiple times and marginals are calculated out of them.
 - Version 0.7.2 It is now possible to run leiden clustering, but this is performed many times (default 100), a consensus is calculated as well as marginals for cluster assignments.
 - Version 0.7.0 Some changes in the way nested model is calculated. Also, advanced functions have been eliminated, one should use `graph_tool` for that
