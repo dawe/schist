@@ -42,8 +42,8 @@ def alluvial(
         The gap between groups in percentage
 """    
     level_key = "%s_level" % key
-    levels = [x for x in adata.obs_keys() if x.startswith(level_key)]
-    if level_start < 1:
+    levels = adata.obs.filter(like=f"{key}_level").columns
+    if level_start < 0:
         level_start = 1
     if not level_end:
         level_end = len(levels)
@@ -51,7 +51,8 @@ def alluvial(
         # swap values if they are reversed
         (level_start, level_end )= (level_end, level_start)
     #reverse levels
-    levels = levels[(level_start - 1):level_end][::-1]
+#    levels = levels[(level_start - 1):level_end][::-1]
+    levels = levels[level_start:level_end + 1][::-1]
     if len(levels) == 0:
         raise ValueError(
         """No levels to plot were found
@@ -65,9 +66,9 @@ def alluvial(
     e_pos = None # set this to none, later it will be the last of the previous iteration
     fig, ax = plt.subplots()
     gap = n_cells * gap
-    for l in range(1, len(levels)):
-        s_level = levels[l - 1]
-        e_level = levels[l]
+    for l in range(len(levels) - 1):
+        s_level = levels[l]
+        e_level = levels[l + 1]
     
         # count the cross counts
         ct = pd.crosstab(adata.obs.loc[:, s_level], adata.obs.loc[:, e_level])
@@ -118,8 +119,8 @@ def alluvial(
         e_pos = pd.DataFrame(_e_pos, index=cum_e.index)
 
         # start generating plot. 
-        sl = l - 1
-        el = l 
+        sl = l
+        el = l + 1 
         
         xr = np.linspace(sl, el)
     
@@ -129,7 +130,7 @@ def alluvial(
             s_h, s_l = s_pos.loc[s]
             if l == 1:
                 # annotate groups of the rootmost groups
-                ax.text(l - 1, (s_h + s_l) / 2, s)
+                ax.text(l, (s_h + s_l) / 2, s)
             for e in _tree[s]:
                 # for every ordered child block get the highest/lowest points
                 e_h, e_l = e_pos.loc[e]
@@ -156,7 +157,7 @@ def alluvial(
                 ax.add_patch(poly)
                 
                 # annotate the groups with the group names.
-                ax.text(l , (e_h + e_l) / 2, e)
+                ax.text(l + 1, (e_h + e_l) / 2, e)
         
         
     ax.set_xlim(0, l)
@@ -165,4 +166,4 @@ def alluvial(
     levels = [x.replace("%s_level_" % key, '') for x in levels]
     ax.set_xticklabels(levels)
     ax.set_yticks([])
-    ax.set_xlabel("NSBM level")
+    ax.set_xlabel(f"{key} level")
