@@ -19,11 +19,11 @@ def alluvial(
     key: str = 'nsbm',
     gap: float = 0.05,
     legend_fontsize: Union[int, float, Literal['xx-small', 'x-small', 'small', 
-                           'medium', 'large', 'x-large', 'xx-large'], NoneType] = None,
+                           'medium', 'large', 'x-large', 'xx-large']] = None,
     legend_fontweight: Union[int, Literal['light', 'normal', 'medium', 
                              'semibold', 'bold', 'heavy', 'black']] = 'bold',
     axis_fontsize: Union[int, float, Literal['xx-small', 'x-small', 'small',
-                         'medium', 'large', 'x-large', 'xx-large'], NoneType] = None,
+                         'medium', 'large', 'x-large', 'xx-large']] = None,
     axis_fontweight: Union[int, Literal['light', 'normal', 'medium', 
                            'semibold', 'bold', 'heavy', 'black']] = 'bold',
 ) :
@@ -179,4 +179,5 @@ def alluvial(
     ax.set_xticklabels(levels, fontsize=axis_fontsize, 
                        fontweight=axis_fontweight)
     ax.set_yticks([])
+    ax.grid(b=False)
     ax.set_xlabel(f"{key} level")
