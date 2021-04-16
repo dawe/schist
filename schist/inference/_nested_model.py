@@ -275,7 +275,7 @@ def nested_model(
         '    finished',
         time=start,
         deep=(
-            f'found {state.get_levels()[1].get_nonempty_B()} clusters at level_1, and added\n'
+            f'and added\n'
             f'    {key_added!r}, the cluster labels (adata.obs, categorical)'
         ),
     )
