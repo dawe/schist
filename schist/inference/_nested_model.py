@@ -183,7 +183,13 @@ def nested_model(
 
     pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
     bs = pmode.get_max_nested()
+    
+    # prune redundant levels at the top
+    bs = [x for x in bs if len(np.unique(x)) > 1]
+	bs.append(np.array([0], dtype=bs[0].dtype))
+    
     state = gt.NestedBlockState(g, bs)
+    
 
     logg.info('    done', time=start)
     u_groups = np.unique(bs[0])

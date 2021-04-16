@@ -134,6 +134,7 @@ def cluster_consistency(
     adata: AnnData,
     groups: str = None,
     key_added: Optional[str] = 'cluster_consistency',
+    use_marginals: Optional[bool] = False,
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
@@ -146,6 +147,9 @@ def cluster_consistency(
         The key for clusters in adata.obs
     key_added
         The name of obs values that will be added to the adata
+    use_marginals
+        By default it uses cell affinities for the analysis, but if group marginals
+        are available from the inference, those can be used here.
     copy
         Return a copy instead of writing to adata.
 
@@ -155,12 +159,19 @@ def cluster_consistency(
     in adata.uns['cluster_consistency'] and adata.obs['cluster_consistency']
 """    
 
+    matrix_prefix = 'CA'
+    if use_marginals:
+        matrix_prefix = 'CM'
+
     if not groups or not groups in adata.obs.columns:
         raise ValueError("Valid groups should be specified")
     else:
-         ca_key = f'CA_{groups}'
+         ca_key = f'{matrix_prefix}_{groups}'
          if not ca_key in adata.obsm.keys():
-             raise ValueError("Affinities for the provided group were not calculated")
+             msg = "Affinities for the provided group were not calculated"
+             if use_marginals:
+                 msg = "Marginals for the provided group were not calculated"
+             raise ValueError(msg)
 
     affinity = adata.obsm[ca_key]
     entropy = scipy.stats.entropy(affinity, axis=0) / np.log(adata.shape[0]) #normalized entropy
