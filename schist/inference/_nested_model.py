@@ -186,7 +186,7 @@ def nested_model(
     
     # prune redundant levels at the top
     bs = [x for x in bs if len(np.unique(x)) > 1]
-    bs.append(np.array([0], dtype=bs[0].dtype))    
+    bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
     state = gt.NestedBlockState(g, bs)
     
 
@@ -219,6 +219,14 @@ def nested_model(
 
     levels = groups.columns
     
+    # recode block names to have consistency with group names
+    i_groups = groups.astype(int)
+    bs = [i_groups.iloc[:, 0].values]
+    for x in range(1, groups.shape[1]):
+        bs.append(np.where(pd.crosstab(i_groups.iloc[:, x - 1], i_groups.iloc[:, x])> 0)[1])
+    state = gt.NestedBlockState(g, bs)
+    del(i_groups)
+
     if restrict_to is not None:
         groups.index = adata.obs[restrict_key].index
     else:
