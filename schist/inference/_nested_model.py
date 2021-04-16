@@ -186,8 +186,7 @@ def nested_model(
     
     # prune redundant levels at the top
     bs = [x for x in bs if len(np.unique(x)) > 1]
-	bs.append(np.array([0], dtype=bs[0].dtype))
-    
+    bs.append(np.array([0], dtype=bs[0].dtype))    
     state = gt.NestedBlockState(g, bs)
     
 
