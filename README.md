@@ -28,12 +28,12 @@ An interface for Nested Stochastic Block Model for single cell analysis.
 Once `schist` has been installed, it can be used out of the box on `scanpy` objects:
 
 ```python
-from schist.inference import nested_model
+import schist as scs
 
-nested_model(adata)
+scs.inference.nested_model(adata)
 ```
 
-Once the MCMC has converged, the `adata.obs` object will contain additional columns for multiple levels, named `nsbm_level_1`, `nsbm_level_2` and so on (by default up to `nsbm_level_10`). 
+Once the MCMC has converged, the `adata.obs` object will contain additional columns for multiple levels, named `nsbm_level_0`, `nsbm_level_1`, `nsbm_level_2` and so on (by default up to `nsbm_level_10`). 
 More details can be found at [this page](Advanced.md)
 
 ## Installation
@@ -58,7 +58,7 @@ pip install .
 `schist` allows to return the `NestedBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
 
 ```python
-state = adata.uns['nsbm'].pop('state')
+state = adata.uns['schist'].pop('state')
 adata.write('myfile.h5ad')
 
 # save the state separately
@@ -70,7 +70,7 @@ with open('state.pkl', 'wb') as pkl_state:
 Since version 0.2 it is possible to save `AnnData` objects like above simply issuing
 
 ```python
-schist.io.write(adata, prefix='myfile')
+scs.io.write(adata, prefix='myfile')
 ```
 
 This will create two files: `myfile.h5ad`, containing the actual `AnnData`, and 
@@ -78,7 +78,7 @@ This will create two files: `myfile.h5ad`, containing the actual `AnnData`, and
 are in the same place, issuing
 
 ```python
-adata = schist.io.read('myfile')
+adata = scs.io.read('myfile')
 ```
 
 will read the `.h5ad` and the `.pkl` files and create the proper `AnnData` object

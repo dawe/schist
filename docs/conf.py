@@ -12,7 +12,7 @@
 #
 # import os
 # import sys
-# sys.path.insert(0, os.path.abspath('.'))
+# sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -27,7 +27,7 @@ author = 'Davide Cittaro, Leonardo Morelli'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc'
+extensions = ['sphinx.ext.autodoc','sphinx.ext.coverage', 'sphinx.ext.napoleon'
 ]
 extensions.append('sphinx.ext.imgmath')
 # Add any paths that contain templates here, relative to this directory.
@@ -52,4 +52,3 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 master_doc = 'index'
-
