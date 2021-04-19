@@ -1,0 +1,10 @@
+Welcome to schist's documentation!
+==================================
+
+.. toctree::
+   :maxdepth: 2
+
+   modules
+   quick
+   intro
+   plotting
