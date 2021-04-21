@@ -189,6 +189,7 @@ def cell_stability(
     adata: AnnData,
     block_key: Optional[str] = 'nsbm', # dummy default
     key_added: Optional[str] = 'cell_stability',
+    use_marginals: Optional[bool] = False,
     state: Optional = None,
     copy: bool = False
 ) -> Optional[AnnData]:
@@ -209,24 +210,32 @@ def cell_stability(
     in adata.obs['cell_stability']
 """    
 
+    matrix_prefix = 'CA'
+    if use_marginals:
+        matrix_prefix = 'CM'
+
     if not state:
         if not adata.uns['schist']['state']:
             raise ValueError("No state detected")
         else:
             state = adata.uns['schist']['state']
 
+    # check if we have levels we want to prune
     n_effective_levels = sum([x.get_nonempty_B() > 1 for x in state.get_levels()])
     n_effective_levels = min(n_effective_levels, len(state.get_levels()))
-    obsm_names = [x for x in adata.obsm if x.startswith(f"CA_{block_key}_level")]    
+    obsm_names = [x for x in adata.obsm if x.startswith(f"{matrix_prefix}_{block_key}_level")]    
     if len(obsm_names) < n_effective_levels:
-        logg.warning("Your dataset doesn't contain all the required affinities\n"
-                     "They will be recalculated from scratch")
-        adata.obsm[f'CA_{block_key}_level_0'] = get_cell_loglikelihood(state, level=0, 
+        logg.warning("Your dataset doesn't contain all the required matrices\n")
+        if use_marginals:
+            logg.warning("Marginals cannot be recomputed from current data, switching to affinities")
+            matrix_prefix='CA'
+        logg.warning("They will be recalculated from scratch")
+        adata.obsm[f'{matrix_prefix}_{block_key}_level_0'] = get_cell_loglikelihood(state, level=0, 
                                                                       as_prob=True)
-        obsm_names = [f'CA_{block_key}_level_0']
+        obsm_names = [f'{matrix_prefix}_{block_key}_level_0']
         for n in range(n_effective_levels):
             calculate_affinity(adata, level = n+1, block_key=block_key, state=state)
-            obsm_names.append(f'CA_{block_key}_level_{n}')
+            obsm_names.append(f'{matrix_prefix}_{block_key}_level_{n}')
 
     _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
     adata.obs[f'{key_added}'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
