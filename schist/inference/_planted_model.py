@@ -31,6 +31,7 @@ def planted_model(
     directed: bool = False,
     use_weights: bool = False,
     copy: bool = False,
+    save_model: Union[str, None] = None,
     minimize_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
     """\
@@ -80,6 +81,9 @@ def planted_model(
         increases computation times
     copy
         Whether to copy `adata` or modify it inplace.
+    save_model
+        If provided, this will be the filename for the PartitionModeState to 
+        be saved    
     random_seed
         Random number to be used as seed for graph-tool
     n_jobs
@@ -171,6 +175,17 @@ def planted_model(
     pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True)
         
     bs = pmode.get_max(g)
+    
+    if save_model:
+        import pickle
+        fname = save_model
+        if not fname.endswith('pkl'):
+            fname = f'{fname}.pkl'
+        logg.info(f'Saving model into {fname}')    
+        with open(fname, 'wb') as fout:
+            pickle.dump(pmode, fout, 2)
+    
+    
     state = gt.PPBlockState(g, b=bs)
     logg.info('    done', time=start)
 

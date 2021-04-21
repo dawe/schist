@@ -92,6 +92,9 @@ def nested_model(
         If `True`, edge weights from the graph are used in the computation
         (placing more emphasis on stronger edges). Note that this
         increases computation times
+    save_model
+        If provided, this will be the filename for the PartitionModeState to 
+        be saved    
     copy
         Whether to copy `adata` or modify it inplace.
     random_seed

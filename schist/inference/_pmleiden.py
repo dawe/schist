@@ -1,6 +1,6 @@
 #this is from scanpy _leiden.py code, slightly modified
 
-from typing import Optional, Tuple, Sequence, Type
+from typing import Optional, Tuple, Sequence, Type, Union
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ from scanpy import _utils
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 
-from scanpy._utils import get_igraph_from_adjacency
+from scanpy._utils import get_igraph_from_adjacency, _choose_graph
 from joblib import Parallel, delayed
 
 try:
@@ -54,6 +54,7 @@ def leiden(
     collect_marginals: bool = True,
     n_jobs: int = -1,
     copy: bool = False,
+    save_model: Union[str, None] = None,
     **partition_kwargs,
 ) -> Optional[AnnData]:
     """\
@@ -115,6 +116,9 @@ def leiden(
         Number of parallel jobs to calculate partitions
     copy
         Whether to copy `adata` or modify it inplace.
+    save_model
+        If provided, this will be the filename for the PartitionModeState to 
+        be saved    
     **partition_kwargs
         Any further arguments to pass to `~leidenalg.find_partition`
         (which in turn passes arguments to the `partition_type`).
@@ -140,7 +144,7 @@ def leiden(
     adata = adata.copy() if copy else adata
     # are we clustering a user-provided graph or the default AnnData one?
     if adjacency is None:
-        adjacency = _utils._choose_graph(adata, obsp, neighbors_key)
+        adjacency = _choose_graph(adata, obsp, neighbors_key)
     if restrict_to is not None:
         restrict_key, restrict_categories = restrict_to
         adjacency, restrict_indices = restrict_adjacency(
@@ -180,6 +184,16 @@ def leiden(
                                         for i in range(samples))
 
     pmode = gt.PartitionModeState(parts, converge=True) 
+
+    if save_model:
+        import pickle
+        fname = save_model
+        if not fname.endswith('pkl'):
+            fname = f'{fname}.pkl'
+        logg.info(f'Saving model into {fname}')    
+        with open(fname, 'wb') as fout:
+            pickle.dump(pmode, fout, 2)
+
     groups = np.array(pmode.get_max(g_gt).get_array())     
     u_groups = np.unique(groups)
     n_groups = len(u_groups)
