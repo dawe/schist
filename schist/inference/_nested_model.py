@@ -41,6 +41,7 @@ def nested_model(
     neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
     use_weights: bool = False,
+    save_model: Union[str, None] = None,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
 #    equilibrate_args: Optional[Dict] = {},
@@ -183,6 +184,15 @@ def nested_model(
 
     pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
     bs = pmode.get_max_nested()
+    
+    if save_model:
+        import pickle
+        fname = save_model
+        if not fname.endswith('pkl'):
+            fname = f'{fname}.pkl'
+        logg.info(f'Saving model into {fname}')    
+        with open(fname, 'wb') as fout:
+            pickle.dump(pmode, fout, 2)
     
     # prune redundant levels at the top
     bs = [x for x in bs if len(np.unique(x)) > 1]
