@@ -237,7 +237,7 @@ def cell_stability(
             calculate_affinity(adata, level = n+1, block_key=block_key, state=state)
             obsm_names.append(f'{matrix_prefix}_{block_key}_level_{n}')
 
-    obsm_names = [x for x in obsm_names if adata.osbm[x].shape[1] > 1]
+    obsm_names = [x for x in obsm_names if adata.obsm[x].shape[1] > 1]
     _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
     adata.obs[f'{key_added}'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
 
