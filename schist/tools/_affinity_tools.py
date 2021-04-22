@@ -237,9 +237,21 @@ def cell_stability(
             calculate_affinity(adata, level = n+1, block_key=block_key, state=state)
             obsm_names.append(f'{matrix_prefix}_{block_key}_level_{n}')
 
-    obsm_names = [x for x in obsm_names if adata.osbm[x].shape[1] > 1]
-    _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
-    adata.obs[f'{key_added}'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
+    # take only matrices with at least 2 groups
+    obsm_names = [x for x in obsm_names if adata.osbm[x].shape[1] > 1] 
+    
+    # take the max value for each matrix
+    _M = np.array([np.max(adata.obsm[x], axis=1) for x in obsm_names]).T 
+    
+    # set a threshold given by a uniform distribution 
+    # this is questionable, may be improved
+    thr = np.array([1 - 1/adata.obsm[x].shape[1] for x in obsm_names])
+    
+    # use the fraction of levels that are over the level specific threshold
+    _S = np.sum(_M > thr, axis=1) / _M.shape[1]
+    adata.obs[f'{key_added}'] = _S
+#    _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
+#    adata.obs[f'{key_added}'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
 
     return adata if copy else None
 
