@@ -238,7 +238,7 @@ def cell_stability(
             obsm_names.append(f'{matrix_prefix}_{block_key}_level_{n}')
 
     # take only matrices with at least 2 groups
-    obsm_names = [x for x in obsm_names if adata.osbm[x].shape[1] > 1] 
+    obsm_names = [x for x in obsm_names if adata.obsm[x].shape[1] > 1] 
     
     # take the max value for each matrix
     _M = np.array([np.max(adata.obsm[x], axis=1) for x in obsm_names]).T 
