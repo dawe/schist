@@ -171,11 +171,12 @@ def planted_model(
     states = Parallel(n_jobs=n_jobs)(
              delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
              )
-        
+    logg.info('        minimization step done', time=start)        
     pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True)
         
     bs = pmode.get_max(g)
-    
+    logg.info('        consensus step done', time=start)
+        
     if save_model:
         import pickle
         fname = save_model
