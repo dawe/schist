@@ -252,9 +252,6 @@ def cell_stability(
     adata.obs[f'{key_added}'] = _S
 #    _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
 #    adata.obs[f'{key_added}'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
-    obsm_names = [x for x in obsm_names if adata.obsm[x].shape[1] > 1]
-    _S = np.array([scipy.stats.entropy(adata.obsm[x], axis=1) /np.log(adata.obsm[x].shape[1]) for x in obsm_names]).T
-    adata.obs[f'{key_added}'] = 1-np.nanmax(_S, axis=1) #/ np.nanmean(EE, axis=1)
 
 
     return adata if copy else None
