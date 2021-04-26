@@ -184,10 +184,10 @@ def nested_model(
     states = Parallel(n_jobs=n_jobs)(
         delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
     )
-    logg.info('    Minimization step done', time=start)
+    logg.info('        minimization step done', time=start)
     pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
     bs = pmode.get_max_nested()
-    logg.info('    Consensus step done', time=start)
+    logg.info('        consensus step done', time=start)
     
     if save_model:
         import pickle
