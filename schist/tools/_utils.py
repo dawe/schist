@@ -78,13 +78,10 @@ def get_cell_loglikelihood(
 def get_cell_back_p(
     state: Union[graph_tool.inference.nested_blockmodel.NestedBlockState, graph_tool.inference.planted_partition.PPBlockState],
     level: int = 0,
-    rescale: bool = False, 
-    as_prob: bool = False,
-    
 ):
     """
-    Returns the matrix of log-likelihood differences
-    when moving a cell into a different block
+    Returns the matrix of proabilities of moving a cell back to its
+    group from a different block
     
     Parameters
     ----------
@@ -92,13 +89,6 @@ def get_cell_back_p(
         A graphtool BlockState or NestedBlockState objexct
     level
         The level in NestedBlockState to consider
-    rescale
-        For some models, moving a cell into a different block may result in a 
-        negative log-likelihood, indicating that cells may be better assigned 
-        to another group. Set this parameter to `True` if you want 
-        every cell to have LL=0 for the best group and avoid negative values
-    as_prob
-        Return values as probabilites
 
     Returns
     -------

@@ -8,7 +8,7 @@ from scipy import sparse
 from scanpy import logging as logg
 import graph_tool.all as gt
 import pandas as pd
-from ._utils import get_cell_loglikelihood
+from ._utils import *
 from scanpy._utils import get_igraph_from_adjacency, _choose_graph
 
 
@@ -23,6 +23,7 @@ def calculate_affinity(
     directed: bool = True,
     use_weights: bool = True,
     obsp: Optional[str] = None,
+    back_prob: bool = False,
     copy: bool = False
     
 ) -> Optional[AnnData]:
@@ -100,13 +101,19 @@ def calculate_affinity(
         if group_by in adata.obs.columns and adata.obs[group_by].dtype.name == 'category':
             partitions = adata.obs[group_by].cat.codes.values
             state = gt.BlockState(g, b=partitions)
-            ca_matrix = get_cell_loglikelihood(state, as_prob=True)
+            if back_prob:
+                ca_matrix = get_cell_back_p(state)
+            else:
+                ca_matrix = get_cell_loglikelihood(state, as_prob=True)
         else:
             raise ValueError(f"{group_by} should be a categorical entry in adata.obs")    
     else:        
         # use precomputed blocks and states
         if type(state) == gt.NestedBlockState:
-            p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
+            if back_prob:
+                p0 = get_cell_back_p(state, level=0)
+            else:
+                p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
             group_col = None
             if group_by and group_by in adata.obs.columns:
                 group_col = group_by
@@ -122,7 +129,10 @@ def calculate_affinity(
             ca_matrix = (p0 @ cross_tab).values
 
         elif type(state) == gt.PPBlockState:
-            ca_matrix = get_cell_loglikelihood(state, as_prob=True)
+            if back_prob:
+                ca_matrix = get_cell_back_p(state)
+            else:
+	            ca_matrix = get_cell_loglikelihood(state, as_prob=True)
             matrix_key = 'CA_ppbm'
     
     adata.obsm[matrix_key] = ca_matrix 
@@ -191,6 +201,7 @@ def cell_stability(
     key_added: Optional[str] = 'cell_stability',
     use_marginals: Optional[bool] = False,
     state: Optional = None,
+    back_prob: bool = False,
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
@@ -230,7 +241,10 @@ def cell_stability(
             logg.warning("Marginals cannot be recomputed from current data, switching to affinities")
             matrix_prefix='CA'
         logg.warning("They will be recalculated from scratch")
-        adata.obsm[f'{matrix_prefix}_{block_key}_level_0'] = get_cell_loglikelihood(state, level=0, 
+        if back_prob:
+            adata.obsm[f'{matrix_prefix}_{block_key}_level_0'] = get_cell_back_p(state, level=0)
+        else:
+            adata.obsm[f'{matrix_prefix}_{block_key}_level_0'] = get_cell_loglikelihood(state, level=0, 
                                                                       as_prob=True)
         obsm_names = [f'{matrix_prefix}_{block_key}_level_0']
         for n in range(n_effective_levels):
