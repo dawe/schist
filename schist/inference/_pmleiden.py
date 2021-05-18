@@ -56,6 +56,7 @@ def leiden(
     copy: bool = False,
     save_model: Union[str, None] = None,
     **partition_kwargs,
+    dispatch: Optional[str] = 'loki',
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Traag18]_.
@@ -178,7 +179,7 @@ def leiden(
         return leidenalg.find_partition(g, partition_type, 
                                         seed=seed, **partition_kwargs).membership
     
-    parts = Parallel(n_jobs=n_jobs)(
+    parts = Parallel(n_jobs=n_jobs, prefer=dispatch)(
                     delayed(membership)(g, partition_type, 
                                         seeds[i], **partition_kwargs) 
                                         for i in range(samples))
