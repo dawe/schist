@@ -44,7 +44,7 @@ def nested_model(
     save_model: Union[str, None] = None,
     copy: bool = False,
     minimize_args: Optional[Dict] = {},
-    dispatch: Optional[str] = 'loki',
+    dispatch_backend: Optional[str] = 'processes',
 #    equilibrate_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
     """\
@@ -182,7 +182,7 @@ def nested_model(
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
         return state                            
             
-    states = Parallel(n_jobs=n_jobs, prefer=dispatch)(
+    states = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
         delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
     )
     logg.info('        minimization step done', time=start)

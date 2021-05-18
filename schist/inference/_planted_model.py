@@ -33,7 +33,7 @@ def planted_model(
     copy: bool = False,
     save_model: Union[str, None] = None,
     minimize_args: Optional[Dict] = {},
-    dispatch: Optional[str] = 'loki',
+    dispatch_backend: Optional[str] = 'processes',
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -169,7 +169,7 @@ def planted_model(
     # perform a mcmc sweep on each 
     # no list comprehension as I need to collect stats
         
-    states = Parallel(n_jobs=n_jobs, prefer=dispatch)(
+    states = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
              delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
              )
     logg.info('        minimization step done', time=start)        
