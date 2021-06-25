@@ -26,7 +26,6 @@ except ImportError:
 def nested_model(
     adata: AnnData,
     deg_corr: bool = True,
-    fast_model: bool = False,
     tolerance: float = 1e-6,
     n_sweep: int = 10,
     beta: float = np.inf,
@@ -280,7 +279,6 @@ def nested_model(
         model='nested',
         key_added=key_added,
         samples=samples,
-        fast_model=fast_model,
         collect_marginals=collect_marginals,
         random_seed=random_seed,
     )
