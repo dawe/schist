@@ -1,6 +1,7 @@
 <img src='garnet.png' alt='logo' width="200" height="200">
 
-<img src="https://travis-ci.org/dawe/scNSBM.svg?branch=master" title="Build status"> 
+
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/schist/badges/downloads.svg)](https://anaconda.org/conda-forge/schist)
 
 
 
