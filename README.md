@@ -5,24 +5,28 @@
 
 
 # SCHIST
-An interface for Nested Stochastic Block Model for single cell analysis.
+An interface for Nested Stochastic Block Model for single cell analysis. The idea behind `schist` is to create a `scanpy`-compatible interface to `graph-tool` methods.
 
-## Status
-- Version 0.7.6 Some bug fixes and more introduced. Also, better handling of affinities and marginals
-- Version 0.7.4 All functions now are initialized multiple times and marginals are calculated out of them.
-- Version 0.7.2 It is now possible to run leiden clustering, but this is performed many times (default 100), a consensus is calculated as well as marginals for cluster assignments.
-- Version 0.7.0 Some changes in the way nested model is calculated. Also, advanced functions have been eliminated, one should use `graph_tool` for that
-- Version 0.6.0 PlantedModel fully supported. Also, some changes in the data structure (affinities in obsm)
-- Version 0.5.2 Fast model for NSBM (and PP).
-- Version 0.5.0 Introduces Planted Partition model
-- Version 0.4.2 Introduces functions to calculate cluster consistency.
-- Version 0.4.0 Some bugfixes and name change to `schist`
-- Version 0.3.1 It is possible to resume operatons on a previously modeled state (i.e. you can do two step analysis)
-- Version 0.3.0 Major changes in the way MCMC is performed. SBM is also available.
-- Version 0.2.5 extends `scanpy.tools.draw_graph` layouts to the ones available in `graph-tool` library
-- Version 0.2 The code for the interface is mature. It is also possible to read/write objects
-- Version 0.1 implements a working interface to `graph-tool` library for `scanpy`
+## Installation
+As `schist` is available from conda-forge, installation is just easy as
 
+```
+conda install -c conda-forge schist
+```
+
+This will install `graph-tool-base` package as dependency, which does not include complete graphical capabilities. If you need access to the full `graph-tool` infrastracture, install it with
+
+```
+conda install -c conda-forge graph-tool
+```
+
+If you want to install `schist` from source, clone this repository and install in the usual way
+
+```
+git clone https://github.com/dawe/schist.git
+cd schist
+pip install .
+```
 
 ## How to use
 Once `schist` has been installed, it can be used out of the box on `scanpy` objects:
@@ -35,22 +39,6 @@ scs.inference.nested_model(adata)
 
 Once the MCMC has converged, the `adata.obs` object will contain additional columns for multiple levels, named `nsbm_level_0`, `nsbm_level_1`, `nsbm_level_2` and so on (by default up to `nsbm_level_10`). 
 More details can be found at [this page](Advanced.md)
-
-## Installation
-The key component (`graph-tool`) is not available through pip and requires extra compilation by the user, refer to its [installation page](https://git.skewed.de/count0/graph-tool/-/wikis/installation-instructions). Note, however, that a conda package is available from conda-forge, that means you may install it (and `schist` dependencies) just issuing
-
-```
-conda create -n schist -c conda-forge -c bioconda numpy scipy anndata pandas 'graph-tool>=2.37' scanpy
-conda activate schist
-```
-
-After that, `schist` can be installed from source:
-
-```
-git clone https://github.com/dawe/schist.git
-cd schist
-pip install .
-```
 
 
 ## Known issues
