@@ -1,8 +1,6 @@
 <img src='garnet.png' alt='logo' width="200" height="200">
 
-[![Anaconda-Server Badge](https://anaconda.org/conda-forge/schist/badges/version.svg)](https://anaconda.org/conda-forge/schist)
-
-[![Anaconda-Server Badge](https://anaconda.org/conda-forge/schist/badges/downloads.svg)](https://anaconda.org/conda-forge/schist)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/schist/badges/version.svg)](https://anaconda.org/conda-forge/schist) [![Anaconda-Server Badge](https://anaconda.org/conda-forge/schist/badges/downloads.svg)](https://anaconda.org/conda-forge/schist) [![Anaconda-Server Badge](https://anaconda.org/conda-forge/schist/badges/latest_release_date.svg)](https://anaconda.org/conda-forge/schist)
 
 
 
