@@ -1,8 +1,6 @@
 <img src='garnet.png' alt='logo' width="200" height="200">
 
-| Version | Downloads |
-| --- | --- |
-| [![Conda Version](https://img.shields.io/conda/vn/conda-forge/schist.svg)](https://anaconda.org/conda-forge/schist) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/schist.svg)](https://anaconda.org/conda-forge/schist) |
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/schist.svg)](https://anaconda.org/conda-forge/schist)  [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/schist.svg)](https://anaconda.org/conda-forge/schist) 
 
 
 # SCHIST
