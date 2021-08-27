@@ -177,7 +177,7 @@ def nested_model_multi(
     
     graph_list = []
     for x in range(n_data):
-        g = get_igraph_from_adjacency(adjacency, directed=directed)
+        g = get_igraph_from_adjacency(adjacency[x], directed=directed)
         g = g.to_graph_tool()
         gt.remove_parallel_edges(g)
         # add cell names to graph, this will be used to create
