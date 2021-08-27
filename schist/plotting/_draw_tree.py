@@ -4,6 +4,7 @@ import os
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
+from matplotlib.axes import Axes
 from anndata import AnnData
 import pandas as pd
 import graph_tool.all as gt
@@ -33,6 +34,9 @@ def draw_tree(
 #    annotation: Union[Sequence[str], None] = None,
     color_map: Union[mpl.colors.Colormap, str, None] = None,
     key: str = 'nsbm',
+    ax: Axes = None,
+    show: bool = True,
+    use_backend: str = None,
     save: Union[str, None] = None,
 ) :
     """
@@ -58,20 +62,24 @@ def draw_tree(
     
     # first thing switch backend to cairo
     backend = plt.get_backend()
-    try:
-        plt.switch_backend('cairo')
-        # note that CAIRO backend cannot show figures in console, 
-        # it works in jupyter, though
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError(
-        f'Cairo backend is not available, cannot plot tree'
-    )
+    if use_backend is None:
+        try:
+            plt.switch_backend('cairo')
+            # note that CAIRO backend cannot show figures in console, 
+            # it works in jupyter, though
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+            f'Cairo backend is not available, cannot plot tree'
+        )
     
-    if not isnotebook() and not save:
+        if not isnotebook() and not save:
 #        logg.warning(f'Cannot show the plot here, saving to `default_tree.png`')
-        plt.switch_backend('GTK3Cairo')
-        save = 'default_tree.png'
-    
+            plt.switch_backend('GTK3Cairo')
+            save = 'default_tree.png'
+    else:
+        # this is here only to try overrides, it won't ever work!
+        plt.switch_backend(use_backend)
+        
     state = adata.uns['schist']['state'] #the NestedBlockState
     g = state.g # the graph in graph-tool format
 
@@ -134,8 +142,9 @@ def draw_tree(
             map_values = MinMaxScaler().fit_transform(np.array(adata[:, color].X)).ravel()    
             node_color = cmap(map_values)
 
-    fig = plt.figure(figsize=(10, 10), frameon=False)
-    ax = fig.add_subplot(111)
+    if ax is None:
+        fig = plt.figure(figsize=(10, 10), frameon=False)
+        ax = fig.add_subplot(111)
     pos, t, tpos = gt.draw_hierarchy(state,  
                        vertex_fill_color=g.vertex_properties['fill_color'], 
                        vertex_color=g.vertex_properties['fill_color'],  
@@ -166,7 +175,8 @@ def draw_tree(
         except FileExistsError:
             None
         fig.savefig(f"figures/{save}")
-
+    if show is False:
+        return ax
     # switch to default backend 
     if not isnotebook():
 	    plt.switch_backend(backend)
