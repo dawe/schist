@@ -149,19 +149,19 @@ def nested_model_multi(
         if n_keys == 1:
             neighbors_key = [neighbors_key[0] for x in range(n_data)]    
         for x in range(n_data):
-            if neighbors_key[x] not in adata[x].uns:
+            if neighbors_key[x] not in adatas[x].uns:
                 raise ValueError(
                     'You need to run `pp.neighbors` first '
                     'to compute a neighborhood graph. for'
                     f'data entry {x}'
                 )
-            elif 'connectivities_key' in adata[x].uns[neighbors_key[x]]:
+            elif 'connectivities_key' in adatas[x].uns[neighbors_key[x]]:
                 # scanpy>1.4.6 has matrix in another slot
-                conn_key = adata[x].uns[neighbors_key[x]]['connectivities_key']
-                adjacency.append(adata[x].obsp[conn_key])
+                conn_key = adatas[x].uns[neighbors_key[x]]['connectivities_key']
+                adjacency.append(adatas[x].obsp[conn_key])
             else:
                 # scanpy<=1.4.6 has sparse matrix here
-                adjacency.append(adata[x].uns[neighbors_key[x]]['connectivities'])
+                adjacency.append(adatas[x].uns[neighbors_key[x]]['connectivities'])
 
 ## Leave restrict_to out of the whole thing, right now
 
