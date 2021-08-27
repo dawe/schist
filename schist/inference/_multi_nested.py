@@ -323,7 +323,7 @@ def nested_model_multi(
     for xn in range(n_data):
         drop_columns = groups.columns.intersection(adatas[xn].obs.columns)
         adatas[xn].obs.drop(drop_columns, 'columns', inplace=True)
-        adatas[xn].obs = pd.concat([adatas[xn].obs, groups], axis=1)
+        adatas[xn].obs = pd.concat([adatas[xn].obs, groups.loc[adatas[xn].obs_names]], axis=1)
 
         # add some unstructured info
 
