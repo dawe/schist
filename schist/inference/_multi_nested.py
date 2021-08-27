@@ -325,7 +325,8 @@ def nested_model_multi(
             # add marginals for level 0, the sum up according to the hierarchy
             adatas[xn].obsm[f"CM_{key_added}_level_0"] = pv_array
             for group in groups.columns[1:]:
-                ct = pd.crosstab(groups[groups.columns[0]], groups[group], normalize='index')
+                _groups = groups.loc[adatas[xn].obs_names]
+                ct = pd.crosstab(_groups[_groups.columns[0]], _groups[group], normalize='index')
                 adatas[xn].obsm[f'CM_{group}'] = pv_array @ ct.values
 
         # last step is recording some parameters used in this analysis
