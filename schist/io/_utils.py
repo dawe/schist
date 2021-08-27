@@ -43,7 +43,13 @@ def read(
     try:
         with open(pkl_fname, 'rb') as fh:
             state = pickle.load(fh)
-            adata.uns[key]['state'] = state
+            if type(state) == dict:
+                if 'state' in state:
+                    adata.uns[key]['state'] = state['state']
+                if 'multi_level_state' in state:
+                    adata.uns[key]['multi_level_state'] = state['multi_level_state']
+            else:
+                adata.uns[key]['state'] = state
     except IOError:
         logg.warning(
             f'The specified file for state {pkl_fname} does not exist. '
@@ -78,9 +84,11 @@ def write(
     pkl_filename
         Specify a file name for `state` pickle
     """
-    state = None
+    state = {}
     if 'state' in adata.uns[key]:
-        state = adata.uns[key].pop('state')
+        state['state'] = adata.uns[key].pop('state')
+    if 'multi_level_state' in adata.uns[key]:
+        state['multi_level_state'] = adata.uns[key].pop('multi_level_state')
     if not h5ad_fname:
         h5ad_fname = "%s.h5ad" % prefix
     if not pkl_fname:
