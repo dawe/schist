@@ -148,6 +148,7 @@ def nested_model_multi(
         if n_keys == 1:
             neighbors_key = [neighbors_key[0] for x in range(n_data)]    
         for x in range(n_data):
+            logg.info(f'getting adjacency for data {x}', time=start)
             if neighbors_key[x] not in adatas[x].uns:
                 raise ValueError(
                     'You need to run `pp.neighbors` first '
@@ -327,12 +328,13 @@ def nested_model_multi(
             _pv_array = pd.DataFrame(pv_array, index=all_names).loc[adatas[xn].obs_names].values
             adatas[xn].obsm[f"CM_{key_added}_level_0"] = _pv_array
             for group in groups.columns[1:]:
-                ct = pd.crosstab(_groups[_groups.columns[0]], _groups[group], normalize='index')
+                ct = pd.crosstab(_groups[_groups.columns[0]], _groups[group], 
+                                 normalize='index', dropna=False)
                 adatas[xn].obsm[f'CM_{group}'] = _pv_array @ ct.values
 
         # last step is recording some parameters used in this analysis
         adatas[xn].uns['schist']['multi_level_params'] = dict(
-            model='nested',
+            model='multiome_nested',
             key_added=key_added,
             samples=samples,
             collect_marginals=collect_marginals,
