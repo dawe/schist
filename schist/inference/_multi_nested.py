@@ -33,7 +33,6 @@ def nested_model_multi(
     collect_marginals: bool = True,
     n_jobs: int = -1,
     *,
-#    restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
     key_added: str = 'multi_nsbm',
     adjacency: Optional[List[sparse.spmatrix]] = None,
@@ -163,16 +162,7 @@ def nested_model_multi(
                 # scanpy<=1.4.6 has sparse matrix here
                 adjacency.append(adatas[x].uns[neighbors_key[x]]['connectivities'])
 
-## Leave restrict_to out of the whole thing, right now
 
-#    if restrict_to is not None:
-#        restrict_key, restrict_categories = restrict_to
-#        adjacency, restrict_indices = restrict_adjacency(
-#            adata,
-#            restrict_key,
-#            restrict_categories,
-#            adjacency,
-#        )
     # convert it to igraph and graph-tool
     
     graph_list = []
@@ -214,10 +204,6 @@ def nested_model_multi(
     # modalities and the unified Graph
     
     u_cell_index = dict([(union_g.vp['cell'][x], x) for x in range(union_g.num_vertices())])
-#    data_cell_index = []
-#    for xn in range(n_data):
-#        data_cell_index.append(dict([(graph_list[xn].vp['cell'][x], x) for x in range(graph_list[xn].num_vertices())]))
-
     # now create layers
     layer = union_g.new_edge_property('int')
     for ng in range(n_data):
@@ -311,9 +297,6 @@ def nested_model_multi(
     state = gt.NestedBlockState(union_g, bs)
     del(i_groups)
 
-#    if restrict_to is not None:
-#        groups.index = adata.obs[restrict_key].index
-#    else:
     groups.index = all_names
 
     # add column names
