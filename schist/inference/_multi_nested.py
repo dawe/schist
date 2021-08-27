@@ -108,14 +108,14 @@ def nested_model_multi(
     `adata.obs[key_added]`
         Array of dim (number of samples) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell. 
-    `adata.uns['nested_multi']['params']`
+    `adata.uns['schist']['multi_level_params']`
         A dict with the values for the parameters `resolution`, `random_state`,
         and `n_iterations`.
-    `adata.uns['nested_multi']['stats']`
+    `adata.uns['schist']['multi_level_stats']`
         A dict with the values returned by mcmc_sweep
     `adata.obsm['CA_multi_nsbm_level_{n}']`
         A `np.ndarray` with cell probability of belonging to a specific group
-    `adata.uns['nested_multi']['state']`
+    `adata.uns['schist']['multi_level_state']`
         The NestedBlockModel state object
     """
 
@@ -327,14 +327,14 @@ def nested_model_multi(
 
         # add some unstructured info
 
-        adatas[xn].uns['nested_multi'] = {}
-        adatas[xn].uns['nested_multi']['stats'] = dict(
+        adatas[xn].uns['schist'] = {}
+        adatas[xn].uns['schist']['multi_level_stats'] = dict(
         level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
         modularity=np.array([gt.modularity(union_g, state.project_partition(x, 0))
                              for x in range(len((state.levels)))])
         )
 
-        adatas[xn].uns['nested_multi']['state'] = state.copy()
+        adatas[xn].uns['schist']['multi_level_state'] = state.copy()
 
     # now add marginal probabilities.
 
@@ -346,7 +346,7 @@ def nested_model_multi(
                 adatas[xn].obsm[f'CM_{group}'] = pv_array @ ct.values
 
         # last step is recording some parameters used in this analysis
-        adata.uns['nested_multi']['params'] = dict(
+        adata.uns['schist']['multi_level_params'] = dict(
             model='nested',
             key_added=key_added,
             samples=samples,
