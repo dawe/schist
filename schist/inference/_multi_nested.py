@@ -258,7 +258,12 @@ def nested_model_multi(
     # prune redundant levels at the top
     bs = [x for x in bs if len(np.unique(x)) > 1]
     bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-    state = gt.NestedBlockState(union_g, bs)
+    state = gt.NestedBlockState(union_g, bs=bs,
+                                  base_type=gt.LayeredBlockState,
+                                  state_args=dict(deg_corr=deg_corr,
+                                  ec=union_g.ep.layer,
+                                  layers=True
+                                  ))
     
 
     logg.info('    done', time=start)

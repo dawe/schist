@@ -238,7 +238,10 @@ def nested_model(
     bs = [i_groups.iloc[:, 0].values]
     for x in range(1, groups.shape[1]):
         bs.append(np.where(pd.crosstab(i_groups.iloc[:, x - 1], i_groups.iloc[:, x])> 0)[1])
-    state = gt.NestedBlockState(g, bs)
+    state = gt.NestedBlockState(g, bs, state_args=dict(deg_corr=deg_corr,
+                                  recs=recs,
+                                  rec_types=rec_types
+                                  ))
     del(i_groups)
 
     if restrict_to is not None:

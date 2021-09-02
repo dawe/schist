@@ -158,7 +158,11 @@ def flat_model(
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
         return state
 
-    states = [gt.BlockState(g) for x in range(samples)]
+    states = [gt.BlockState(g,
+                            state_args=dict(deg_corr=deg_corr,
+                                  recs=recs,
+                                  rec_types=rec_types
+                                  )) for x in range(samples)]
         
     # perform a mcmc sweep on each 
     # no list comprehension as I need to collect stats
@@ -169,7 +173,10 @@ def flat_model(
         
     pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True)                  
     bs = pmode.get_max(g)
-    state = gt.BlockState(g, b=bs)
+    state = gt.BlockState(g, b=bs,state_args=dict(deg_corr=deg_corr,
+                                  recs=recs,
+                                  rec_types=rec_types
+                                  ))
 
     logg.info('    done', time=start)
     
