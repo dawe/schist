@@ -30,7 +30,7 @@ def flat_model(
     directed: bool = False,
     use_weights: bool = False,
     copy: bool = False,
-    minimize_args: Optional[Dict] = {},
+#    minimize_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.

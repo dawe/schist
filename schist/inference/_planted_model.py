@@ -32,7 +32,7 @@ def planted_model(
     use_weights: bool = False,
     copy: bool = False,
     save_model: Union[str, None] = None,
-    minimize_args: Optional[Dict] = {},
+#    minimize_args: Optional[Dict] = {},
     dispatch_backend: Optional[str] = 'processes',
 ) -> Optional[AnnData]:
     """\

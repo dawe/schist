@@ -41,7 +41,7 @@ def nested_model_multi(
     use_weights: bool = False,
     save_model: Union[str, None] = None,
     copy: bool = False,
-    minimize_args: Optional[Dict] = {},
+#    minimize_args: Optional[Dict] = {},
     dispatch_backend: Optional[str] = 'processes',
 #    equilibrate_args: Optional[Dict] = {},
 ) -> Optional[List[AnnData]]:
