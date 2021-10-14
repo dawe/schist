@@ -40,6 +40,12 @@ source_suffix = {
     '.md': 'markdown',
 }
 
+numpydoc_show_class_members = False
+
+
+# generate autosummary even if no references
+autosummary_generate = True
+autosummary_imported_members = True
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True

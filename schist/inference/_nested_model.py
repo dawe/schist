@@ -99,7 +99,7 @@ def nested_model(
         Whether to copy `adata` or modify it inplace.
     random_seed
         Random number to be used as seed for graph-tool
-
+    
     Returns
     -------
     `adata.obs[key_added]`
