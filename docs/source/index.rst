@@ -40,3 +40,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+schist has its documentation hosted on Read the Docs.
