@@ -8,7 +8,7 @@ from scipy import sparse
 from scanpy import logging as logg
 import graph_tool.all as gt
 import pandas as pd
-from ._utils import *
+from ._tl_utils import *
 from scanpy._utils import get_igraph_from_adjacency, _choose_graph
 
 
@@ -32,6 +32,7 @@ def calculate_affinity(
     Calculate cell affinity given a partition scheme. It can be used for 
     partitions calculated using schist or for any partition scheme, given
     for example by cell annotations.
+    
     Parameters
     ----------
     adata:
@@ -63,6 +64,7 @@ def calculate_affinity(
     copy:
         Return a new object or do everything in place
         
+
     Returns
     -------
     Depending on `copy`, returns or updates `adata` with affinity values 
@@ -149,6 +151,7 @@ def cluster_consistency(
 ) -> Optional[AnnData]:
     """\
     Calculate cluster consistency at a given level
+    
     Parameters
     ----------
     adata
@@ -162,6 +165,7 @@ def cluster_consistency(
         are available from the inference, those can be used here.
     copy
         Return a copy instead of writing to adata.
+
 
     Returns
     -------
@@ -205,13 +209,14 @@ def cell_stability(
     copy: bool = False
 ) -> Optional[AnnData]:
     """\
-    Calculate cell stability given cell affinity
+    Calculate cell stability given cell affinity.
+    
     Parameters
     ----------
     adata
         Annotated data matrix. 
     key
-        The prefix of CA matrices in adata.obsm to evaluate
+        The prefix of CA matrices in adata.obsm to evaluate.
     copy
         Return a copy instead of writing to adata.
 
@@ -281,20 +286,18 @@ def cell_similarity(
 ) -> Optional[AnnData]:
     """\
     Calculate cell similarity score based on the kNN graph. Higher scores
-    are associated to cells mostly close to similar cells
+    are associated to cells mostly close to similar cells.
+    
     Parameters
     ----------
     adata
         Annotated data matrix. 
     key_added
-        The name of the entry in adata.obs with calculated values
+        The name of the entry in adata.obs with calculated values.
     copy
         Return a copy instead of writing to adata.
     sim_type:
-        Similarity function. Can be one in 'dice', 'salton', 'hub-promoted', 
-        'hub-suppressed', 'jaccard', 'inv-log-weight', 'resource-allocation',
-        'leight-holme-newman'. For more information check here
-        https://graph-tool.skewed.de/static/doc/topology.html?highlight=distance#graph_tool.topology.vertex_similarity
+    	Similarity function. Can be one in 'dice', 'salton', 'hub-promoted','hub-suppressed', 'jaccard', 'inv-log-weight', 'resource-allocation','leight-holme-newman'. For more information check here https://graph-tool.skewed.de/static/doc/topology.html?highlight=distance#graph_tool.topology.vertex_similarity
     state
         A separate block state object
 

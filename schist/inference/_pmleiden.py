@@ -68,6 +68,7 @@ def leiden(
     This requires having ran :func:`~scanpy.pp.neighbors` or
     :func:`~scanpy.external.pp.bbknn` first.
 
+
     Parameters
     ----------
     adata
@@ -78,7 +79,8 @@ def leiden(
         Set to `None` if overriding `partition_type`
         to one that doesn’t accept a `resolution_parameter`.
 	samples
-		The number of random samples to take for consensus        
+    samples
+	The number of random samples to take for consensus        
     random_state
         Change the initialization of the optimization.
     restrict_to
@@ -123,6 +125,7 @@ def leiden(
     **partition_kwargs
         Any further arguments to pass to `~leidenalg.find_partition`
         (which in turn passes arguments to the `partition_type`).
+
 
     Returns
     -------
