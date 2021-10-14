@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>plotting.alluvial &#8212; schist 2020 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="plotting.draw_tree" href="plotting.draw_tree.html" />
+    <link rel="prev" title="inference.leiden" href="inference.leiden.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plotting.draw_tree.html" title="plotting.draw_tree"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="inference.leiden.html" title="inference.leiden"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">plotting.alluvial</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="plotting-alluvial">
+<h1>plotting.alluvial<a class="headerlink" href="#plotting-alluvial" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="plotting.alluvial">
+<code class="sig-prename descclassname"><span class="pre">plotting.</span></code><code class="sig-name descname"><span class="pre">alluvial</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">anndata._core.anndata.AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level_start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level_end</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'nsbm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_fontsize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional[Union[int,</span> <span class="pre">float,</span> <span class="pre">Literal[xx</span> <span class="pre">-</span> <span class="pre">small,</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">small,</span> <span class="pre">small,</span> <span class="pre">medium,</span> <span class="pre">large,</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">large,</span> <span class="pre">xx</span> <span class="pre">-</span> <span class="pre">large]]]</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_fontweight</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">light</span><span class="p"><span class="pre">,</span> </span><span class="pre">normal</span><span class="p"><span class="pre">,</span> </span><span class="pre">medium</span><span class="p"><span class="pre">,</span> </span><span class="pre">semibold</span><span class="p"><span class="pre">,</span> </span><span class="pre">bold</span><span class="p"><span class="pre">,</span> </span><span class="pre">heavy</span><span class="p"><span class="pre">,</span> </span><span class="pre">black</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'bold'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_fontsize</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional[Union[int,</span> <span class="pre">float,</span> <span class="pre">Literal[xx</span> <span class="pre">-</span> <span class="pre">small,</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">small,</span> <span class="pre">small,</span> <span class="pre">medium,</span> <span class="pre">large,</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">large,</span> <span class="pre">xx</span> <span class="pre">-</span> <span class="pre">large]]]</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis_fontweight</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="pre">light</span><span class="p"><span class="pre">,</span> </span><span class="pre">normal</span><span class="p"><span class="pre">,</span> </span><span class="pre">medium</span><span class="p"><span class="pre">,</span> </span><span class="pre">semibold</span><span class="p"><span class="pre">,</span> </span><span class="pre">bold</span><span class="p"><span class="pre">,</span> </span><span class="pre">heavy</span><span class="p"><span class="pre">,</span> </span><span class="pre">black</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'bold'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#plotting.alluvial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an alluvial plot for NSBM hierarchy</p>
+<p>This plot may be useful to study the hierarchical relations in a Nested
+Model generated by <cite>scnbsm.inference.nested_model</cite>.    Note that the <cite>level_end</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>adata</strong> – The annotated data matrix.</p></li>
+<li><p><strong>level_start</strong> – The deepest level in the hierarchy (i.e. the one with more clusters)
+Note that this parameter marks the leafs of the tree</p></li>
+<li><p><strong>level_end</strong> – The coarser level in hierarchy. Default value is <cite>None</cite>, if pruning has not
+been performed, it may be useful to exclude uninformative levels anyway
+Note that this parameter marks the root of the tree</p></li>
+<li><p><strong>key</strong> – The key used to group cells. Default is <cite>nsbm</cite></p></li>
+<li><p><strong>gap</strong> – The gap between groups in percentage</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="inference.leiden.html"
+                        title="previous chapter">inference.leiden</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plotting.draw_tree.html"
+                        title="next chapter">plotting.draw_tree</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/generated/plotting.alluvial.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="plotting.draw_tree.html" title="plotting.draw_tree"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="inference.leiden.html" title="inference.leiden"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" >API</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">plotting.alluvial</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Morelli Leonardo, Giansanti Valentina, Cittaro Davide.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+    </div>
+  </body>
+</html>
