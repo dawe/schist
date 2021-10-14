@@ -4,7 +4,7 @@ import numpy as np
 from anndata import AnnData
 from scipy.sparse import spmatrix
 
-from .._utils import get_graph_tool_from_adjacency
+from ._utils import get_graph_tool_from_adjacency
 from scanpy import logging as logg
 from scanpy._compat import Literal
 
