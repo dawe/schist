@@ -40,36 +40,6 @@ Once the MCMC has converged, the `adata.obs` object will contain additional colu
 More details can be found at [this page](Advanced.md)
 
 
-## Known issues
-### Saving objects
-`schist` allows to return the `NestedBlockState` object in `adata.uns['nsbm']['state']` slot. Unfortunately, this object cannot be dumped into `.h5ad` files by the `sc.write()` function. If you returned the state, e.g. for debugging, you should pop it out from your dataset before writing:
-
-```python
-state = adata.uns['schist'].pop('state')
-adata.write('myfile.h5ad')
-
-# save the state separately
-import pickle
-with open('state.pkl', 'wb') as pkl_state:
-    pickle.dump(state, pkl_state, 2)
-```
-
-Since version 0.2 it is possible to save `AnnData` objects like above simply issuing
-
-```python
-scs.io.write(adata, prefix='myfile')
-```
-
-This will create two files: `myfile.h5ad`, containing the actual `AnnData`, and 
-`myfile.pkl` containing the pickled state. With the same logic, assuming the two files
-are in the same place, issuing
-
-```python
-adata = scs.io.read('myfile')
-```
-
-will read the `.h5ad` and the `.pkl` files and create the proper `AnnData` object
-
 ## Cite
 We are preparing the manuscript. In the meantime, if you use `schist` you may cite the preprint:
 
