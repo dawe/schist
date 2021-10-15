@@ -204,7 +204,7 @@ def plug_state(adata: AnnData,
             
         adata.uns['schist'][f'{key_added}']['params'] = dict(
             model=model_type,
-            use_weights=use_weights
+            use_weights=use_weights,
             calculate_affinity=calculate_affinity,
             deg_corr=state.deg_corr,
             recs=state.rec,

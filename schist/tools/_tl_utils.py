@@ -8,7 +8,7 @@ from anndata import AnnData
 from scipy.sparse import spmatrix
 
 from ._helpers import *
-
+from scanpy._utils import get_igraph_from_adjacency
 
 def state_from_blocks(
     adata: AnnData,
