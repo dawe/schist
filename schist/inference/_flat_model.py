@@ -229,6 +229,7 @@ def flat_model(
     adata.uns['schist'][f'{key_added}']['params'] = dict(
         model='flat',
         use_weights=use_weights,
+        neighbors_key=neighbors_key,
         samples=samples,
         collect_marginals=collect_marginals,
         random_seed=random_seed,

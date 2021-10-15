@@ -343,6 +343,7 @@ def nested_model_multi(
         adatas[xn].uns['schist'][f'{key_added}']['multi_level_params'] = dict(
             model='multiome_nested',
             use_weights=use_weights,
+            neighbors_key=neighbors_key[xn],
             key_added=key_added,
             samples=samples,
             collect_marginals=collect_marginals,

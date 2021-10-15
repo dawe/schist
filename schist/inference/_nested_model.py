@@ -284,6 +284,7 @@ def nested_model(
     # last step is recording some parameters used in this analysis
     adata.uns['schist'][f'{key_added}']['params'] = dict(
         model='nested',
+        neighbors_key=neighbors_key,
         use_weights=use_weights,
         key_added=key_added,
         samples=samples,

@@ -243,6 +243,7 @@ def planted_model(
     adata.uns['schist'][f'{key_added}']['params'] = dict(
         model='planted',
         use_weights=use_weights,
+        neighbors_key=neighbors_key,
         key_added=key_added,
         samples=samples,
         collect_marginals=collect_marginals,

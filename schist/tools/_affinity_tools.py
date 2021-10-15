@@ -231,6 +231,7 @@ def cell_stability(
     block_key: Optional[str] = 'nsbm', # dummy default
     key_added: Optional[str] = 'cell_stability',
     use_marginals: Optional[bool] = False,
+    neighbors_key: Optional[str] = 'neighbors',
     state: Optional = None,
     back_prob: bool = False,
     copy: bool = False
@@ -258,7 +259,7 @@ def cell_stability(
         matrix_prefix = 'CM'
 
     if not state:
-        if not adata.uns['schist']['state']:
+        if not adata.uns['schist'][f'{block_key}']['blocks']:
             raise ValueError("No state detected")
         else:
             state = adata.uns['schist']['state']
