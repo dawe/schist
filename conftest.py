@@ -5,7 +5,7 @@ adata = sc.datasets.blobs()
 sc.tl.pca(adata)                                                        
 try:
     sc.pp.neighbors(adata, n_neighbors=3, key_added='foo')
-    schist.inference.nested_model(adata,  neighbors_key='foo', samples=4)          
+    schist.inference.nested_model(adata,  neighbors_key='foo')
 except TypeError:
     sc.pp.neighbors(adata, n_neighbors=3)
     schist.inference.nested_model(adata,  )
