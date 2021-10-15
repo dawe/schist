@@ -315,15 +315,17 @@ def nested_model_multi(
         adatas[xn].obs = pd.concat([adatas[xn].obs, groups.loc[adatas[xn].obs_names]], axis=1)
 
         # add some unstructured info
+        if not ['schist'] in adatas[xn].uns:
+            adatas[xn].uns['schist'] = {}
 
-        adatas[xn].uns['schist'] = {}
-        adatas[xn].uns['schist']['multi_level_stats'] = dict(
+        adatas[xn].uns['schist'][f'{key_added}'] = {}
+        adatas[xn].uns['schist'][f'{key_added}']['multi_level_stats'] = dict(
         level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
         modularity=np.array([gt.modularity(union_g, state.project_partition(x, 0))
                              for x in range(len((state.levels)))])
         )
 
-        adatas[xn].uns['schist']['multi_level_state'] = state.copy()
+        adatas[xn].uns['schist'][f'{key_added}']['multi_level_state'] = [np.array(l.get_blocks().a) for l in state.get_levels()]
 
         # now add marginal probabilities.
 
@@ -338,12 +340,16 @@ def nested_model_multi(
                 adatas[xn].obsm[f'CM_{group}'] = _pv_array @ ct.values
 
         # last step is recording some parameters used in this analysis
-        adatas[xn].uns['schist']['multi_level_params'] = dict(
+        adatas[xn].uns['schist'][f'{key_added}']['multi_level_params'] = dict(
             model='multiome_nested',
+            use_weights=use_weights,
             key_added=key_added,
             samples=samples,
             collect_marginals=collect_marginals,
             random_seed=random_seed,
+            deg_corr=deg_corr,
+            recs=recs,
+            rec_types=rec_types
         )
 
 
