@@ -160,7 +160,7 @@ def plug_state(adata: AnnData,
         modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len(bs))])
         )
-        adata.uns['schist'][f'{key_added}']['state'] = [np.array(l.get_blocks().a) for l in state.get_levels()]
+        adata.uns['schist'][f'{key_added}']['blocks'] = [np.array(l.get_blocks().a) for l in state.get_levels()]
         adata.uns['schist'][f'{key_added}']['params'] = dict(
             model='nested',
             use_weights=use_weights,
@@ -198,7 +198,7 @@ def plug_state(adata: AnnData,
         adata.uns['schist'][f'{key_added}']['stats'] = dict(
             modularity=gt.modularity(g, state.get_blocks())
         )
-        adata.uns['schist'][f'{key_added}']['state'] = np.array(state.get_blocks().a)
+        adata.uns['schist'][f'{key_added}']['blocks'] = np.array(state.get_blocks().a)
         if calculate_affinity:
             adata.obsm[f'CA_{key_added}_level_1'] = get_cell_loglikelihood(state, as_prob=True)
             

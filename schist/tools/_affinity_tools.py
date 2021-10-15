@@ -18,10 +18,10 @@ def calculate_affinity(
     block_key: Optional[str] = 'nsbm',
     group_by: Optional[str] = None,
     state: Optional = None,
-    neighbors_key: Optional[str] = None,
+    neighbors_key: Optional[str] = 'neighbors',
     adjacency: Optional[sparse.spmatrix] = None,
-    directed: bool = True,
-    use_weights: bool = True,
+    directed: bool = False,
+    use_weights: bool = False,
     obsp: Optional[str] = None,
     back_prob: bool = False,
     copy: bool = False
@@ -80,9 +80,36 @@ def calculate_affinity(
         
     if not state:
         # if no state is provided, use the default to retrieve graph
-        if 'schist' in adata.uns and 'state' in adata.uns['schist']:
-            state = adata.uns['schist']['state']
-            g = state.g
+        if 'schist' in adata.uns and 'blocks' in adata.uns['schist'][f'{block_key}']:
+            blocks = adata.uns['schist'][f'{block_key}']['blocks']
+            adjacency = _choose_graph(adata, obsp, neighbors_key)
+            g = get_igraph_from_adjacency(adjacency, directed=directed)
+            g = g.to_graph_tool()
+            gt.remove_parallel_edges(g)
+            
+            params = adata.uns['schist'][f'{block_key}']['params']
+            if params['model'] == 'flat':
+                state = gt.BlockState(g, b=blocks, 
+                                            state_args=dict(deg_corr=params['deg_corr'],
+                                            recs=params['recs'],
+                                            rec_types=params['rec_types'])
+                
+                )
+            elif params['model'] == 'ppbm':
+                state = gt.PPBlockState(g, b=blocks, 
+                                            state_args=dict(deg_corr=params['deg_corr'],
+                                            recs=params['recs'],
+                                            rec_types=params['rec_types'])
+                
+                )
+            else:
+                state = gt.NestedBlockState(g, bs=blocks, 
+                                            state_args=dict(deg_corr=params['deg_corr'],
+                                            recs=params['recs'],
+                                            rec_types=params['rec_types'])
+                
+                )
+
         elif not neighbors_key:
             # no state and no adjacency provided, raise an error
             raise ValueError("A state or an adjacency matrix should be given"
