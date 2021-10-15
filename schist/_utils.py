@@ -101,6 +101,7 @@ def plug_state(adata: AnnData,
     nested: bool = True,
     key_added: str = 'nsbm',
     calculate_affinity: bool = False,
+    use_weights=False,
     copy: bool = False
 
 ) -> Optional[AnnData]:
@@ -149,14 +150,26 @@ def plug_state(adata: AnnData,
         keep_columns = [x for x in adata.obs.columns if not x.startswith('%s_level_' % key_added)]
         adata.obs = adata.obs[keep_columns]
         adata.obs = pd.concat([adata.obs, groups], axis=1)
+        
+        if not 'schist' in adata.uns:
+            adata.uns['schist'] = {}
 
-        adata.uns['schist'] = {}
-        adata.uns['schist']['stats'] = dict(
+        adata.uns['schist'][f'{key_added}'] = {}
+        adata.uns['schist'][f'{key_added}']['stats'] = dict(
         level_entropy=np.array([state.level_entropy(x) for x in range(len(bs))]),
         modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len(bs))])
         )
-        adata.uns['schist']['state'] = state
+        adata.uns['schist'][f'{key_added}']['state'] = [np.array(l.get_blocks().a) for l in state.get_levels()]
+        adata.uns['schist'][f'{key_added}']['params'] = dict(
+            model='nested',
+            use_weights=use_weights,
+            key_added=key_added,
+            collect_marginals=collect_marginals,
+            deg_corr=state.deg_corr,
+            recs=state.rec,
+            rec_types=state.rec_types
+        )
         
         if calculate_affinity:
             p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
@@ -179,17 +192,24 @@ def plug_state(adata: AnnData,
         groups.cat.rename_categories(new_cat, inplace=True)
         groups.index = adata.obs_names
         adata.obs[key_added] = groups
-        adata.uns['schist'] = {}
-        adata.uns['schist']['stats'] = dict(
+        if not 'schist' in adata.uns:
+            adata.uns['schist'] = {}
+        adata.uns['schist'][f'{key_added}'] = {}
+        adata.uns['schist'][f'{key_added}']['stats'] = dict(
             modularity=gt.modularity(g, state.get_blocks())
         )
-        adata.uns['schist']['state'] = state
+        adata.uns['schist'][f'{key_added}']['state'] = np.array(state.get_blocks().a)
         if calculate_affinity:
             adata.obsm[f'CA_{key_added}_level_1'] = get_cell_loglikelihood(state, as_prob=True)
             
-    adata.uns['schist']['params'] = dict(
-    model=model_type,
-    calculate_affinity=calculate_affinity,)
+        adata.uns['schist'][f'{key_added}']['params'] = dict(
+            model=model_type,
+            use_weights=use_weights
+            calculate_affinity=calculate_affinity,
+            deg_corr=state.deg_corr,
+            recs=state.rec,
+            rec_types=state.rec_types
+        )
 
 
     return adata if copy else None

@@ -314,6 +314,18 @@ def nested_model_multi(
         adatas[xn].obs.drop(drop_columns, 'columns', inplace=True)
         adatas[xn].obs = pd.concat([adatas[xn].obs, groups.loc[adatas[xn].obs_names]], axis=1)
 
+        # now add marginal probabilities.
+
+        if collect_marginals:
+            # add marginals for level 0, the sum up according to the hierarchy
+            _groups = groups.loc[adatas[xn].obs_names]
+            _pv_array = pd.DataFrame(pv_array, index=all_names).loc[adatas[xn].obs_names].values
+            adatas[xn].obsm[f"CM_{key_added}_level_0"] = _pv_array
+            for group in groups.columns[1:]:
+                ct = pd.crosstab(_groups[_groups.columns[0]], _groups[group], 
+                                 normalize='index', dropna=False)
+                adatas[xn].obsm[f'CM_{group}'] = _pv_array @ ct.values
+
         # add some unstructured info
         if not ['schist'] in adatas[xn].uns:
             adatas[xn].uns['schist'] = {}
@@ -326,18 +338,6 @@ def nested_model_multi(
         )
 
         adatas[xn].uns['schist'][f'{key_added}']['multi_level_state'] = [np.array(l.get_blocks().a) for l in state.get_levels()]
-
-        # now add marginal probabilities.
-
-        if collect_marginals:
-            # add marginals for level 0, the sum up according to the hierarchy
-            _groups = groups.loc[adatas[xn].obs_names]
-            _pv_array = pd.DataFrame(pv_array, index=all_names).loc[adatas[xn].obs_names].values
-            adatas[xn].obsm[f"CM_{key_added}_level_0"] = _pv_array
-            for group in groups.columns[1:]:
-                ct = pd.crosstab(_groups[_groups.columns[0]], _groups[group], 
-                                 normalize='index', dropna=False)
-                adatas[xn].obsm[f'CM_{group}'] = _pv_array @ ct.values
 
         # last step is recording some parameters used in this analysis
         adatas[xn].uns['schist'][f'{key_added}']['multi_level_params'] = dict(
