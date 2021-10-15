@@ -5,6 +5,7 @@ from anndata import AnnData
 from scipy.sparse import spmatrix
 
 from ._utils import get_graph_tool_from_adjacency
+from ._tl_utils import state_from_blocks
 from scanpy import logging as logg
 from scanpy._compat import Literal
 
@@ -106,7 +107,7 @@ def draw_graph(
     g = get_graph_tool_from_adjacency(adjacency)
     weights=g.ep['weight']
     if use_tree:
-        state = adata.uns[key]['state']
+        state = state_from_blocks(adata)
         g, _, _ = gt.get_hierarchy_tree(state, empty_branches=False)
         weights=None
     
