@@ -257,17 +257,6 @@ def nested_model(
     adata.obs = adata.obs[keep_columns]
     adata.obs = pd.concat([adata.obs, groups], axis=1)
 
-    # add some unstructured info
-
-    adata.uns['schist'] = {}
-    adata.uns['schist']['stats'] = dict(
-    level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
-    modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
-                         for x in range(len((state.levels)))])
-    )
-
-    adata.uns['schist']['state'] = state
-
     # now add marginal probabilities.
 
     if collect_marginals:
@@ -277,15 +266,32 @@ def nested_model(
             ct = pd.crosstab(groups[groups.columns[0]], groups[group], normalize='index')
             adata.obsm[f'CM_{group}'] = pv_array @ ct.values
 
+    # add some unstructured info
+    if not 'schist' in adata.uns:
+        adata.uns['schist'] = {}
+
+    adata.uns['schist'][f'{key_added}'] = {}
+    adata.uns['schist'][f'{key_added}']['stats'] = dict(
+    level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
+    modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
+                         for x in range(len((state.levels)))])
+    )
+
+    # record state as list of blocks
+    adata.uns['schist'][f'{key_added}']['blocks'] = [np.array(l.get_blocks().a) for l in state.get_levels()]    
+
+
     # last step is recording some parameters used in this analysis
-    adata.uns['schist']['params'] = dict(
+    adata.uns['schist'][f'{key_added}']['params'] = dict(
         model='nested',
         key_added=key_added,
         samples=samples,
         collect_marginals=collect_marginals,
         random_seed=random_seed,
+        deg_corr=deg_corr,
+        recs=recs,
+        rec_types=rec_types
     )
-
 
     logg.info(
         '    finished',
