@@ -223,7 +223,10 @@ def flat_model(
     entropy=state.entropy(),
     modularity=gt.modularity(g, state.get_blocks())
     )
-    adata.uns['schist'][f'{key_added}']['blocks'] = np.array(state.get_blocks().a, dtype=str)
+    # for compatibility with nested model, use a dictionary with a single key here
+    # although a np.array would be ok
+    
+    adata.uns['schist'][f'{key_added}']['blocks'] = {'0':np.array(state.get_blocks().a)}
 
     # last step is recording some parameters used in this analysis
     adata.uns['schist'][f'{key_added}']['params'] = dict(
