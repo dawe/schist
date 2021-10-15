@@ -1,7 +1,6 @@
 from . import inference
 from . import tools as tl
 from . import plotting as pl
-from . import input_output as io
 
 
 __author__ = ', '.join([
