@@ -48,6 +48,9 @@ def select_affinity(
     """
 
     #this function is needed as subsetting doesn't work on marginals
+    raise ValueError(
+                'This function has been deprecated'
+            )
     
     adata = adata.copy() if copy else adata
 
@@ -69,7 +72,7 @@ def select_affinity(
     if filter:
         adata = adata[adata.obs['selected']] #actually filter cells
     
-        if update_state and adata.uns['schist']['state']:
+        if update_state and adata.uns['schist'][f'{key}']:
             logg.warning('Removing a vertex from a BlockState may result in inconsistent data')
             v_idx = np.where(np.bitwise_not(mask)) #vertex to be removed
             adata.uns['schist']['state'].remove_vertex(v_idx)
