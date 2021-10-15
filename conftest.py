@@ -10,6 +10,7 @@ except TypeError:
     sc.pp.neighbors(adata, n_neighbors=3)
     schist.inference.nested_model(adata,  )
 
+adata.write('foo.h5ad')
 schist.inference.leiden(adata, neighbors_key='foo', save_model='lle')
 schist.tools.calculate_affinity(adata, neighbors_key='foo', group_by='leiden')
 schist.tools.cell_similarity(adata, neighbors_key='foo')

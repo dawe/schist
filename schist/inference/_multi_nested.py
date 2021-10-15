@@ -337,7 +337,7 @@ def nested_model_multi(
                              for x in range(len((state.levels)))])
         )
 
-        adatas[xn].uns['schist'][f'{key_added}']['multi_level_state'] = [np.array(l.get_blocks().a) for l in state.get_levels()]
+        adatas[xn].uns['schist'][f'{key_added}']['multi_level_state'] = [np.array(l.get_blocks().a, dtype=str) for l in state.get_levels()]
 
         # last step is recording some parameters used in this analysis
         adatas[xn].uns['schist'][f'{key_added}']['multi_level_params'] = dict(

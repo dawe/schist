@@ -278,7 +278,7 @@ def nested_model(
     )
 
     # record state as list of blocks
-    adata.uns['schist'][f'{key_added}']['blocks'] = [np.array(l.get_blocks().a) for l in state.get_levels()]    
+    adata.uns['schist'][f'{key_added}']['blocks'] = [np.array(l.get_blocks().a, dtype=str) for l in state.get_levels()]    
 
 
     # last step is recording some parameters used in this analysis
