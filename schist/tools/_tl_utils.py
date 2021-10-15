@@ -4,6 +4,8 @@ import graph_tool
 import graph_tool.all as gt
 import numpy as np
 import numba
+from anndata import AnnData
+from scipy.sparse import spmatrix
 
 from ._helpers import *
 
@@ -12,7 +14,7 @@ def state_from_blocks(
     adata: AnnData,
     state_key: Optional[str] = 'nsbm',
     neighbors_key: Optional[str] = 'neighbors',
-    adjacency: Optional[sparse.spmatrix] = None,
+    adjacency: Optional[spmatrix] = None,
     directed: bool = False,
     use_weights: bool = False,
     deg_corr: bool = True,
