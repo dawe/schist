@@ -81,35 +81,22 @@ def calculate_affinity(
     if not state:
         # if no state is provided, use the default to retrieve graph
         if 'schist' in adata.uns and 'blocks' in adata.uns['schist'][f'{block_key}']:
-            blocks = adata.uns['schist'][f'{block_key}']['blocks']
-            adjacency = _choose_graph(adata, obsp, neighbors_key)
-            g = get_igraph_from_adjacency(adjacency, directed=directed)
-            g = g.to_graph_tool()
-            gt.remove_parallel_edges(g)
-            
             params = adata.uns['schist'][f'{block_key}']['params']
-            if params['model'] == 'flat':
-                state = gt.BlockState(g, b=blocks, 
-                                            state_args=dict(deg_corr=params['deg_corr'],
-                                            recs=params['recs'],
-                                            rec_types=params['rec_types'])
-                
-                )
-            elif params['model'] == 'ppbm':
-                state = gt.PPBlockState(g, b=blocks, 
-                                            state_args=dict(deg_corr=params['deg_corr'],
-                                            recs=params['recs'],
-                                            rec_types=params['rec_types'])
-                
-                )
-            else:
-                state = gt.NestedBlockState(g, bs=blocks, 
-                                            state_args=dict(deg_corr=params['deg_corr'],
-                                            recs=params['recs'],
-                                            rec_types=params['rec_types'])
-                
-                )
-
+            if 'neighbors_key' in params:
+                neighbors_key=params['neighbors_key']
+            if 'use_weights' in params:
+                use_weights=params['use_weights']
+            if 'deg_corr' in params:
+                deg_corr=params['deg_corr']
+            state = state_from_blocks(adata, 
+                                  state_key=block_key,
+                                  neighbors_key=neighbors_key,
+                                  adjacency=adjacency,
+                                  directed=directed,
+                                  use_weights=use_weights,
+                                  deg_corr=deg_corr
+                                  )
+            g = state.g                                  
         elif not neighbors_key:
             # no state and no adjacency provided, raise an error
             raise ValueError("A state or an adjacency matrix should be given"
@@ -232,6 +219,10 @@ def cell_stability(
     key_added: Optional[str] = 'cell_stability',
     use_marginals: Optional[bool] = False,
     neighbors_key: Optional[str] = 'neighbors',
+    adjacency: Optional[sparse.spmatrix] = None,
+    directed: bool = False,
+    use_weights: bool = False,
+    obsp: Optional[str] = None,    
     state: Optional = None,
     back_prob: bool = False,
     copy: bool = False
@@ -247,6 +238,8 @@ def cell_stability(
         The prefix of CA matrices in adata.obsm to evaluate.
     copy
         Return a copy instead of writing to adata.
+    use_marginals
+        Whether to use marginals in place of affinities
 
     Returns
     -------
@@ -262,7 +255,21 @@ def cell_stability(
         if not adata.uns['schist'][f'{block_key}']['blocks']:
             raise ValueError("No state detected")
         else:
-            state = adata.uns['schist']['state']
+            params = adata.uns['schist'][f'{block_key}']['params']
+            if 'neighbors_key' in params:
+                neighbors_key=params['neighbors_key']
+            if 'use_weights' in params:
+                use_weights=params['use_weights']
+            if 'deg_corr' in params:
+                deg_corr=params['deg_corr']
+            state = state_from_blocks(adata, 
+                                  state_key=block_key,
+                                  neighbors_key=neighbors_key,
+                                  adjacency=adjacency,
+                                  directed=directed,
+                                  use_weights=use_weights,
+                                  deg_corr=deg_corr
+                                  )
 
     # check if we have levels we want to prune
     n_effective_levels = sum([x.get_nonempty_B() > 1 for x in state.get_levels()])
