@@ -219,15 +219,6 @@ def planted_model(
         categories=natsorted(map(str, np.unique(groups))),
     )
 
-    # add some unstructured info
-
-    adata.uns['schist'] = {}
-    adata.uns['schist']['stats'] = dict(
-    entropy=state.entropy(),
-    modularity=gt.modularity(g, state.get_blocks())
-    )
-    adata.uns['schist']['state'] = state
-
     # now add marginal probabilities.
 
     if collect_marginals:
@@ -235,13 +226,30 @@ def planted_model(
         # of belonging to a specific group
         adata.obsm[f"CM_{key_added}"] = pv_array
 
+    # add some unstructured info
+    if not 'schist' in adata.uns:
+        adata.uns['schist'] = {}
+
+    adata.uns['schist'][f'{key_added}'] = {}
+    adata.uns['schist'][f'{key_added}']['stats'] = dict(
+    entropy=state.entropy(),
+    modularity=gt.modularity(g, state.get_blocks())
+    )
+
+    # record state as list of blocks
+    adata.uns['schist'][f'{key_added}']['blocks'] = np.array(state.get_blocks().a)
+
     # last step is recording some parameters used in this analysis
-    adata.uns['schist']['params'] = dict(
+    adata.uns['schist'][f'{key_added}']['params'] = dict(
         model='planted',
+        use_weights=use_weights,
         key_added=key_added,
         samples=samples,
         collect_marginals=collect_marginals,
-        random_seed=random_seed
+        random_seed=random_seed,
+        deg_corr=deg_corr,
+        recs=recs,
+        rec_types=rec_types
     )
 
 
