@@ -46,7 +46,14 @@ def state_from_blocks(
         the case for KNN graphs used in scanpy.
         
     """
-    blocks = adata.uns['schist'][f'{state_key}']['blocks']
+    bl_d = adata.uns['schist'][f'{state_key}']['blocks']
+    if len(bl_d) == 1:
+        blocks = bl_d['0']
+    else:
+        blocks = []
+        for nl in range(len(bl_d)):
+            blocks.append(bl_d[str(nl)])
+    
     params = adata.uns['schist'][f'{state_key}']['params']
     if 'deg_corr' in params:
         deg_corr=params['deg_corr']
