@@ -4,52 +4,40 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>inference.flat_model &#8212; schist 2020 documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
-    
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="inference.leiden" href="inference.leiden.html" />
-    <link rel="prev" title="inference.planted_model" href="inference.planted_model.html" /> 
+    <link rel="prev" title="inference.planted_model" href="inference.planted_model.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="inference.leiden.html" title="inference.leiden"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="inference.planted_model.html" title="inference.planted_model"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">inference.flat_model</a></li> 
-      </ul>
-    </div>  
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
-  <div class="section" id="inference-flat-model">
+  <section id="inference-flat-model">
 <h1>inference.flat_model<a class="headerlink" href="#inference-flat-model" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="inference.flat_model">
-<code class="sig-prename descclassname"><span class="pre">inference.</span></code><code class="sig-name descname"><span class="pre">flat_model</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">adata:</span> <span class="pre">&lt;Mock</span> <span class="pre">name='mock.AnnData'</span> <span class="pre">id='140108929462480'&gt;</span></em>, <em class="sig-param"><span class="pre">n_sweep:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">10</span></em>, <em class="sig-param"><span class="pre">beta:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">&lt;Mock</span> <span class="pre">name='mock.inf'</span> <span class="pre">id='140108929463296'&gt;</span></em>, <em class="sig-param"><span class="pre">tolerance:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1e-06</span></em>, <em class="sig-param"><span class="pre">collect_marginals:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em>, <em class="sig-param"><span class="pre">deg_corr:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em>, <em class="sig-param"><span class="pre">samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">100</span></em>, <em class="sig-param"><span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">-1</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">restrict_to:</span> <span class="pre">Optional[Tuple[str</span></em>, <em class="sig-param"><span class="pre">Sequence[str]]]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">random_seed:</span> <span class="pre">Optional[int]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">key_added:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'sbm'</span></em>, <em class="sig-param"><span class="pre">adjacency:</span> <span class="pre">Optional[&lt;Mock</span> <span class="pre">name='mock.sparse.spmatrix'</span> <span class="pre">id='140108929462528'&gt;]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">neighbors_key:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">'neighbors'</span></em>, <em class="sig-param"><span class="pre">directed:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">use_weights:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">copy:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional[&lt;Mock</span> <span class="pre">name=’mock.AnnData’</span> <span class="pre">id=’140108929462480’&gt;]</span><a class="headerlink" href="#inference.flat_model" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="inference.flat_model">
+<span class="sig-prename descclassname"><span class="pre">inference.</span></span><span class="sig-name descname"><span class="pre">flat_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">anndata._core.anndata.AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_sweep</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collect_marginals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deg_corr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">-</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restrict_to</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_added</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'sbm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adjacency</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">scipy.sparse.base.spmatrix</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neighbors_key</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'neighbors'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_weights</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">anndata._core.anndata.AnnData</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#inference.flat_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cluster cells into subgroups <span id="id1">[Peixoto14]</span>.</p>
 <p>Cluster cells using the  Stochastic Block Model <span id="id2">[Peixoto14]</span>, performing
 Bayesian inference on node groups.</p>
@@ -98,65 +86,93 @@ and <cite>n_iterations</cite>.</p></li>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
-            <div class="clearer"></div>
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="inference.planted_model.html"
-                        title="previous chapter">inference.planted_model</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="inference.leiden.html"
-                        title="next chapter">inference.leiden</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/generated/inference.flat_model.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
+<h1 class="logo"><a href="../index.html">schist</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="inference.nested_model.html">inference.nested_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference.nested_model_multi.html">inference.nested_model_multi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference.planted_model.html">inference.planted_model</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">inference.flat_model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference.leiden.html">inference.leiden</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.alluvial.html">plotting.alluvial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.draw_tree.html">plotting.draw_tree</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.cell_similarity.html">tools.cell_similarity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.cell_stability.html">tools.cell_stability</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.cluster_consistency.html">tools.cluster_consistency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.calculate_affinity.html">tools.calculate_affinity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.draw_graph.html">tools.draw_graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.get_cell_back_p.html">tools.get_cell_back_p</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tools.get_cell_loglikelihood.html">tools.get_cell_loglikelihood</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api.html">API</a><ul>
+      <li>Previous: <a href="inference.planted_model.html" title="previous chapter">inference.planted_model</a></li>
+      <li>Next: <a href="inference.leiden.html" title="next chapter">inference.leiden</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
 <div id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
 <script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="inference.leiden.html" title="inference.leiden"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="inference.planted_model.html" title="inference.planted_model"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../api.html" >API</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">inference.flat_model</a></li> 
-      </ul>
+    <div class="footer">
+      &copy;2021, Morelli Leonardo, Giansanti Valentina, Cittaro Davide.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/inference.flat_model.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
-    <div class="footer" role="contentinfo">
-        &#169; Copyright 2021, Morelli Leonardo, Giansanti Valentina, Cittaro Davide.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
-    </div>
+
+    
+
+    
   </body>
 </html>
