@@ -20,8 +20,8 @@ import sys
 #    import cython_generated_ext
 
 import mock
-#MOCK_MODULES = ['numpy', 'numpy.dtype','pandas', 'anndata','joblib','scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat','scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes','matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba','graph-tool','sklearn.utils.murmurhash']
-MOCK_MODULES = ['graph-tool','sklearn.utils.murmurhash']
+MOCK_MODULES = ['numpy', 'numpy.dtype','pandas', 'anndata','joblib','scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat','scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes','matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba','graph-tool','sklearn.utils.murmurhash']
+#MOCK_MODULES = ['graph-tool','sklearn.utils.murmurhash']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 #------------------------------------------------------------------------------
@@ -86,14 +86,15 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'classic'
+html_theme = 'alabaster'
 
-html_theme_options = {
-    "rightsidebar": "false",
-    "stickysidebar": "true",
-    "collapsiblesidebar":"false",
-    "externalrefs":"true"
-}
+#html_theme = 'classic'
+#html_theme_options = {
+#    "rightsidebar": "false",
+#    "stickysidebar": "true",
+#    "collapsiblesidebar":"false",
+#    "externalrefs":"true"
+#}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
