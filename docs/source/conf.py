@@ -13,10 +13,12 @@
 import os
 import sys
 import mock
- 
-MOCK_MODULES = ['numpy', 'pandas', 'anndata','joblib','scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat','scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes','matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba']
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
+
+if 'READTHEDOCS' not in os.environ:
+    import cython_generated_ext
+#MOCK_MODULES = ['numpy', 'pandas', 'anndata','joblib','scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat','scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes','matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba']
+#for mod_name in MOCK_MODULES:
+#    sys.modules[mod_name] = mock.Mock()
 
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.insert(0, os.path.abspath('.'))
