@@ -4,21 +4,18 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>tools.cell_similarity &#8212; schist 2020 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
     
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="tools.cell_stability" href="tools.cell_stability.html" />
-    <link rel="prev" title="plotting.draw_tree" href="plotting.draw_tree.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -29,14 +26,7 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="tools.cell_stability.html" title="tools.cell_stability"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="plotting.draw_tree.html" title="plotting.draw_tree"
-             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">tools.cell_similarity</a></li> 
       </ul>
     </div>  
@@ -46,34 +36,9 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="tools-cell-similarity">
+  <div class="section" id="tools-cell-similarity">
 <h1>tools.cell_similarity<a class="headerlink" href="#tools-cell-similarity" title="Permalink to this headline">¶</a></h1>
-<dl class="py function">
-<dt class="sig sig-object py" id="tools.cell_similarity">
-<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">cell_similarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">anndata._core.anndata.AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_added</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'cell_similarity'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sim_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'hub-promoted'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_weights</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">neighbors_kwds</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">anndata._core.anndata.AnnData</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#tools.cell_similarity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate cell similarity score based on the kNN graph. Higher scores
-are associated to cells mostly close to similar cells.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>adata</strong> – Annotated data matrix.</p></li>
-<li><p><strong>key_added</strong> – The name of the entry in adata.obs with calculated values.</p></li>
-<li><p><strong>copy</strong> – Return a copy instead of writing to adata.</p></li>
-<li><p><strong>sim_type</strong> – Similarity function. Can be one in ‘dice’, ‘salton’, ‘hub-promoted’,’hub-suppressed’, ‘jaccard’, ‘inv-log-weight’, ‘resource-allocation’,’leight-holme-newman’. For more information check here <a class="reference external" href="https://graph-tool.skewed.de/static/doc/topology.html?highlight=distance#graph_tool.topology.vertex_similarity">https://graph-tool.skewed.de/static/doc/topology.html?highlight=distance#graph_tool.topology.vertex_similarity</a></p></li>
-<li><p><strong>state</strong> – A separate block state object</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p>Depending on <cite>copy</cite>, returns or updates <cite>adata</cite> with stability values</p></li>
-<li><p><em>in adata.obs[‘cell_stability’]</em></p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
+</div>
 
 
             <div class="clearer"></div>
@@ -82,12 +47,6 @@ are associated to cells mostly close to similar cells.</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="plotting.draw_tree.html"
-                        title="previous chapter">plotting.draw_tree</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="tools.cell_stability.html"
-                        title="next chapter">tools.cell_stability</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -99,7 +58,7 @@ are associated to cells mostly close to similar cells.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -118,20 +77,13 @@ are associated to cells mostly close to similar cells.</p>
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="tools.cell_stability.html" title="tools.cell_stability"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="plotting.draw_tree.html" title="plotting.draw_tree"
-             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../api.html" >API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">tools.cell_similarity</a></li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, Morelli Leonardo, Giansanti Valentina, Cittaro Davide.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
     </div>
   </body>
 </html>
