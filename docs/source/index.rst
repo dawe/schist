@@ -24,9 +24,7 @@ Welcome to schist's documentation!
    :members:
 .. automodule:: tools._tl_utils
    :members:
-   
-.. automodule:: input_output._io_utils
-   :members:  
+
 
 .. toctree::
    :maxdepth: 2
