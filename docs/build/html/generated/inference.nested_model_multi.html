@@ -15,7 +15,9 @@
     <script src="../_static/doctools.js"></script>
     
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="inference.planted_model" href="inference.planted_model.html" />
+    <link rel="prev" title="inference.nested_model" href="inference.nested_model.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -26,7 +28,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="inference.planted_model.html" title="inference.planted_model"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="inference.nested_model.html" title="inference.nested_model"
+             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">inference.nested_model_multi</a></li> 
       </ul>
     </div>  
@@ -38,6 +47,63 @@
             
   <div class="section" id="inference-nested-model-multi">
 <h1>inference.nested_model_multi<a class="headerlink" href="#inference-nested-model-multi" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="inference.nested_model_multi">
+<code class="sig-prename descclassname"><span class="pre">inference.</span></code><code class="sig-name descname"><span class="pre">nested_model_multi</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">adatas:</span> <span class="pre">List[&lt;Mock</span> <span class="pre">name='mock.AnnData'</span> <span class="pre">id='140108929462480'&gt;],</span> <span class="pre">deg_corr:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">tolerance:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1e-06,</span> <span class="pre">n_sweep:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">10,</span> <span class="pre">beta:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">&lt;Mock</span> <span class="pre">name='mock.inf'</span> <span class="pre">id='140108929463296'&gt;,</span> <span class="pre">samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">100,</span> <span class="pre">collect_marginals:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True,</span> <span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">-1,</span> <span class="pre">*,</span> <span class="pre">random_seed:</span> <span class="pre">Optional[int]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">key_added:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'multi_nsbm',</span> <span class="pre">adjacency:</span> <span class="pre">Optional[List[&lt;Mock</span> <span class="pre">name='mock.sparse.spmatrix'</span> <span class="pre">id='140108929462528'&gt;]]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">neighbors_key:</span> <span class="pre">Optional[List[str]]</span> <span class="pre">=</span> <span class="pre">['neighbors'],</span> <span class="pre">directed:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">use_weights:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">save_model:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">copy:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">dispatch_backend:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">'processes'</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional[List[&lt;Mock</span> <span class="pre">name=’mock.AnnData’</span> <span class="pre">id=’140108929462480’&gt;]]</span><a class="headerlink" href="#inference.nested_model_multi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cluster cells into subgroups using multiple modalities.</p>
+<p>Cluster cells using the nested Stochastic Block Model <span id="id1">[Peixoto14]</span>,
+performing Bayesian inference on node groups. This function takes multiple
+experiments, possibly across different modalities, and perform joint
+clustering.</p>
+<p>This requires having ran <code class="xref py py-func docutils literal notranslate"><span class="pre">neighbors()</span></code> or
+<code class="xref py py-func docutils literal notranslate"><span class="pre">bbknn()</span></code> first. It also requires cells having the same
+names if coming from paired experiments</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>adatas</strong> – A list of processed AnnData. Neighbors must have been already
+calculated.</p></li>
+<li><p><strong>deg_corr</strong> – Whether to use degree correction in the minimization step. In many
+real world networks this is the case, although this doesn’t seem
+the case for KNN graphs used in scanpy.</p></li>
+<li><p><strong>tolerance</strong> – Tolerance for fast model convergence.</p></li>
+<li><p><strong>n_sweep</strong> – Number of iterations to be performed in the fast model MCMC greedy approach</p></li>
+<li><p><strong>beta</strong> – Inverse temperature for MCMC greedy approach</p></li>
+<li><p><strong>samples</strong> – Number of initial minimizations to be performed. The one with smaller
+entropy is chosen</p></li>
+<li><p><strong>n_jobs</strong> – Number of parallel computations used during model initialization</p></li>
+<li><p><strong>key_added</strong> – <cite>adata.obs</cite> key under which to add the cluster labels.</p></li>
+<li><p><strong>adjacency</strong> – Sparse adjacency matrix of the graph, defaults to
+<cite>adata.uns[‘neighbors’][‘connectivities’]</cite> in case of scanpy&lt;=1.4.6 or
+<cite>adata.obsp[neighbors_key][connectivity_key]</cite> for scanpy&gt;1.4.6</p></li>
+<li><p><strong>neighbors_key</strong> – The key passed to <cite>sc.pp.neighbors</cite>. If all AnnData share the same key, one
+only has to be specified, otherwise the full tuple of all keys must
+be provided</p></li>
+<li><p><strong>directed</strong> – Whether to treat the graph as directed or undirected.</p></li>
+<li><p><strong>use_weights</strong> – If <cite>True</cite>, edge weights from the graph are used in the computation
+(placing more emphasis on stronger edges). Note that this
+increases computation times</p></li>
+<li><p><strong>save_model</strong> – If provided, this will be the filename for the PartitionModeState to
+be saved</p></li>
+<li><p><strong>copy</strong> – Whether to copy <cite>adata</cite> or modify it inplace.</p></li>
+<li><p><strong>random_seed</strong> – Random number to be used as seed for graph-tool</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><cite>adata.obs[key_added]</cite> – Array of dim (number of samples) that stores the subgroup id
+(<cite>‘0’</cite>, <cite>‘1’</cite>, …) for each cell.</p></li>
+<li><p><cite>adata.uns[‘schist’][‘multi_level_params’]</cite> – A dict with the values for the parameters <cite>resolution</cite>, <cite>random_state</cite>,
+and <cite>n_iterations</cite>.</p></li>
+<li><p><cite>adata.uns[‘schist’][‘multi_level_stats’]</cite> – A dict with the values returned by mcmc_sweep</p></li>
+<li><p><cite>adata.obsm[‘CA_multi_nsbm_level_{n}’]</cite> – A <cite>np.ndarray</cite> with cell probability of belonging to a specific group</p></li>
+<li><p><cite>adata.uns[‘schist’][‘multi_level_state’]</cite> – The NestedBlockModel state object</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
@@ -47,6 +113,12 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="inference.nested_model.html"
+                        title="previous chapter">inference.nested_model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="inference.planted_model.html"
+                        title="next chapter">inference.planted_model</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -77,7 +149,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="inference.planted_model.html" title="inference.planted_model"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="inference.nested_model.html" title="inference.nested_model"
+             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" >API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">inference.nested_model_multi</a></li> 
       </ul>
     </div>

@@ -15,7 +15,8 @@
     <script src="../_static/doctools.js"></script>
     
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="plotting.alluvial" href="plotting.alluvial.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -26,7 +27,11 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="plotting.alluvial.html" title="plotting.alluvial"
+             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">plotting.draw_tree</a></li> 
       </ul>
     </div>  
@@ -38,6 +43,26 @@
             
   <div class="section" id="plotting-draw-tree">
 <h1>plotting.draw_tree<a class="headerlink" href="#plotting-draw-tree" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="plotting.draw_tree">
+<code class="sig-prename descclassname"><span class="pre">plotting.</span></code><code class="sig-name descname"><span class="pre">draw_tree</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">adata:</span> <span class="pre">&lt;Mock</span> <span class="pre">name='mock.AnnData'</span> <span class="pre">id='140108929462480'&gt;</span></em>, <em class="sig-param"><span class="pre">level:</span> <span class="pre">Optional[Union[str</span></em>, <em class="sig-param"><span class="pre">int]]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">color:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">color_map:</span> <span class="pre">Optional[Union[&lt;Mock</span> <span class="pre">name='mock.colors.Colormap'</span> <span class="pre">id='140107853394656'&gt;</span></em>, <em class="sig-param"><span class="pre">str]]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">key:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'nsbm'</span></em>, <em class="sig-param"><span class="pre">ax:</span> <span class="pre">Optional[&lt;Mock</span> <span class="pre">name='mock.Axes'</span> <span class="pre">id='140107853394224'&gt;]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">show:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em>, <em class="sig-param"><span class="pre">use_backend:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">save:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plotting.draw_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots NSBM hierarchy using graph-tool capabilities</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>adata</strong> – The annotated data matrix.</p></li>
+<li><p><strong>level</strong> – The NSBM level to be plot.</p></li>
+<li><p><strong>color</strong> – The <cite>adata.obs</cite> property used to generate color. It is mutually exclusive
+with <cite>level</cite> option.</p></li>
+<li><p><strong>color_map</strong> – Th colormap to use for continuous colors</p></li>
+<li><p><strong>save</strong> – Name of the output file. If a non interactive notebook is detected,
+this parameter is automatically set.</p></li>
+<li><p><strong>key</strong> – The key used to perform nsbm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
@@ -47,6 +72,9 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plotting.alluvial.html"
+                        title="previous chapter">plotting.alluvial</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -77,7 +105,11 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="plotting.alluvial.html" title="plotting.alluvial"
+             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" >API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">plotting.draw_tree</a></li> 
       </ul>
     </div>

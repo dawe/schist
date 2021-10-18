@@ -38,6 +38,31 @@
             
   <div class="section" id="tools-cluster-consistency">
 <h1>tools.cluster_consistency<a class="headerlink" href="#tools-cluster-consistency" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="tools.cluster_consistency">
+<code class="sig-prename descclassname"><span class="pre">tools.</span></code><code class="sig-name descname"><span class="pre">cluster_consistency</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adata</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">anndata._core.anndata.AnnData</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_added</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'cluster_consistency'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_marginals</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">anndata._core.anndata.AnnData</span><span class="p"><span class="pre">]</span></span><a class="headerlink" href="#tools.cluster_consistency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate cluster consistency at a given level</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>adata</strong> – Annotated data matrix.</p></li>
+<li><p><strong>groups</strong> – The key for clusters in adata.obs</p></li>
+<li><p><strong>key_added</strong> – The name of obs values that will be added to the adata</p></li>
+<li><p><strong>use_marginals</strong> – By default it uses cell affinities for the analysis, but if group marginals
+are available from the inference, those can be used here.</p></li>
+<li><p><strong>copy</strong> – Return a copy instead of writing to adata.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>Depending on <cite>copy</cite>, returns or updates <cite>adata</cite> with consistency values</p></li>
+<li><p><em>in adata.uns[‘cluster_consistency’] and adata.obs[‘cluster_consistency’]</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
