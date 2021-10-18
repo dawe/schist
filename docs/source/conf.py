@@ -40,12 +40,6 @@ release = '2020'
 # ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.napoleon', 'sphinx.ext.duration','sphinx.ext.doctest','sphinx.ext.autosummary']
 
-source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'markdown',
-    '.md': 'markdown',
-}
-
 numpydoc_show_class_members = False
 
 
