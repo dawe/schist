@@ -4,19 +4,19 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>tools.get_cell_loglikelihood &#8212; schist 2020 documentation</title>
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css" />
     
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="input_output.write" href="input_output.write.html" />
     <link rel="prev" title="tools.get_cell_back_p" href="tools.get_cell_back_p.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -28,9 +28,6 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="input_output.write.html" title="input_output.write"
-             accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="tools.get_cell_back_p.html" title="tools.get_cell_back_p"
              accesskey="P">previous</a> |</li>
@@ -45,11 +42,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="tools-get-cell-loglikelihood">
+  <section id="tools-get-cell-loglikelihood">
 <h1>tools.get_cell_loglikelihood<a class="headerlink" href="#tools-get-cell-loglikelihood" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="tools.get_cell_loglikelihood">
-<code class="sig-prename descclassname"><span class="pre">tools.</span></code><code class="sig-name descname"><span class="pre">get_cell_loglikelihood</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">graph_tool.inference.nested_blockmodel.NestedBlockState</span><span class="p"><span class="pre">,</span> </span><span class="pre">graph_tool.inference.planted_partition.PPBlockState</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_prob</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.get_cell_loglikelihood" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="tools.get_cell_loglikelihood">
+<span class="sig-prename descclassname"><span class="pre">tools.</span></span><span class="sig-name descname"><span class="pre">get_cell_loglikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">graph_tool.inference.nested_blockmodel.NestedBlockState</span><span class="p"><span class="pre">,</span> </span><span class="pre">graph_tool.inference.planted_partition.PPBlockState</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_prob</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#tools.get_cell_loglikelihood" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the matrix of log-likelihood differences
 when moving a cell into a different block</p>
 <dl class="field-list simple">
@@ -74,7 +71,7 @@ of moving a cell into a specific group</p>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
             <div class="clearer"></div>
@@ -86,9 +83,6 @@ of moving a cell into a specific group</p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="tools.get_cell_back_p.html"
                         title="previous chapter">tools.get_cell_back_p</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="input_output.write.html"
-                        title="next chapter">input_output.write</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -100,7 +94,7 @@ of moving a cell into a specific group</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -120,9 +114,6 @@ of moving a cell into a specific group</p>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="input_output.write.html" title="input_output.write"
-             >next</a> |</li>
-        <li class="right" >
           <a href="tools.get_cell_back_p.html" title="tools.get_cell_back_p"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
@@ -132,7 +123,7 @@ of moving a cell into a specific group</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2021, Morelli Leonardo, Giansanti Valentina, Cittaro Davide.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.4.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.2.0.
     </div>
   </body>
 </html>

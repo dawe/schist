@@ -19,5 +19,3 @@ API
    tools.draw_graph
    tools.get_cell_back_p
    tools.get_cell_loglikelihood
-   input_output.write
-   input_output.read
