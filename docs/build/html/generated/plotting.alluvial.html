@@ -15,7 +15,9 @@
     <script src="../_static/doctools.js"></script>
     
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="plotting.draw_tree" href="plotting.draw_tree.html" />
+    <link rel="prev" title="inference.leiden" href="inference.leiden.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -26,7 +28,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="plotting.draw_tree.html" title="plotting.draw_tree"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="inference.leiden.html" title="inference.leiden"
+             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">plotting.alluvial</a></li> 
       </ul>
     </div>  
@@ -38,6 +47,28 @@
             
   <div class="section" id="plotting-alluvial">
 <h1>plotting.alluvial<a class="headerlink" href="#plotting-alluvial" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="plotting.alluvial">
+<code class="sig-prename descclassname"><span class="pre">plotting.</span></code><code class="sig-name descname"><span class="pre">alluvial</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">adata:</span> <span class="pre">&lt;Mock</span> <span class="pre">name='mock.AnnData'</span> <span class="pre">id='140108929462480'&gt;</span></em>, <em class="sig-param"><span class="pre">level_start:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></em>, <em class="sig-param"><span class="pre">level_end:</span> <span class="pre">Optional[int]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">key:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'nsbm'</span></em>, <em class="sig-param"><span class="pre">gap:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.05</span></em>, <em class="sig-param"><span class="pre">legend_fontsize:</span> <span class="pre">Optional[Union[int</span></em>, <em class="sig-param"><span class="pre">float</span></em>, <em class="sig-param"><span class="pre">Literal[xx-small</span></em>, <em class="sig-param"><span class="pre">x-small</span></em>, <em class="sig-param"><span class="pre">small</span></em>, <em class="sig-param"><span class="pre">medium</span></em>, <em class="sig-param"><span class="pre">large</span></em>, <em class="sig-param"><span class="pre">x-large</span></em>, <em class="sig-param"><span class="pre">xx-large]]]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">legend_fontweight:</span> <span class="pre">Union[int</span></em>, <em class="sig-param"><span class="pre">Literal[light</span></em>, <em class="sig-param"><span class="pre">normal</span></em>, <em class="sig-param"><span class="pre">medium</span></em>, <em class="sig-param"><span class="pre">semibold</span></em>, <em class="sig-param"><span class="pre">bold</span></em>, <em class="sig-param"><span class="pre">heavy</span></em>, <em class="sig-param"><span class="pre">black]]</span> <span class="pre">=</span> <span class="pre">'bold'</span></em>, <em class="sig-param"><span class="pre">axis_fontsize:</span> <span class="pre">Optional[Union[int</span></em>, <em class="sig-param"><span class="pre">float</span></em>, <em class="sig-param"><span class="pre">Literal[xx-small</span></em>, <em class="sig-param"><span class="pre">x-small</span></em>, <em class="sig-param"><span class="pre">small</span></em>, <em class="sig-param"><span class="pre">medium</span></em>, <em class="sig-param"><span class="pre">large</span></em>, <em class="sig-param"><span class="pre">x-large</span></em>, <em class="sig-param"><span class="pre">xx-large]]]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">axis_fontweight:</span> <span class="pre">Union[int</span></em>, <em class="sig-param"><span class="pre">Literal[light</span></em>, <em class="sig-param"><span class="pre">normal</span></em>, <em class="sig-param"><span class="pre">medium</span></em>, <em class="sig-param"><span class="pre">semibold</span></em>, <em class="sig-param"><span class="pre">bold</span></em>, <em class="sig-param"><span class="pre">heavy</span></em>, <em class="sig-param"><span class="pre">black]]</span> <span class="pre">=</span> <span class="pre">'bold'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#plotting.alluvial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an alluvial plot for NSBM hierarchy</p>
+<p>This plot may be useful to study the hierarchical relations in a Nested
+Model generated by <cite>scnbsm.inference.nested_model</cite>.    Note that the <cite>level_end</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>adata</strong> – The annotated data matrix.</p></li>
+<li><p><strong>level_start</strong> – The deepest level in the hierarchy (i.e. the one with more clusters)
+Note that this parameter marks the leafs of the tree</p></li>
+<li><p><strong>level_end</strong> – The coarser level in hierarchy. Default value is <cite>None</cite>, if pruning has not
+been performed, it may be useful to exclude uninformative levels anyway
+Note that this parameter marks the root of the tree</p></li>
+<li><p><strong>key</strong> – The key used to group cells. Default is <cite>nsbm</cite></p></li>
+<li><p><strong>gap</strong> – The gap between groups in percentage</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
@@ -47,6 +78,12 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="inference.leiden.html"
+                        title="previous chapter">inference.leiden</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plotting.draw_tree.html"
+                        title="next chapter">plotting.draw_tree</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -77,7 +114,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="plotting.draw_tree.html" title="plotting.draw_tree"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="inference.leiden.html" title="inference.leiden"
+             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" >API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">plotting.alluvial</a></li> 
       </ul>
     </div>

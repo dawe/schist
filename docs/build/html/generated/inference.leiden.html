@@ -15,7 +15,9 @@
     <script src="../_static/doctools.js"></script>
     
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="plotting.alluvial" href="plotting.alluvial.html" />
+    <link rel="prev" title="inference.flat_model" href="inference.flat_model.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -26,7 +28,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="plotting.alluvial.html" title="plotting.alluvial"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="inference.flat_model.html" title="inference.flat_model"
+             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" accesskey="U">API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">inference.leiden</a></li> 
       </ul>
     </div>  
@@ -38,6 +47,68 @@
             
   <div class="section" id="inference-leiden">
 <h1>inference.leiden<a class="headerlink" href="#inference-leiden" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="inference.leiden">
+<code class="sig-prename descclassname"><span class="pre">inference.</span></code><code class="sig-name descname"><span class="pre">leiden</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">adata:</span> <span class="pre">&lt;Mock</span> <span class="pre">name='mock.AnnData'</span> <span class="pre">id='140108929462480'&gt;</span></em>, <em class="sig-param"><span class="pre">resolution:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1</span></em>, <em class="sig-param"><span class="pre">samples:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">100</span></em>, <em class="sig-param"><span class="pre">*</span></em>, <em class="sig-param"><span class="pre">restrict_to:</span> <span class="pre">Optional[Tuple[str</span></em>, <em class="sig-param"><span class="pre">Sequence[str]]]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">random_state:</span> <span class="pre">&lt;Mock</span> <span class="pre">name='mock._utils.AnyRandom'</span> <span class="pre">id='140108929495248'&gt;</span> <span class="pre">=</span> <span class="pre">0</span></em>, <em class="sig-param"><span class="pre">key_added:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'leiden'</span></em>, <em class="sig-param"><span class="pre">adjacency:</span> <span class="pre">Optional[&lt;Mock</span> <span class="pre">name='mock.sparse.spmatrix'</span> <span class="pre">id='140108929462528'&gt;]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">directed:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em>, <em class="sig-param"><span class="pre">use_weights:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em>, <em class="sig-param"><span class="pre">n_iterations:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">-1</span></em>, <em class="sig-param"><span class="pre">partition_type:</span> <span class="pre">Optional[Type[leidenalg.VertexPartition.MutableVertexPartition]]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">neighbors_key:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">obsp:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">collect_marginals:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></em>, <em class="sig-param"><span class="pre">n_jobs:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">-1</span></em>, <em class="sig-param"><span class="pre">copy:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em>, <em class="sig-param"><span class="pre">save_model:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">None</span></em>, <em class="sig-param"><span class="pre">dispatch_backend:</span> <span class="pre">Optional[str]</span> <span class="pre">=</span> <span class="pre">'processes'</span></em>, <em class="sig-param"><span class="pre">**partition_kwargs</span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Optional[&lt;Mock</span> <span class="pre">name=’mock.AnnData’</span> <span class="pre">id=’140108929462480’&gt;]</span><a class="headerlink" href="#inference.leiden" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cluster cells into subgroups <span id="id1">[Traag18]</span>.</p>
+<p>Cluster cells using the Leiden algorithm <span id="id2">[Traag18]</span>,
+an improved version of the Louvain algorithm <span id="id3">[Blondel08]</span>.
+It has been proposed for single-cell analysis by <span id="id4">[Levine15]</span>.</p>
+<p>This requires having ran <code class="xref py py-func docutils literal notranslate"><span class="pre">neighbors()</span></code> or
+<code class="xref py py-func docutils literal notranslate"><span class="pre">bbknn()</span></code> first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>adata</strong> – The annotated data matrix.</p></li>
+<li><p><strong>resolution</strong> – A parameter value controlling the coarseness of the clustering.
+Higher values lead to more clusters.
+Set to <cite>None</cite> if overriding <cite>partition_type</cite>
+to one that doesn’t accept a <cite>resolution_parameter</cite>.
+samples</p></li>
+<li><p><strong>samples</strong> – The number of random samples to take for consensus</p></li>
+<li><p><strong>random_state</strong> – Change the initialization of the optimization.</p></li>
+<li><p><strong>restrict_to</strong> – Restrict the clustering to the categories within the key for sample
+annotation, tuple needs to contain <cite>(obs_key, list_of_categories)</cite>.</p></li>
+<li><p><strong>key_added</strong> – <cite>adata.obs</cite> key under which to add the cluster labels.</p></li>
+<li><p><strong>adjacency</strong> – Sparse adjacency matrix of the graph, defaults to neighbors connectivities.</p></li>
+<li><p><strong>directed</strong> – Whether to treat the graph as directed or undirected.</p></li>
+<li><p><strong>use_weights</strong> – If <cite>True</cite>, edge weights from the graph are used in the computation
+(placing more emphasis on stronger edges).</p></li>
+<li><p><strong>n_iterations</strong> – How many iterations of the Leiden clustering algorithm to perform.
+Positive values above 2 define the total number of iterations to perform,
+-1 has the algorithm run until it reaches its optimal clustering.</p></li>
+<li><p><strong>partition_type</strong> – Type of partition to use.
+Defaults to <code class="xref py py-class docutils literal notranslate"><span class="pre">RBConfigurationVertexPartition</span></code>.
+For the available options, consult the documentation for
+<code class="xref py py-func docutils literal notranslate"><span class="pre">find_partition()</span></code>.</p></li>
+<li><p><strong>neighbors_key</strong> – Use neighbors connectivities as adjacency.
+If not specified, leiden looks .obsp[‘connectivities’] for connectivities
+(default storage place for pp.neighbors).
+If specified, leiden looks
+.obsp[.uns[neighbors_key][‘connectivities_key’]] for connectivities.</p></li>
+<li><p><strong>obsp</strong> – Use .obsp[obsp] as adjacency. You can’t specify both
+<cite>obsp</cite> and <cite>neighbors_key</cite> at the same time.</p></li>
+<li><p><strong>collect_marginals</strong> – Wheter to retrieve the marginal probability to belong to a group</p></li>
+<li><p><strong>n_jobs</strong> – Number of parallel jobs to calculate partitions</p></li>
+<li><p><strong>copy</strong> – Whether to copy <cite>adata</cite> or modify it inplace.</p></li>
+<li><p><strong>save_model</strong> – If provided, this will be the filename for the PartitionModeState to
+be saved</p></li>
+<li><p><strong>**partition_kwargs</strong> – Any further arguments to pass to <cite>~leidenalg.find_partition</cite>
+(which in turn passes arguments to the <cite>partition_type</cite>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><cite>adata.obs[key_added]</cite> – Array of dim (number of samples) that stores the subgroup id
+(<cite>‘0’</cite>, <cite>‘1’</cite>, …) for each cell.</p></li>
+<li><p><cite>adata.uns[‘leiden’][‘params’]</cite> – A dict with the values for the parameters <cite>resolution</cite>, <cite>random_state</cite>,
+and <cite>n_iterations</cite>.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
@@ -47,6 +118,12 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="inference.flat_model.html"
+                        title="previous chapter">inference.flat_model</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plotting.alluvial.html"
+                        title="next chapter">plotting.alluvial</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -77,7 +154,14 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="plotting.alluvial.html" title="plotting.alluvial"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="inference.flat_model.html" title="inference.flat_model"
+             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="../index.html">schist 2020 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../api.html" >API</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">inference.leiden</a></li> 
       </ul>
     </div>
