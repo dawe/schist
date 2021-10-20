@@ -79,7 +79,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['**.py','**.md','**.sh','**.cfg']
+exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -87,7 +87,7 @@ exclude_patterns = ['**.py','**.md','**.sh','**.cfg']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'custom'
 
 #html_theme = 'classic'
 #html_theme_options = {
