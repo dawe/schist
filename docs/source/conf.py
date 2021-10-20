@@ -90,13 +90,8 @@ intersphinx_mapping = dict(
 # -- Options for HTML output ----------------------------------------------
 
 
-html_theme = 'scanpydoc'
-html_theme_options = dict(
-    navigation_depth=4,
-    logo_only=True,
-    docsearch_index='scanpy',
-    docsearch_key='fa4304eb95d2134997e3729553a674b2',
-)
+html_theme = 'alabaster'
+
 html_context = dict(
     display_github=True,  # Integrate GitHub
     github_user='dawe',  # Username
