@@ -28,6 +28,7 @@ This will install `graph-tool-base` package as dependency, which does not includ
 If you want to install `schist` from source, clone this repository and install in the usual way
 
 ::
+
     git clone https://github.com/dawe/schist.git
     cd schist
     pip install .
