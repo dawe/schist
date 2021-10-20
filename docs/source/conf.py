@@ -10,7 +10,7 @@ from datetime import datetime
 
 HERE = Path(__file__).parent
 sys.path[:0] = [str(HERE.parent), str(HERE / 'extensions')]
-import scanpy  # noqa
+#import scanpy  # noqa
 
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
