@@ -1,6 +1,9 @@
 Welcome to schist's documentation!
 **********************************
 
+readme
+
+
 Inference
 =========
 

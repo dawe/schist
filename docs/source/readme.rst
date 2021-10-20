@@ -10,6 +10,7 @@ SCHIST
 
 An interface for Nested Stochastic Block Model for single cell analysis. The idea behind ``schist`` is to create a `scanpy`-compatible interface to ``graph-tool`` methods.
 
+------------
 Installation
 ------------
 
@@ -33,7 +34,7 @@ If you want to install ``schist`` from source, clone this repository and install
     cd schist
     pip install .
 
-
+----------
 How to use
 ----------
 
@@ -45,7 +46,7 @@ Once ``schist`` has been installed, it can be used out of the box on ``scanpy`` 
 
 Once the MCMC has converged, the ``adata.obs`` object will contain additional columns for multiple levels, named ``nsbm_level_0``, ``nsbm_level_1``, ``nsbm_level_2`` and so on. 
 
-
+----
 Cite
 ----
 .. highlight:: None
@@ -64,8 +65,8 @@ We are preparing the manuscript. In the meantime, if you use `schist` you may ci
     doi = {10.1101/2020.06.28.176180},
     }
 
-
+----
 Name
 ----
 
-``schist`` is a [type of rock](https://en.wikipedia.org/wiki/Schist). Previous name for this project was ``scNSBM``, which was hard to pronounce and caused typos when writing (``scnbsm`` or ``scbsnm`` and so on…). We looked for a name which should have "single cell" in it (sc), something about the stochastic model (st) and something about the hierarchy (hi). That's were ``schist`` comes from. 
+``schist`` is a `type of rock <https://en.wikipedia.org/wiki/Schist>`_. Previous name for this project was ``scNSBM``, which was hard to pronounce and caused typos when writing (``scnbsm`` or ``scbsnm`` and so on…). We looked for a name which should have "single cell" in it (sc), something about the stochastic model (st) and something about the hierarchy (hi). That's were ``schist`` comes from. 
