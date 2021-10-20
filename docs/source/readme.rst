@@ -1,0 +1,6 @@
+=====
+INTRO
+=====
+.. include:: ../../readme.rst
+
+
