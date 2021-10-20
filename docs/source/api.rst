@@ -1,7 +1,3 @@
-.. module:: schist
-
-.. automodule:: schist
-   :noindex:
 
 API
 ===
