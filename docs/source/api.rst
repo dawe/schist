@@ -16,6 +16,6 @@ API
    tools.cluster_consistency
    tools.select_affinity
    tools.calculate_affinity
-   tools.draw_graph
+   tools._draw_graph
    tools.get_cell_back_p
    tools.get_cell_loglikelihood
