@@ -10,7 +10,7 @@ Import ``schist`` as::
 
     import schist as scs
     
-Inference: inference
+inference: inference
 --------------------
 
 .. module:: schist.inference
@@ -27,7 +27,7 @@ Inference: inference
    inference.leiden
    
    
-Plotting: plotting
+plotting: plotting
 ------------------
 
 .. module:: schist.plotting
@@ -40,8 +40,8 @@ Plotting: plotting
    plotting.alluvial
    plotting.draw_tree
    
-  Tools: tools
---------------------
+tools: tools
+------------
 
 .. module:: schist.tools
 
