@@ -7,7 +7,11 @@ from datetime import datetime
 
 # Don’t use tkinter agg when importing scanpy → … → matplotlib
 #matplotlib.use('agg')
-
+import mock
+MOCK_MODULES = ['numpy', 'numpy.dtype','pandas', 'anndata','joblib',
+                'scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat',
+                'scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes',
+                'matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba','graph-tool','sklearn.utils.murmurhash','sklearn']
 HERE = Path(__file__).parent
 sys.path.insert(0, os.path.abspath('../../'))
 #import scanpy  # noqa
