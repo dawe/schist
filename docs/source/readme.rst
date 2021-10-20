@@ -9,6 +9,7 @@ SCHIST
 .. highlight:: python
 
 An interface for Nested Stochastic Block Model for single cell analysis. The idea behind ``schist`` is to create a `scanpy`-compatible interface to ``graph-tool`` methods.
+
 ------------
 Installation
 ------------
