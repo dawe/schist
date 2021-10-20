@@ -1,6 +1,11 @@
 Welcome to schist's documentation!
 **********************************
 
+=====
+INTRO
+=====
+.. include:: ../../readme.rst
+
 Inference
 =========
 
@@ -79,7 +84,7 @@ tl_utils
    :caption: Contents:
    
    api
-   readme
+
 
 Indices and tables
 ==================
