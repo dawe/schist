@@ -34,7 +34,7 @@ If you want to install ``schist`` from source, clone this repository and install
     cd schist
     pip install .
 
-
+----------
 How to use
 ----------
 
@@ -46,7 +46,7 @@ Once ``schist`` has been installed, it can be used out of the box on ``scanpy`` 
 
 Once the MCMC has converged, the ``adata.obs`` object will contain additional columns for multiple levels, named ``nsbm_level_0``, ``nsbm_level_1``, ``nsbm_level_2`` and so on. 
 
-
+----
 Cite
 ----
 .. highlight:: None
@@ -65,7 +65,7 @@ We are preparing the manuscript. In the meantime, if you use `schist` you may ci
     doi = {10.1101/2020.06.28.176180},
     }
 
-
+----
 Name
 ----
 
