@@ -1,10 +1,6 @@
 Welcome to schist's documentation!
 **********************************
 
-=====
-INTRO
-=====
-.. include:: ../../readme.rst
 
 Inference
 =========
@@ -83,6 +79,7 @@ tl_utils
    :maxdepth: 2
    :caption: Contents:
    
+   readme
    api
 
 
