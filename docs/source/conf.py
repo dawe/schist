@@ -20,11 +20,12 @@ import sys
 #if 'READTHEDOCS' not in os.environ:
 #    import cython_generated_ext
 
-#import mock
-#MOCK_MODULES = ['numpy', 'numpy.dtype','pandas', 'anndata','joblib','scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat','scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes','matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba','graph-tool','sklearn.utils.murmurhash','sklearn']
+import mock
+MOCK_MODULES = ['numpy', 'numpy.dtype','pandas', 'anndata','joblib','scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat','scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes','matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba','graph-tool','sklearn.utils.murmurhash','sklearn']
 #MOCK_MODULES = ['graph-tool','numpy']
-#for mod_name in MOCK_MODULES:
-#    sys.modules[mod_name] = mock.Mock()
+#
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
 #------------------------------------------------------------------------------
 #sys.path.insert(0, os.path.abspath('..'))
 #sys.path.insert(0, os.path.abspath('.'))
