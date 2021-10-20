@@ -2,11 +2,11 @@ import os
 import sys
 from pathlib import Path
 from datetime import datetime
-
+autodoc_mock_imports = ['_tkinter']
 import matplotlib  # noqa
 
 # Don’t use tkinter agg when importing scanpy → … → matplotlib
-matplotlib.use('agg')
+#matplotlib.use('agg')
 
 HERE = Path(__file__).parent
 sys.path[:0] = [str(HERE.parent), str(HERE / 'extensions')]
