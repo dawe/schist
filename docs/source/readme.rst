@@ -21,7 +21,7 @@ As `schist` is available from conda-forge, installation is just easy as
 
 This will install `graph-tool-base` package as dependency, which does not include complete graphical capabilities. If you need access to the full `graph-tool` infrastracture, install it with
 
-::
+
     conda install -c conda-forge graph-tool
 
 
