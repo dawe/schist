@@ -9,7 +9,7 @@ from datetime import datetime
 #matplotlib.use('agg')
 
 HERE = Path(__file__).parent
-sys.path[:0] = [str(HERE.parent), str(HERE / 'extensions')]
+sys.path.insert(0, os.path.abspath('../../'))
 #import scanpy  # noqa
 
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
