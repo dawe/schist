@@ -4,31 +4,31 @@ Inference
 nested_model
 ++++++++++++
 
-.. automodule:: inference._nested_model
+.. automodule:: schist.inference._nested_model
    :members:
    
 multi_nested
 ++++++++++++
 
-.. automodule:: inference._multi_nested
+.. automodule:: schist.inference._multi_nested
    :members:
 
 planted_model
 +++++++++++++
 
-.. automodule:: inference._planted_model
+.. automodule:: schist.inference._planted_model
    :members:
 
 flat_model
 ++++++++++
 
-.. automodule:: inference._flat_model
+.. automodule:: schist.inference._flat_model
    :members:
 
 pm_leiden
 +++++++++
 
-.. automodule:: inference._pmleiden
+.. automodule:: schist.inference._pmleiden
    :members:
 
 Plotting
@@ -37,13 +37,13 @@ Plotting
 alluvial
 ++++++++
 
-.. automodule:: plotting._alluvial
+.. automodule:: schist.plotting._alluvial
    :members:
 
 draw_tree
 +++++++++
 
-.. automodule:: plotting._draw_tree
+.. automodule:: schist.plotting._draw_tree
    :members:
 
 Tools
@@ -52,21 +52,21 @@ Tools
 affinity_tools
 ++++++++++++++
 
-.. automodule:: tools._affinity_tools
+.. automodule:: schist.tools._affinity_tools
    :members: 
 
-.. automodule:: tools._select
+.. automodule:: schist.tools._select
    :members:
 
 draw_graph
 ++++++++++
 
-.. automodule:: tools._draw_graph
+.. automodule:: schist.tools._draw_graph
    :members:
 
 tl_utils
 ++++++++
 
-.. automodule:: tools._tl_utils
+.. automodule:: schist.tools._tl_utils
    :members:
 
