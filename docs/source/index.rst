@@ -79,6 +79,7 @@ tl_utils
    :caption: Contents:
    
    api
+   readme
 
 Indices and tables
 ==================
