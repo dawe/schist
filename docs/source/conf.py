@@ -104,7 +104,7 @@ html_context = dict(
     github_version='master',  # Version
     conf_py_path='/docs/',  # Path in the checkout to the docs root
 )
-html_static_path = ['_static']
+#html_static_path = ['_static']
 html_show_sphinx = False
 html_logo = '../../garnet.png'
 
