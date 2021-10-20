@@ -7,7 +7,7 @@ Welcome to schist's documentation!
    
    readme
    api
-
+   functions
 
 Indices and tables
 ==================
