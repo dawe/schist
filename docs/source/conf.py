@@ -2,8 +2,8 @@ import os
 import sys
 from pathlib import Path
 from datetime import datetime
-autodoc_mock_imports = ['_tkinter']
-import matplotlib  # noqa
+
+#import matplotlib  # noqa
 
 # Don’t use tkinter agg when importing scanpy → … → matplotlib
 #matplotlib.use('agg')
