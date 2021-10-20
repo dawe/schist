@@ -19,7 +19,7 @@ As `schist` is available from conda-forge, installation is just easy as
     conda install -c conda-forge schist
 
 
-This will install `graph-tool-base` package as dependency, which does not include complete graphical capabilities. If you need access to the full `graph-tool` infrastracture, install it with
+This will install `graph-tool-base` package as dependency, which does not include complete graphical capabilities. If you need access to the full `graph-tool` infrastracture, install it with::
 
 
     conda install -c conda-forge graph-tool
@@ -37,6 +37,7 @@ How to use
 ----------
 
 Once `schist` has been installed, it can be used out of the box on `scanpy` objects::
+
     import schist as scs
     scs.inference.nested_model(adata)
 
