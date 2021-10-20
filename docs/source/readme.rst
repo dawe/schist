@@ -68,4 +68,4 @@ We are preparing the manuscript. In the meantime, if you use `schist` you may ci
 Name
 ----
 
-``schist`` is a [type of rock](https://en.wikipedia.org/wiki/Schist). Previous name for this project was ``scNSBM``, which was hard to pronounce and caused typos when writing (``scnbsm`` or ``scbsnm`` and so on…). We looked for a name which should have "single cell" in it (sc), something about the stochastic model (st) and something about the hierarchy (hi). That's were ``schist`` comes from. 
+``schist`` is a `type of rock <https://en.wikipedia.org/wiki/Schist>`_. Previous name for this project was ``scNSBM``, which was hard to pronounce and caused typos when writing (``scnbsm`` or ``scbsnm`` and so on…). We looked for a name which should have "single cell" in it (sc), something about the stochastic model (st) and something about the hierarchy (hi). That's were ``schist`` comes from. 
