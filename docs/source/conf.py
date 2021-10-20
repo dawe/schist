@@ -25,7 +25,7 @@ suppress_warnings = ['ref.citation']
 project = 'schist'
 author = 'Morelli Leonardo, Giansanti Valentina, Cittaro Davide'
 copyright = f'{datetime.now():%Y}, {author}.'
-release = 2020
+release = '2020'
 
 # default settings
 templates_path = ['_templates']
