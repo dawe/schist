@@ -9,9 +9,7 @@ Import ``schist`` as::
 inference: inference
 --------------------
 
-.. module:: schist.inference
-
-.. currentmodule:: schist
+.. module:: inference
 
 .. autosummary::
    :toctree: generated
@@ -26,9 +24,7 @@ inference: inference
 plotting: plotting
 ------------------
 
-.. module:: schist.plotting
-
-.. currentmodule:: schist
+.. module:: plotting
 
 .. autosummary::
    :toctree: generated   
@@ -39,9 +35,7 @@ plotting: plotting
 tools: tools
 ------------
 
-.. module:: schist.tools
-
-.. currentmodule:: schist
+.. module:: tools
 
 .. autosummary::
    :toctree: generated
