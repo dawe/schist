@@ -100,6 +100,11 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'alabaster'
+html_theme_options = {
+    'logo': '../../garnet.png',
+    'github_user': 'dawe',
+    'github_repo': 'schist',
+}
 
 #html_theme = 'classic'
 #html_theme_options = {
