@@ -49,7 +49,7 @@ Once the MCMC has converged, the ``adata.obs`` object will contain additional co
 ----
 Cite
 ----
-.. highlight:: None
+
 We are preparing the manuscript. In the meantime, if you use `schist` you may cite the preprint::
 
 
