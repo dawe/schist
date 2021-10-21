@@ -104,8 +104,6 @@ html_theme_options = {
     'logo': 'garnet.png',
     'logo_name': 'true',
     'fixed_sidebar': 'true',
-    'anchor_hover_bg':'#E9967A',#salmon
-    'anchor_hover_fg': '#FF7F50', #coral
     'github_user': 'dawe',
     'github_repo': 'schist',
 }
