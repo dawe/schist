@@ -36,7 +36,7 @@ Clustering of 3k PBMCs
 
 In this section, the "3k PBMCs" dataset is preprocessed, using ``scanpy``. Afterwards, cluster analysis is performed, using ``schist``. 
 
-Before the cluster analysis with ``schist``, the *k*NN graph must be built, representing connections between cells of the dataset. The *k*NN graph can be created, using the scanpy function ``sc.pp.neighbors``, which allows the selection of the number of neighbors and the number of pca components considered for the analysis::
+Before the cluster analysis with ``schist``, the *k*\NN graph must be built, representing connections between cells of the dataset. The *k*\NN graph can be created, using the scanpy function ``sc.pp.neighbors``, which allows the selection of the number of neighbors and the number of pca components considered for the analysis::
 
     sc.pp.neighbors(adata, n_neighbors=20, n_pcs=30)
 
