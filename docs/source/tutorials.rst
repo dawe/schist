@@ -69,8 +69,8 @@ In order to effectively visualize the nested hierarchy representing the partitio
     scs.plotting.alluvial(adata)
     
 .. image:: imgs/alluvial_uncut.png
-   :height: 300
-   :width: 300
+   :height: 450
+   :width: 450
    :alt: alluvial_uncut
 
 The hierarchy can be furtherly cut, using the parameters ``level_start`` and ``level_end``::
@@ -78,8 +78,8 @@ The hierarchy can be furtherly cut, using the parameters ``level_start`` and ``l
     scs.plotting.alluvial(adata, level_start=1, level_end=3)
     
 .. image:: imgs/alluvial_cut.png
-   :height: 300
-   :width: 300
+   :height: 450
+   :width: 450
    :alt: alluvial_cut
 
 The final outcome of the function ``schist.inference.nested_model()`` consists of a series of nested levels, stored in ``adata.obs``, with the prefix ``nsbm_level_`` followed by a number, expressing the level of the hierarchy. Each level can be visualized thanks to the ``scanpy`` function ``sc.pl.umap``::
@@ -87,8 +87,8 @@ The final outcome of the function ``schist.inference.nested_model()`` consists o
     sc.pl.umap(adata, color=['nsbm_level_0', 'nsbm_level_1', 'nsbm_level_2', 'nsbm_level_3', 'nsbm_level_4'], ncols=2, legend_loc='on data')
 
 .. image:: imgs/nested_model.png
-   :height: 600
-   :width: 400
+   :height: 1200
+   :width: 800
    :alt: nested_model
 
 
