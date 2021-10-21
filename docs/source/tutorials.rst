@@ -82,7 +82,7 @@ The hierarchy can be furtherly cut, using the parameters ``level_start`` and ``l
    :width: 450
    :alt: alluvial_cut
 
-The final outcome of the function ``schist.inference.nested_model()`` consists of a series of nested levels, stored in ``adata.obs``, with the prefix ``nsbm_level_`` followed by a number, expressing the level of the hierarchy. Each level can be visualized thanks to the ``scanpy`` function ``sc.pl.umap``::
+The final outcome of the function ``schist.inference.nested_model()`` consists of a series of nested levels, stored in ``adata.obs``, with the prefix ``nsbm_level_`` followed by a number, expressing the level of the hierarchy. Each level can be visualized thanks to the ``scanpy`` function ``sc.pl.umap()``::
 
     sc.pl.umap(adata, color=['nsbm_level_0', 'nsbm_level_1', 'nsbm_level_2', 'nsbm_level_3', 'nsbm_level_4'], ncols=2, legend_loc='on data')
 
@@ -95,12 +95,16 @@ The final outcome of the function ``schist.inference.nested_model()`` consists o
 planted_model
 ^^^^^^^^^^^^^
 
-spiego planted
+The function ``nested_model()`` is expected to find reliable communities in networks, however, it pays its statistical significance in terms of runtimes. Another approach implemented in ``graph-tool``, called Planted Partition Block Model, performs Bayesian inference on node groups. This function, in particular, uses the Planted Block Model, which is particularly suitable in case of assortative graphs and it returns the optimal number of communities::
 
-codice planted
+    scs.inference.planted_model(adata)
 
-esito planted
+The final outcome of the function ``schist.inference.planted_model()`` consists of a single layer of annotations, stored in ``adata.obs``, with the prefix ``ppbm``, which can be visualized through ``sc.pl.umap()``::
 
+.. image:: imgs/planted_model.png
+   :height: 400
+   :width: 350
+   :alt: planted_model
 
 --------------
 Label transfer
