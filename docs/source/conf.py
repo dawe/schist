@@ -25,7 +25,8 @@ MOCK_MODULES = ['numpy', 'numpy.dtype','pandas', 'anndata','joblib','scanpy','na
 #MOCK_MODULES = ['graph-tool','numpy']
 #
 for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
+    sys.modules[mod_name] = mock.MagicMock()
+#    sys.modules[mod_name] = mock.Mock()
 #------------------------------------------------------------------------------
 #sys.path.insert(0, os.path.abspath('..'))
 #sys.path.insert(0, os.path.abspath('.'))
