@@ -88,7 +88,7 @@ The final outcome of the function ``schist.inference.nested_model()`` consists o
 
 .. image:: imgs/nested_model.png
    :height: 1200
-   :width: 800
+   :width: 700
    :alt: nested_model
 
 
