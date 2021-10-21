@@ -101,6 +101,8 @@ The function ``nested_model()`` is expected to find reliable communities in netw
 
 The final outcome of the function ``schist.inference.planted_model()`` consists of a single layer of annotations, stored in ``adata.obs``, with the prefix ``ppbm``, which can be visualized through ``sc.pl.umap()``::
 
+    sc.pl.umap(adata, color=['ppbm'], legend_loc='on data')
+
 .. image:: imgs/planted_model.png
    :height: 400
    :width: 350
