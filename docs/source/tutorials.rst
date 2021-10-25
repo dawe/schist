@@ -112,12 +112,71 @@ The final outcome of the function ``schist.inference.planted_model()`` consists 
 Label transfer
 --------------
 
-spiego label transfer (problema)
-spiego come lo faccio (cell aff)
-spiego cosa mi serve (harmony)
+Differences in **description length** can be used to perform model selection, that is we can choose which model better describes the data. We sought to exploit this property to address the task of annotating cells according to a reference sample. Here, we show an exemple, using data from `Mereu *et al*\. <https://www.nature.com/articles/s41587-020-0469-4>`_, which includes mixtures of human PBMC and HEK293T cells profiled with various technologies. Cells profiled with 10X V3 platform are used as reference dataset, while annotations are performed on cells profiled with MARS-seq.
 
-mostro codice
+First, libraries and datasets are imported::
 
-mostro outcome con dati buoni (quartzseq)
+    import scanpy as sc
+    import schist as scs
+    import pandas as pd
+    import anndata as ad
+    adata_10x = sc.read("10XV3_075.h5ad")
+    adata_marseq = sc.read("MARSseq_075.h5ad")
+    
+Let's take a look at UMAP embeddings and cell annotations::
 
-mostro outcome con dati non buoni (iCEll8)
+    sc.pl.umap(adata_10x, color='annotations')
+    
+.. image:: imgs/10x_label_transfer.png
+   :height: 350
+   :width: 400
+   :alt: planted_model
+   
+::  
+    
+    sc.pl.umap(adata_marsseq, color='annotations')
+    
+.. image:: imgs/MARS-seq_label_tranfer.png
+   :height: 350
+   :width: 400
+   :alt: planted_model
+    
+After that, cell annotations of marseq are set as 'Unknown' and the two dataset are concatenated and intagrated using `Harmony <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6884693/>`_::
+  
+    adata_10x.obs['annotation'] = adata_10x.obs['nnet2']
+    adata_marseq.obs['annotation'] = 'Unknown'
+    mdata = adata_10x.concatenate(adata_marseq, batch_categories=['10XV3', 'MARSseq'])
+    mdata.obs['annotation'] = pd.Categorical(mdata.obs['annotation'])
+    sc.pp.scale(mdata)
+    sc.tl.pca(mdata)
+    sc.external.pp.harmony_integrate(mdata, key='batch')
+    sc.pp.neighbors(mdata, n_neighbors=int(np.sqrt(mdata.shape[0])/2), use_rep='X_pca_harmony')
+
+Cell affinities are calculated using ``schist``. Cell affinities are computed, simulating the moves of each cell to each group: each move generates a variation in the **description length**, which is stored as a probability. This measure evaluates the confidence of cell assignments::
+
+    scs.tl.calculate_affinity(mdata, group_by='annotation', neighbors_key='neighbors')
+    
+Finally, cells of MARS-seq platform, previoulsy labelled as 'Unknown', are reassigned to the group, which have led to the lowest **description lenght**::
+
+    categories = mdata.obs['annotation'].cat.categories
+    affinity = pd.DataFrame(mdata.obsm['CA_annotation'], index=mdata.obs_names, columns=categories)
+    rank_affinity = affinity.rank(axis=1, ascending=False)
+    mdata.obs['reassigned'] = mdata.obs['annotation'].values
+    for c in rank_affinity.columns:
+        cells = rank_affinity[rank_affinity[c] == 1].index
+        mdata.obs.loc[cells, 'reassigned'] = c 
+
+Now, the dataset of MARS-seq platform is regenerated and the outcome of label transfer is visualized::
+
+    mdata_marseq = mdata[mdata.obs['batch'] != "10XV3"]
+    mdata_marseq.obs_names = [x.replace('-MARSseq', '') for x in mdata_marseq.obs_names]
+    adata_marseq.obs['reassigned_schist'] = mdata_marseq.obs['reassigned']
+    col_scheme = dict(zip(adata_marseq.obs['annotations'].cat.categories, adata_marseq.uns['annotations_colors']))
+    col_scheme['Unknown'] = '#AABBCC'
+    adata_marseq.uns['reassigned_schist_colors'] = [col_scheme[x] for x in adata_marseq.obs['reassigned_schist'].cat.categories]
+    sc.pl.umap(adata_marseq, color=['annotations', 'reassigned_schist', 'reassigned_knn'], title=['Original', f'schist'], legend_loc='on data')
+    
+.. image:: imgs/label_transfer_outcome.png
+   :height: 400
+   :width: 700
+   :alt: planted_model
