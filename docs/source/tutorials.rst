@@ -128,8 +128,8 @@ Let's take a look at UMAP embeddings and cell annotations::
     sc.pl.umap(adata_10x, color='annotations')
     
 .. image:: imgs/10x_label_transfer.png
-   :height: 400
-   :width: 300
+   :height: 350
+   :width: 400
    :alt: planted_model
    
 ::  
@@ -137,8 +137,8 @@ Let's take a look at UMAP embeddings and cell annotations::
     sc.pl.umap(adata_marsseq, color='annotations')
     
 .. image:: imgs/MARS-seq_label_tranfer.png
-   :height: 400
-   :width: 300
+   :height: 350
+   :width: 400
    :alt: planted_model
     
 After that, cell annotations of marseq are set as 'Unknown' and the two dataset are concatenated and intagrated using `Harmony <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6884693/>`_::
