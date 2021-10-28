@@ -47,7 +47,7 @@ Moreover, in order to spatially visualize the outcome of cluster analysis, we ca
 nested_model
 ^^^^^^^^^^^^
 
-The most prominent function implemented in ``schist`` library is the clustering function ``schist.inference.nested_model()``. It relies on a process called *minimization of the description length*\, which is implemented in the `graph-tool python library <https://graph-tool.skewed.de/>`_:
+The most prominent function implemented in ``schist`` library is the clustering function ``schist.inference.nested_model()``. It relies on a process called *minimization of the description length*\, implemented in the `graph-tool python library <https://graph-tool.skewed.de/>`_:
     
     - in lay terms, different partitions representig the dataset are generated; 
     - after that, the partition with the *lowest description* length is selected as the final output (the simplest partition among partitions with the highest explanatory power).
@@ -112,7 +112,7 @@ The final outcome of the function ``schist.inference.planted_model()`` consists 
 Label transfer
 --------------
 
-Differences in **description length** can be used to perform model selection, that is we can choose which model better describes the data. We sought to exploit this property to address the task of annotating cells according to a reference sample. Here, we show an exemple, using data from `Mereu *et al*\. <https://www.nature.com/articles/s41587-020-0469-4>`_, which includes mixtures of human PBMC and HEK293T cells profiled with various technologies. Cells profiled with 10X V3 platform are used as reference dataset, while annotations are performed on cells profiled with MARS-seq.
+Differences in **description length** can be used to perform model selection, that is we can choose which model better describes the data. We sought to exploit this property to address the task of annotating cells according to a reference sample. Here, we show an exemple, using data from `Mereu *et al* <https://www.nature.com/articles/s41587-020-0469-4>`_, which includes mixtures of human PBMC and HEK293T cells profiled with various technologies. Cells profiled with 10X V3 platform are used as reference dataset, while annotations are performed on cells profiled with MARS-seq.
 
 First, libraries and datasets are imported::
 
