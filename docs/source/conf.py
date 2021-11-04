@@ -101,7 +101,7 @@ exclude_patterns = []
 #
 html_theme = 'alabaster'
 html_theme_options = {
-    'logo': './garnet.png',
+    'logo': 'imgs/garnet.png',
     'logo_name': 'true',
     'fixed_sidebar': 'true',
     'github_user': 'dawe',
