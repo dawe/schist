@@ -103,7 +103,7 @@ html_theme = 'alabaster'
 html_theme_options = {
     'logo': 'images/garnet.png',
     'logo_name': 'true',
-    'fixed_sidebar': 'true',
+    'fixed_sidebar': 'false',
     'github_user': 'dawe',
     'github_repo': 'schist',
 }
