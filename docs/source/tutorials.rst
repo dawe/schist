@@ -68,7 +68,7 @@ In order to effectively visualize the nested hierarchy representing the partitio
 
     scs.plotting.alluvial(adata)
     
-.. image:: imgs/alluvial_uncut.png
+.. image:: images/alluvial_uncut.png
    :height: 450
    :width: 450
    :alt: alluvial_uncut
@@ -77,7 +77,7 @@ The hierarchy can be furtherly cut, using the parameters ``level_start`` and ``l
 
     scs.plotting.alluvial(adata, level_start=1, level_end=3)
     
-.. image:: imgs/alluvial_cut.png
+.. image:: images/alluvial_cut.png
    :height: 450
    :width: 450
    :alt: alluvial_cut
@@ -86,7 +86,7 @@ The final outcome of the function ``schist.inference.nested_model()`` consists o
 
     sc.pl.umap(adata, color=['nsbm_level_0', 'nsbm_level_1', 'nsbm_level_2', 'nsbm_level_3', 'nsbm_level_4'], ncols=2, legend_loc='on data')
 
-.. image:: imgs/nested_model.png
+.. image:: images/nested_model.png
    :height: 1200
    :width: 700
    :alt: nested_model
@@ -103,7 +103,7 @@ The final outcome of the function ``schist.inference.planted_model()`` consists 
 
     sc.pl.umap(adata, color=['ppbm'], legend_loc='on data')
 
-.. image:: imgs/planted_model.png
+.. image:: images/planted_model.png
    :height: 400
    :width: 350
    :alt: planted_model
@@ -127,7 +127,7 @@ Let's take a look at UMAP embeddings and cell annotations::
 
     sc.pl.umap(adata_10x, color='annotations')
     
-.. image:: imgs/10x_label_transfer.png
+.. image:: images/10x_label_transfer.png
    :height: 350
    :width: 400
    :alt: planted_model
@@ -136,7 +136,7 @@ Let's take a look at UMAP embeddings and cell annotations::
     
     sc.pl.umap(adata_marsseq, color='annotations')
     
-.. image:: imgs/MARS-seq_label_tranfer.png
+.. image:: images/MARS-seq_label_tranfer.png
    :height: 350
    :width: 400
    :alt: planted_model
@@ -176,7 +176,7 @@ Now, the dataset of MARS-seq platform is regenerated and the outcome of label tr
     adata_marseq.uns['reassigned_schist_colors'] = [col_scheme[x] for x in adata_marseq.obs['reassigned_schist'].cat.categories]
     sc.pl.umap(adata_marseq, color=['annotations', 'reassigned_schist', 'reassigned_knn'], title=['Original', f'schist'], legend_loc='on data')
     
-.. image:: imgs/label_transfer_outcome.png
+.. image:: images/label_transfer_outcome.png
    :height: 400
    :width: 700
    :alt: planted_model
