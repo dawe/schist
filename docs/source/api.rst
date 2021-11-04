@@ -1,5 +1,15 @@
+
 API
 ===
+
+Import ``schist`` as::
+
+    import schist as scs
+    
+inference: inference
+--------------------
+
+.. module:: inference
 
 .. autosummary::
    :toctree: generated
@@ -9,15 +19,32 @@ API
    inference.planted_model
    inference.flat_model
    inference.leiden
+   
+   
+plotting: plotting
+------------------
+
+.. module:: plotting
+
+.. autosummary::
+   :toctree: generated   
+   
    plotting.alluvial
    plotting.draw_tree
+   
+tools: tools
+------------
+
+.. module:: tools
+
+.. autosummary::
+   :toctree: generated
+   
    tools.cell_similarity
    tools.cell_stability
    tools.cluster_consistency
    tools.select_affinity
    tools.calculate_affinity
-   tools.draw_graph
+   tools._draw_graph
    tools.get_cell_back_p
    tools.get_cell_loglikelihood
-   input_output.write
-   input_output.read
