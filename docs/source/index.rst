@@ -6,9 +6,9 @@ Welcome to schist's documentation!
    :caption: Contents:
    
    readme
+   tutorials
    api
    functions
-   tutorials
 
 Indices and tables
 ==================

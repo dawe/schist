@@ -37,7 +37,7 @@ scs.inference.nested_model(adata)
 ```
 
 Once the MCMC has converged, the `adata.obs` object will contain additional columns for multiple levels, named `nsbm_level_0`, `nsbm_level_1`, `nsbm_level_2` and so on (by default up to `nsbm_level_10`). 
-More details can be found at [this page](Advanced.md)
+Complete documentation can be found at [this page](https://schist.readthedocs.io)
 
 
 ## Cite
