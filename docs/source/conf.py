@@ -40,7 +40,7 @@ copyright = '2021, Morelli Leonardo, Giansanti Valentina, Cittaro Davide'
 author = 'Morelli Leonardo, Giansanti Valentina, Cittaro Davide'
 
 # The full version, including alpha/beta/rc tags
-release = '2020'
+release = '0.7.11'
 
 
 # -- General configuration ---------------------------------------------------
@@ -101,7 +101,7 @@ exclude_patterns = []
 #
 html_theme = 'alabaster'
 html_theme_options = {
-    'logo': 'images/garnet.png',
+    'logo': 'imgs/garnet.png',
     'logo_name': 'true',
     'fixed_sidebar': 'true',
     'github_user': 'dawe',
