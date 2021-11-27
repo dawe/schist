@@ -327,7 +327,7 @@ def nested_model_multi(
                 adatas[xn].obsm[f'CM_{group}'] = _pv_array @ ct.values
 
         # add some unstructured info
-        if not ['schist'] in adatas[xn].uns:
+        if not 'schist' in adatas[xn].uns:
             adatas[xn].uns['schist'] = {}
 
         adatas[xn].uns['schist'][f'{key_added}'] = {}
@@ -353,8 +353,8 @@ def nested_model_multi(
             collect_marginals=collect_marginals,
             random_seed=random_seed,
             deg_corr=deg_corr,
-            recs=recs,
-            rec_types=rec_types
+#            recs=recs,
+#            rec_types=rec_types
         )
 
 
