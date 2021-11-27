@@ -7,6 +7,8 @@ import pickle
 from scipy import sparse
 from sklearn.metrics import adjusted_mutual_info_score as ami
 import pandas as pd
+from scipy.sparse import spmatrix
+
 
 try:
     import graph_tool.all as gt

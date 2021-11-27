@@ -5,9 +5,6 @@ import graph_tool.all as gt
 import numpy as np
 import numba
 from anndata import AnnData
-from scipy.sparse import spmatrix
-
-from ._helpers import *
 from scanpy._utils import get_igraph_from_adjacency
 
 
