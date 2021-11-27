@@ -8,7 +8,7 @@ from scipy import sparse
 from sklearn.metrics import adjusted_mutual_info_score as ami
 import pandas as pd
 from scipy.sparse import spmatrix
-
+from scanpy._utils import get_igraph_from_adjacency
 
 try:
     import graph_tool.all as gt
