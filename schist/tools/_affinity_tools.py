@@ -8,7 +8,7 @@ from scipy import sparse
 from scanpy import logging as logg
 import graph_tool.all as gt
 import pandas as pd
-from ._tl_utils import *
+from .._utils import get_cell_loglikelihood, get_cell_back_p
 from scanpy._utils import get_igraph_from_adjacency, _choose_graph
 
 
