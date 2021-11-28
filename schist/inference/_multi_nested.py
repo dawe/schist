@@ -331,7 +331,7 @@ def nested_model_multi(
             adatas[xn].uns['schist'] = {}
 
         adatas[xn].uns['schist'][f'{key_added}'] = {}
-        adatas[xn].uns['schist'][f'{key_added}']['multi_level_stats'] = dict(
+        adatas[xn].uns['schist'][f'{key_added}']['stats'] = dict(
         level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
         modularity=np.array([gt.modularity(union_g, state.project_partition(x, 0))
                              for x in range(len((state.levels)))])
@@ -341,10 +341,10 @@ def nested_model_multi(
         levels = state.get_levels()
         for nl in range(len(levels)):
             bl_d[str(nl)] = np.array(levels[nl].get_blocks().a)
-        adatas[xn].uns['schist'][f'{key_added}']['multi_level_state'] = bl_d
+        adatas[xn].uns['schist'][f'{key_added}']['state'] = bl_d
 
         # last step is recording some parameters used in this analysis
-        adatas[xn].uns['schist'][f'{key_added}']['multi_level_params'] = dict(
+        adatas[xn].uns['schist'][f'{key_added}']['params'] = dict(
             model='multiome_nested',
             use_weights=use_weights,
             neighbors_key=neighbors_key[xn],
