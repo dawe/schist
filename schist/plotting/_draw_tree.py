@@ -10,6 +10,7 @@ import pandas as pd
 import graph_tool.all as gt
 from scanpy import logging as logg
 from sklearn.preprocessing import MinMaxScaler
+from .._utils import state_from_blocks
 
 def isnotebook():
     # from Stackoverflow
@@ -33,7 +34,7 @@ def draw_tree(
     color: Union[str, None] = None,
 #    annotation: Union[Sequence[str], None] = None,
     color_map: Union[mpl.colors.Colormap, str, None] = None,
-    key: str = 'nsbm',
+    block_key: str = 'nsbm',
     ax: Axes = None,
     show: bool = True,
     use_backend: str = None,
@@ -56,7 +57,7 @@ def draw_tree(
     save
         Name of the output file. If a non interactive notebook is detected, 
         this parameter is automatically set.    
-    key
+    block_key
         The key used to perform nsbm    
 """    
     
@@ -80,7 +81,18 @@ def draw_tree(
         # this is here only to try overrides, it won't ever work!
         plt.switch_backend(use_backend)
         
-    state = adata.uns['schist']['state'] #the NestedBlockState
+    params = adata.uns['schist'][f'{block_key}']['params']
+    if 'neighbors_key' in params:
+        neighbors_key=params['neighbors_key']
+    if 'use_weights' in params:
+        use_weights=params['use_weights']
+    if 'deg_corr' in params:
+        deg_corr=params['deg_corr']
+    state = state_from_blocks(adata, 
+                              state_key=block_key,
+                              neighbors_key=neighbors_key,
+                             )
+
     g = state.g # the graph in graph-tool format
 
     fill_color = g.new_vertex_property('vector<double>')
@@ -94,8 +106,8 @@ def draw_tree(
         if level < 1:
             logg.warning("Cannot plot level below 1, setting to level 1")
             level = 1
-        obs_key = f'{key}_level_{level}'
-        uns_key = f'{key}_level_{level}_colors'
+        obs_key = f'{block_key}_level_{level}'
+        uns_key = f'{block_key}_level_{level}_colors'
         adata_colors = adata.uns[uns_key]
         categories = adata.obs[obs_key].cat.categories
         colors = [mpl.colors.to_rgba(x) for x in adata_colors]

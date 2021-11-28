@@ -298,7 +298,8 @@ def nested_model(
         random_seed=random_seed,
         deg_corr=deg_corr,
         recs=recs,
-        rec_types=rec_types
+        rec_types=rec_types,
+        directed=directed
     )
 
     logg.info(
