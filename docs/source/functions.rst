@@ -64,9 +64,3 @@ draw_graph
 .. automodule:: tools._draw_graph
    :members:
 
-tl_utils
-++++++++
-
-.. automodule:: tools._tl_utils
-   :members:
-
