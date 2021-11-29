@@ -112,10 +112,12 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme' #'sphinxdoc'
+html_logo = 'images/garnet.png'
 html_theme_options = {
-    'logo': 'images/garnet.png',
-    'logo_name': 'true',
-    'fixed_sidebar': 'false',
+#    'html_logo': 'images/garnet.png',
+#    'logo_name': 'true',
+    'logo_only': False,
+    'fixed_sidebar': False,
     'github_user': 'dawe',
     'github_repo': 'schist',
 }
