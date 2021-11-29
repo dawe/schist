@@ -27,7 +27,7 @@ If you want to install ``schist`` from source, clone this repository and install
 
     git clone https://github.com/dawe/schist.git
     cd schist
-    pip install .
+    pip install -e .
 
 ----------
 How to use

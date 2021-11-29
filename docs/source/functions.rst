@@ -55,9 +55,6 @@ affinity_tools
 .. automodule:: tools._affinity_tools
    :members: 
 
-.. automodule:: tools._select
-   :members:
-
 draw_graph
 ++++++++++
 
