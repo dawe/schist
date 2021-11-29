@@ -21,11 +21,11 @@ import sys
 #    import cython_generated_ext
 
 import mock
-MOCK_MODULES = ['numpy', 'numpy.dtype','pandas', 'anndata','joblib','scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat','scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes','matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba','graph-tool','sklearn.utils.murmurhash','sklearn','sklearn.metrics']
+#MOCK_MODULES = ['numpy', 'numpy.dtype','pandas', 'anndata','joblib','scanpy','natsort','scanpy.tools._utils_clustering','scanpy._utils','scanpy._compat','scipy','scipy.sparse','scipy.stats', 'matplotlib', 'matplotlib.patches', 'scipy.interpolate','schist','matplotlib.axes','matplotlib.pyplot','sklearn.preprocessing','graph_tool','graph_tool.all','numba','graph-tool','sklearn.utils.murmurhash','sklearn','sklearn.metrics']
 #MOCK_MODULES = ['graph-tool','numpy']
 #
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.MagicMock()
+#for mod_name in MOCK_MODULES:
+#    sys.modules[mod_name] = mock.MagicMock()
 #    sys.modules[mod_name] = mock.Mock()
 #------------------------------------------------------------------------------
 #sys.path.insert(0, os.path.abspath('..'))
@@ -74,7 +74,6 @@ napoleon_preprocess_types = False
 napoleon_type_aliases = None
 napoleon_attr_annotations = True
 
-
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
                        'numpy': ('https://docs.scipy.org/doc/numpy', None),
@@ -82,7 +81,16 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
                        'matplotlib': ('https://matplotlib.org', None),
                        'cairo': ('https://www.cairographics.org/documentation/pycairo/3', None),
                        'ipython': ('https://ipython.org/ipython-doc/stable/', None),
-                       'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None)}
+                       'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
+                       'anndata': ('https://anndata.readthedocs.io/en/stable/', None),
+                       'scanpy': ('https://scanpy.readthedocs.io/en/stable/', None),
+                       'sklearn': ('https://scikit-learn.org/stable/', None),
+                       'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
+                       'joblib': ('https://joblib.readthedocs.io/en/latest/', None),
+                       'natsort': ('https://natsort.readthedocs.io/en/master/', None),
+                       'numba': ('https://numba.readthedocs.io/en/stable/', None)
+
+                       }
 
 
 # Add any paths that contain templates here, relative to this directory.
