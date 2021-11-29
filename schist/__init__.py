@@ -2,7 +2,6 @@ from . import inference
 from . import tools as tl
 from . import plotting as pl
 
-
 __author__ = ', '.join([
     'Davide Cittaro',
     'Leonardo Morelli',

@@ -231,6 +231,11 @@ def state_from_blocks(
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
         
+    Returns
+    -------
+    
+    Nothing, adds a `gt.block_state` object in adata.uns        
+        
     """
     bl_d = adata.uns['schist'][f'{state_key}']['blocks']
     params = adata.uns['schist'][f'{state_key}']['params']
