@@ -1,7 +1,5 @@
-name: latest
 channels:
-  - conda-forge
   - defaults
+  - conda-forge
 dependencies:
-  - python
-  - schist
+  - graph-tool=2.43
