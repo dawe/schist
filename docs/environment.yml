@@ -2,4 +2,6 @@ channels:
   - defaults
   - conda-forge
 dependencies:
+  - pip
+  - scanpy
   - graph-tool=2.43
