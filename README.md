@@ -41,20 +41,18 @@ Complete documentation can be found at [this page](https://schist.readthedocs.io
 
 
 ## Cite
-We are preparing the manuscript. In the meantime, if you use `schist` you may cite the preprint:
+If you use `schist` you may cite the paper:
 
 ```
-@article{morelli_2020,
-title = {Nested stochastic block models applied to the analysis of single cell data},
-author = {Morelli, Leonardo and Giansanti, Valentina and Cittaro, Davide},
-url = {http://biorxiv.org/lookup/doi/10.1101/2020.06.28.176180},
-year = {2020},
-month = {jun},
-day = {29},
-urldate = {2020-07-02},
-journal = {BioRxiv},
-doi = {10.1101/2020.06.28.176180},
-}
+@article{Morelli_Giansanti_Cittaro_2021, 
+title={Nested Stochastic Block Models applied to the analysis of single cell data},
+volume={22},
+DOI={10.1186/s12859-021-04489-7},
+number={1}, 
+journal={BMC Bioinformatics}, 
+author={Morelli, Leonardo and Giansanti, Valentina and Cittaro, Davide}, year={2021},
+month={Dec},
+pages={576}}
 ```
 
 
