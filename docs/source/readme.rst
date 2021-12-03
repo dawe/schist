@@ -45,7 +45,7 @@ Once the MCMC has converged, the ``adata.obs`` object will contain additional co
 Cite
 ----
 
-If you use `schist` you may cite the paper:
+If you use `schist` you may cite the paper::
 
 
     @article{Morelli_Giansanti_Cittaro_2021, 
