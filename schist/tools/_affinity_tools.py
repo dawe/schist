@@ -492,7 +492,13 @@ def label_transfer(
     # here we assume that concatenation does not change the order of cells
     # only cell names 
     
-    adata.obs[obs] = adata_merge.obs.query('_label_transfer == "_unk"')[obs].values
+    adata.obs[obs] = adata_merge.obs.query('_label_transfer == "_unk"')[f'_{obs}_tmp'].values
+    
+    # transfer colors if any
+    if adata_ref and adata_ref.uns[f'{obs}_colors']:
+        colors = list(adata_ref.uns[f'{obs}_colors'])
+        colors.append('#aabbcc')
+        adata.uns[f'{obs}_colors'] = colors
     
     return adata if copy else None
     
