@@ -491,8 +491,19 @@ def label_transfer(
     # do actual transfer to dataset 1
     # here we assume that concatenation does not change the order of cells
     # only cell names 
+
+    labels = adata_merge.obs[f'_{obs}_tmp'].cat.categories
+    if adata_ref:
+        # transfer has been done between two files
+        adata.obs[obs] = adata_merge.obs.query('_label_transfer == "_unk"')[f'_{obs}_tmp'].values
+    else:
+        # transfer is within dataset
+        adata_merge.obs[obs] = adata_merge.obs[f'_{obs}_tmp'].values
+        adata_merge.obs.drop(f'_{obs}_tmp', axis='columns', inplace=True)
+        adata = adata_merge
     
-    adata.obs[obs] = adata_merge.obs.query('_label_transfer == "_unk"')[f'_{obs}_tmp'].values
+    # ensure that it is categorical with proper order
+    adata.obs[obs] = pd.Categorical(adata.obs[obs],  categories=labels)
     
     # transfer colors if any
     if adata_ref and f'{obs}_colors' in adata_ref.uns:
