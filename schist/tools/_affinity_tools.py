@@ -495,7 +495,7 @@ def label_transfer(
     adata.obs[obs] = adata_merge.obs.query('_label_transfer == "_unk"')[f'_{obs}_tmp'].values
     
     # transfer colors if any
-    if adata_ref and adata_ref.uns[f'{obs}_colors']:
+    if adata_ref and f'{obs}_colors' in adata_ref.uns:
         colors = list(adata_ref.uns[f'{obs}_colors'])
         if not use_best:
             # add gray for unknown
