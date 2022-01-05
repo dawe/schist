@@ -1,4 +1,4 @@
-from typing import Optional#, Tuple, Sequence, Type, Union, Dict
+from typing import Optional, Tuple, Sequence, Type, Union, Dict
 
 import numpy as np
 from anndata import AnnData
@@ -352,3 +352,114 @@ def cell_similarity(
     return adata if copy else None
 
 
+def label_transfer(
+    adata: AnnData,
+    adata_ref: Optional[AnnData] = None,
+    obs: Optional[str] = None,
+    label_unk: Optional[str] = 'unknown',
+    use_best: Optional[bool] = False,
+    neighbors_key: Optional[str] = 'neighbors',
+    adjacency: Optional[sparse.spmatrix] = None,
+    directed: bool = False,
+    use_weights: bool = False,
+    pca_args: Optional[dict] = {},
+    hamony_args: Optional[dict] = {},
+    copy: bool = False
+    
+) -> Optional[AnnData]:
+    
+    """\
+    Transfer annotation from one dataset to another using cell affinities
+    on the kNN graph. If two datasets are given, it uses harmony to perform
+    integration and then the kNN graph. If only no reference is given, it is assumed
+    that the only adata already contains the proper kNN graph and that
+    labels to be reassigned have a specified value.
+    
+    Parameters
+    ----------
+    adata:
+        The AnnData object. 
+    adata_ref
+        The optional reference dataset. If None, then all the needed information
+        should be included in `adata` (i.e. the kNN graph and the labels)
+    obs
+        The label that needs to be transfered. Should be in `adata_ref.obs` or in 
+        `adata.obs` if no `adata_ref` is given
+    label_unk
+        The label for unassigned cells. If no `adata_ref` is given, this label 
+        identifies cells to be assigned in `adata`. If `adata_ref` is given, this
+        label will be given to all cells that cannot be assigned.
+    use_best
+        When assigning labels, some cells may have not enough evidence and, therefore, 
+        left `unknown`. If this parameter is set to `True`, all cells will be assigned
+        to the best possible, even if it may not be optimal
+    neighbors_key
+        Use neighbors connectivities as adjacency.
+        If not specified, leiden looks .obsp['connectivities'] for connectivities
+        (default storage place for pp.neighbors).
+        If specified, leiden looks
+        .obsp[.uns[neighbors_key]['connectivities_key']] for connectivities.
+    adjacency
+        Sparse adjacency matrix of the graph, defaults to neighbors connectivities.
+    directed
+        Whether to treat the graph as directed or undirected.
+    use_weights
+        If `True`, edge weights from the graph are used in the computation
+        (placing more emphasis on stronger edges).
+    pca_args
+        Parameters to be passed to `sc.tl.pca` before harmony is issued
+    harmony_args
+    	Parameters to be passed to `sc.external.pp.harmony_integrate`
+    copy:
+        Return a new object or do everything in place
+        
+
+    Returns
+    -------
+    Depending on `copy`, returns or updates `adata` with added labels 
+    in adata.obs[f'{label_ref}']
+        
+"""    
+
+    if adata_ref:
+        # we have to create a merged dataset and integrate
+        # before that check that the labels are not in the recipient, in case drop
+        
+        if obs in adata.obs_keys():
+            logg.warning(f'{obs} was found in dataset 1, it will be wiped')
+            adata.obs.drop(obs, inplace=True, axis='columns')
+
+        if not obs in adata_ref.obs_keys():
+            raise ValueError(
+                f'Annotation {obs} is not present in reference dataset.'
+            )         
+
+        # now do the merge, so that the empty category is now created
+        adata_merge = adata.concatenate(adata_ref, batch_categories=['_unk', '_ref'],
+                                        batch_key='_label_transfer')
+        # 
+        adata_merge.obs[obs] = adata_merge.obs[obs].cat.add_categories(label_unk).fillna(label_unk)
+        
+        # perform integration using harmony
+        sc.tl.pca(adata_merge, **pca_args)
+		sc.external.pp.harmony_integrate(adata_merge, 
+		                                 key='_label_transfer', 
+		                                 **harmony_args)
+        # now calculate the kNN graph		                                 
+        n_neighbors = int(np.sqrt(adata_merge.shape[0])/2)
+        sc.pp.neighbors(adata_merge, use_rep='X_pca_harmony', 
+                        n_neighbors=n_neighbors, key_added=neighbors_key) 
+    else:
+        adata_merge = adata#.copy()
+        if not obs in adata_merge.obs_keys():
+            raise ValueError(
+                f'Annotation {obs} is not present in dataset.'
+            )         
+        if not label_unk in adata_merge.obs[obs].cat.categories:
+            raise ValueError(
+                f'Label {label_unk} is not present in {obs}.'
+            ) 
+
+    # calculate affinity
+    
+    calculate_affinity(mdata, group_by=obs, neighbors_key=neighbors_key)
