@@ -451,8 +451,11 @@ def label_transfer(
                           **harmony_args)
         # now calculate the kNN graph		                                 
         n_neighbors = int(np.sqrt(adata_merge.shape[0])/2)
+        key_added = neighbors_key
+        if key_added == 'neighbors':
+            key_added = None
         neighbors(adata_merge, use_rep='X_pca_harmony', 
-                        n_neighbors=n_neighbors, key_added=neighbors_key) 
+                        n_neighbors=n_neighbors, key_added=key_added) 
     else:
         adata_merge = adata#.copy()
         if not obs in adata_merge.obs_keys():
