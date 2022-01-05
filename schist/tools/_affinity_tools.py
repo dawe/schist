@@ -497,7 +497,9 @@ def label_transfer(
     # transfer colors if any
     if adata_ref and adata_ref.uns[f'{obs}_colors']:
         colors = list(adata_ref.uns[f'{obs}_colors'])
-        colors.append('#aabbcc')
+        if not use_best:
+            # add gray for unknown
+            colors.append('#aabbcc')
         adata.uns[f'{obs}_colors'] = colors
     
     return adata if copy else None
