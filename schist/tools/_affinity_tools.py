@@ -363,7 +363,7 @@ def label_transfer(
     directed: bool = False,
     use_weights: bool = False,
     pca_args: Optional[dict] = {},
-    hamony_args: Optional[dict] = {},
+    harmony_args: Optional[dict] = {},
     copy: bool = False
     
 ) -> Optional[AnnData]:
@@ -422,6 +422,10 @@ def label_transfer(
 """    
     adata = adata.copy() if copy else adata
     if adata_ref:
+        from scanpy.tools import pca
+        from scanpy.preprocessing import neighbors
+        from scanpy.external.pp import harmony_integrate
+
         # we have to create a merged dataset and integrate
         # before that check that the labels are not in the recipient, in case drop
         
@@ -441,13 +445,13 @@ def label_transfer(
         adata_merge.obs[obs] = adata_merge.obs[obs].cat.add_categories(label_unk).fillna(label_unk)
         
         # perform integration using harmony
-        sc.tl.pca(adata_merge, **pca_args)
-		sc.external.pp.harmony_integrate(adata_merge, 
-		                                 key='_label_transfer', 
-		                                 **harmony_args)
+        pca(adata_merge, **pca_args)
+        harmony_integrate(adata_merge, 
+                          key='_label_transfer', 
+                          **harmony_args)
         # now calculate the kNN graph		                                 
         n_neighbors = int(np.sqrt(adata_merge.shape[0])/2)
-        sc.pp.neighbors(adata_merge, use_rep='X_pca_harmony', 
+        neighbors(adata_merge, use_rep='X_pca_harmony', 
                         n_neighbors=n_neighbors, key_added=neighbors_key) 
     else:
         adata_merge = adata#.copy()
@@ -467,8 +471,7 @@ def label_transfer(
     # now work on affinity, rank it to get the new labels
     categories = adata_merge.obs[obs].cat.categories
     affinity = pd.DataFrame(adata_merge.obsm[f'CA_{obs}'], 
-                            index=adata_merge.obs_names, 
-                            columns=categories)
+                            index=adata_merge.obs_names, columns=categories)
     # if use_best we need to remove label unknonw from the matrix so it
     # does not get scored
     if use_best:
