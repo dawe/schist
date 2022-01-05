@@ -369,8 +369,8 @@ def label_transfer(
 ) -> Optional[AnnData]:
     
     """\
-    Transfer annotation from one dataset to another using cell affinities
-    on the kNN graph. If two datasets are given, it uses harmony to perform
+    Transfer annotation from one dataset to another using cell affinities.
+    If two datasets are given, it uses harmony to perform
     integration and then the kNN graph. If only no reference is given, it is assumed
     that the only adata already contains the proper kNN graph and that
     labels to be reassigned have a specified value.

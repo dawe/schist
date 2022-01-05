@@ -45,3 +45,4 @@ tools
    schist.tools.cell_stability
    schist.tools.cluster_consistency
    schist.tools.calculate_affinity
+   schist.tools.label_transfer
