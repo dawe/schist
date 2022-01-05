@@ -420,7 +420,7 @@ def label_transfer(
     in adata.obs[f'{label_ref}']
         
 """    
-
+    adata = adata.copy() if copy else adata
     if adata_ref:
         # we have to create a merged dataset and integrate
         # before that check that the labels are not in the recipient, in case drop
@@ -462,4 +462,31 @@ def label_transfer(
 
     # calculate affinity
     
-    calculate_affinity(mdata, group_by=obs, neighbors_key=neighbors_key)
+    calculate_affinity(adata_merge, group_by=obs, neighbors_key=neighbors_key)
+    
+    # now work on affinity, rank it to get the new labels
+    categories = adata_merge.obs[obs].cat.categories
+    affinity = pd.DataFrame(adata_merge.obsm[f'CA_{obs}'], 
+                            index=adata_merge.obs_names, 
+                            columns=categories)
+    # if use_best we need to remove label unknonw from the matrix so it
+    # does not get scored
+    if use_best:
+        affinity.drop(label_unk, axis='columns', inplace=True)
+    
+    rank_affinity = affinity.rank(axis=1, ascending=False)
+    adata_merge.obs[f'_{obs}_tmp'] = adata_merge.obs[obs].values
+    for c in rank_affinity.columns:
+        # pretty sure there's a way to do it without a 
+        # for loop :-/ I really need a course on pandas
+        cells = rank_affinity[rank_affinity[c] == 1].index
+        adata_merge.obs.loc[cells, f'_{obs}_tmp'] = c
+    
+    # do actual transfer to dataset 1
+    # here we assume that concatenation does not change the order of cells
+    # only cell names 
+    
+    adata.obs[obs] = adata_merge.obs.query('_label_transfer == "_unk"')[obs].values
+    
+    return adata if copy else None
+    
