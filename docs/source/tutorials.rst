@@ -154,7 +154,8 @@ Cell affinities are calculated using ``scs.tl.calculate_affinity`` function, sim
 Finally, cells of MARS-seq platform, previoulsy labelled as 'unknown', are reassigned to the group with highest probability. It is important to note that 
 Now, the dataset of MARS-seq platform is regenerated and the outcome of label transfer can be visualized::
 
-    sc.pl.umap(adata_marseq, color=['original_nnet2', 'nnet2'], title=['Original', 'Transferred'], ncols=1)
+    sc.pl.umap(adata_marseq, color=['original_nnet2', 'nnet2'], 
+               title=['Original', 'Transferred'], ncols=1)
     
 .. image:: images/label_transfer_outcome.png
    :height: 489
@@ -164,7 +165,7 @@ Now, the dataset of MARS-seq platform is regenerated and the outcome of label tr
 In default mode, ``schist`` does not assign a cell to a group if there is not enough evidence for it. Instead, it leaves such cells with the *unknown* label::
 
     sc.pl.umap(adata_marseq, color='nnet2', groups=['unknown'], na_color='#FFFFCC', 
-          frameon=False, title='Unknown cells', na_in_legend=False)
+               frameon=False, title='Unknown cells', na_in_legend=False)
           
 .. image:: images/label_transfer_unknown.png
    :height: 300
@@ -181,7 +182,16 @@ There is the possibility to try hard the assignment by using the best label poss
    :height: 300
    :width: 383
    :alt: label_unknown_best
-              
+   
+As no *unknown* cells are in the dataset, we can safely remove the category and visualize the complete results::
 
+    adata_marseq.obs['nnet2'].cat.remove_unused_categories()
+    sc.pl.umap(adata2, color=['original_nnet2', 'nnet2'], frameon=False, 
+               ncols=1, title=['Original', 'Transferred'])
+              
+.. image:: images/label_transfer_outcome_best.png
+   :height: 489
+   :width: 407
+   :alt: label_transfer_best
 
 
