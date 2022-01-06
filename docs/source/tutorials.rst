@@ -125,47 +125,33 @@ First, libraries and datasets are imported::
     
 Let's take a look at UMAP embeddings and cell annotations::
 
-    sc.pl.umap(adata_10x, color='annotations')
+    sc.pl.umap(adata_10x, color='nnet2')
     
 .. image:: images/10x_label_transfer.png
-   :height: 350
-   :width: 400
+   :height: 300
+   :width: 407
    :alt: planted_model
    
 ::  
     
-    sc.pl.umap(adata_marsseq, color='annotations')
+    sc.pl.umap(adata_marsseq, color='nnet2')
     
 .. image:: images/MARS-seq_label_tranfer.png
-   :height: 350
-   :width: 400
+   :height: 300
+   :width: 408
    :alt: planted_model
     
-After that, cell annotations of marseq are set as 'Unknown' and the two dataset are concatenated and intagrated using `Harmony <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6884693/>`_::
-  
-    adata_10x.obs['annotation'] = adata_10x.obs['nnet2']
-    adata_marseq.obs['annotation'] = 'Unknown'
-    mdata = adata_10x.concatenate(adata_marseq, batch_categories=['10XV3', 'MARSseq'])
-    mdata.obs['annotation'] = pd.Categorical(mdata.obs['annotation'])
-    sc.pp.scale(mdata)
-    sc.tl.pca(mdata)
-    sc.external.pp.harmony_integrate(mdata, key='batch')
-    sc.pp.neighbors(mdata, n_neighbors=int(np.sqrt(mdata.shape[0])/2), use_rep='X_pca_harmony')
+Current version of ``schist`` wipes any annotation that is going to be transferred, so we create a copy of the original annotation in the MARS-seq data::
 
-Cell affinities are calculated using ``schist``. Cell affinities are computed, simulating the moves of each cell to each group: each move generates a variation in the **description length**, which is stored as a probability. This measure evaluates the confidence of cell assignments::
-
-    scs.tl.calculate_affinity(mdata, group_by='annotation', neighbors_key='neighbors')
+    adata_marsseq.obs['original_nnet2'] = adata_marsseq.obs['nnet2'].copy()
     
-Finally, cells of MARS-seq platform, previoulsy labelled as 'Unknown', are reassigned to the group, which have led to the lowest **description lenght**::
+After that, cell annotations from 10X V3 can be transfered to MARS-seq dataset simply issuing::
 
-    categories = mdata.obs['annotation'].cat.categories
-    affinity = pd.DataFrame(mdata.obsm['CA_annotation'], index=mdata.obs_names, columns=categories)
-    rank_affinity = affinity.rank(axis=1, ascending=False)
-    mdata.obs['reassigned'] = mdata.obs['annotation'].values
-    for c in rank_affinity.columns:
-        cells = rank_affinity[rank_affinity[c] == 1].index
-        mdata.obs.loc[cells, 'reassigned'] = c 
+    scs.tl.label_transfer(adata_marseq, adata_10x, obs='nnet2', label_unk='Unknown')
 
+Under the hood, ``schist`` first assigns 'Unknown' to the ``nnet2`` annotation in MARS-seq data, then both dataset are concatenated and integrated using using `Harmony <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6884693/>`_.
+Cell affinities are calculated using ``scs.tl.calculate_affinity`` function, simulating the moves of each cell to each group: each move generates a variation in the **description length**, which is stored as a probability. This measure evaluates the confidence of cell assignments.
+Finally, cells of MARS-seq platform, previoulsy labelled as 'Unknown', are reassigned to the group with highest probability. It is important to note that 
 Now, the dataset of MARS-seq platform is regenerated and the outcome of label transfer is visualized::
 
     mdata_marseq = mdata[mdata.obs['batch'] != "10XV3"]
@@ -177,6 +163,6 @@ Now, the dataset of MARS-seq platform is regenerated and the outcome of label tr
     sc.pl.umap(adata_marseq, color=['annotations', 'reassigned_schist', 'reassigned_knn'], title=['Original', f'schist'], legend_loc='on data')
     
 .. image:: images/label_transfer_outcome.png
-   :height: 400
-   :width: 700
+   :height: 300
+   :width: 623
    :alt: planted_model
