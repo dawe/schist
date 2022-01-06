@@ -186,7 +186,7 @@ There is the possibility to try hard the assignment by using the best label poss
 As no *unknown* cells are in the dataset, we can safely remove the category and visualize the complete results::
 
     adata_marseq.obs['nnet2'].cat.remove_unused_categories()
-    sc.pl.umap(adata2, color=['original_nnet2', 'nnet2'], frameon=False, 
+    sc.pl.umap(adata_marseq, color=['original_nnet2', 'nnet2'], frameon=False, 
                ncols=1, title=['Original', 'Transferred'])
               
 .. image:: images/label_transfer_outcome_best.png
