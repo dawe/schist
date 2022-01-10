@@ -512,6 +512,10 @@ def label_transfer(
             # add gray for unknown
             colors.append('#aabbcc')
         adata.uns[f'{obs}_colors'] = colors
+
+    # remove unused categories if "use_best" hence no "unknown"
+    if use_best:
+        adata.obs[obs].cat.remove_unused_categories()
     
     return adata if copy else None
     
