@@ -469,8 +469,8 @@ def label_transfer(
         h_rep = f'{use_rep}_harmony'
         harmony_integrate(adata_merge, 
                           key='_label_transfer', 
-                          use_rep=use_rep,
-                          adjusted_basis=h_rep
+                          basis=use_rep,
+                          adjusted_basis=h_rep,
                           **harmony_args)
         # now calculate the kNN graph		                                 
         n_neighbors = int(np.sqrt(adata_merge.shape[0])/2)
