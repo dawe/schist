@@ -363,6 +363,7 @@ def label_transfer(
     directed: bool = False,
     use_weights: bool = False,
     pca_args: Optional[dict] = {},
+    use_rep: Optional[str] = None,
     harmony_args: Optional[dict] = {},
     copy: bool = False
     
@@ -408,6 +409,9 @@ def label_transfer(
         (placing more emphasis on stronger edges).
     pca_args
         Parameters to be passed to `sc.tl.pca` before harmony is issued
+    use_rep
+        If specified use this embedding and do not calculate a pca. Note that the
+        embedding must be present in both datasets, with the same number of dimensions 
     harmony_args
     	Parameters to be passed to `sc.external.pp.harmony_integrate`
     copy:
@@ -438,6 +442,20 @@ def label_transfer(
                 f'Annotation {obs} is not present in reference dataset.'
             )         
 
+        if use_rep:
+            revert_to_pca = False
+            if not use_rep in adata.obsm.keys():
+                logg.warning(f'{use_rep} was not found into dataset 1, reverting to PCA')
+                revert_to_pca = True
+            elif not use_rep in adata_ref.obsm.keys():
+                logg.warning(f'{use_rep} was not found into dataset 2, reverting to PCA')
+                revert_to_pca = True
+            elif adata.obsm[use_rep].shape[1] != adata_ref.obsm[use_rep].shape[1]:
+                logg.warning(f'{use_rep} is inconsistent in two datasets, reverting to PCA')
+                revert_to_pca = True
+            if revert_to_pca:
+                use_rep = None
+
         # now do the merge, so that the empty category is now created
         adata_merge = adata.concatenate(adata_ref, batch_categories=['_unk', '_ref'],
                                         batch_key='_label_transfer')
@@ -445,16 +463,21 @@ def label_transfer(
         adata_merge.obs[obs] = adata_merge.obs[obs].cat.add_categories(label_unk).fillna(label_unk)
         
         # perform integration using harmony
-        pca(adata_merge, **pca_args)
+        if not use_rep:
+            pca(adata_merge, **pca_args)
+            use_rep = 'X_pca'
+        h_rep = f'{use_rep}_harmony'
         harmony_integrate(adata_merge, 
                           key='_label_transfer', 
+                          use_rep=use_rep,
+                          adjusted_basis=h_rep
                           **harmony_args)
         # now calculate the kNN graph		                                 
         n_neighbors = int(np.sqrt(adata_merge.shape[0])/2)
         key_added = neighbors_key
         if key_added == 'neighbors':
             key_added = None
-        neighbors(adata_merge, use_rep='X_pca_harmony', 
+        neighbors(adata_merge, use_rep=h_rep, 
                         n_neighbors=n_neighbors, key_added=key_added) 
     else:
         adata_merge = adata#.copy()
