@@ -460,6 +460,8 @@ def label_transfer(
         adata_merge = adata.concatenate(adata_ref, batch_categories=['_unk', '_ref'],
                                         batch_key='_label_transfer')
         # 
+        if adata_merge.obs[obs].dtype.name != 'category':
+            adata_merge.obs[obs] = pd.Categorical(adata_merge.obs[obs])
         adata_merge.obs[obs] = adata_merge.obs[obs].cat.add_categories(label_unk).fillna(label_unk)
         
         # perform integration using harmony
