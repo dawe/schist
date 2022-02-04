@@ -507,11 +507,15 @@ def label_transfer(
     
     rank_affinity = affinity.rank(axis=1, ascending=False)
     adata_merge.obs[f'_{obs}_tmp'] = adata_merge.obs[obs].values
+    unk_cells = adata_merge.obs.query('_label_transfer == "_unk"').index
     for c in rank_affinity.columns:
         # pretty sure there's a way to do it without a 
         # for loop :-/ I really need a course on pandas
         cells = rank_affinity[rank_affinity[c] == 1].index
-        adata_merge.obs.loc[cells, f'_{obs}_tmp'] = c
+        # do not relabel known cells
+        cells = cells.intersection(unk_cells) 
+        if len(cells) > 0:
+            adata_merge.obs.loc[cells, f'_{obs}_tmp'] = c
     
     # do actual transfer to dataset 1
     # here we assume that concatenation does not change the order of cells
