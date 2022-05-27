@@ -291,7 +291,7 @@ def nested_model_multi(
     for c in groups.columns:
         ncat = len(groups[c].cat.categories)
         new_cat = [u'%s' % x for x in range(ncat)]
-        groups[c].cat.rename_categories(new_cat, inplace=True)
+        groups[c] = groups[c].cat.rename_categories(new_cat)
 
     levels = groups.columns
     
