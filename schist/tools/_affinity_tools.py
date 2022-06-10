@@ -492,6 +492,12 @@ def label_transfer(
                 f'Label {label_unk} is not present in {obs}.'
             ) 
 
+    # before going on make sure there are no nans in partitions
+    # otherwise a BlockState is initialized with negative labels, this 
+    # causes a core dump
+    
+    adata_merge.obs[obs] = adata_merge.obs[obs].fillna(label_unk)
+
     # calculate affinity
     
     calculate_affinity(adata_merge, group_by=obs, neighbors_key=neighbors_key)
