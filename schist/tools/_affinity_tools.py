@@ -491,6 +491,15 @@ def label_transfer(
             raise ValueError(
                 f'Label {label_unk} is not present in {obs}.'
             ) 
+        # I can't figure out how it did work without this
+        # it is needed afterwards to select newly labeled cells
+        # this is managed when adatas are given separately
+            
+        _tl = adata_merge.obs[obs].astype(object) #to object and not str to manage nans
+        _tl = _tl.replace('unknown', '_unk') #set identity to unknown
+        _tl = _tl.fillna('_unk') #assume nans come from unknown
+        _tl[_tl != '_unk'] = '_ref' #set reference to the remaining
+        adata_merge.obs['_label_transfer'] = pd.Categorical(_tl)
 
     # before going on make sure there are no nans in partitions
     # otherwise a BlockState is initialized with negative labels, this 

@@ -18,3 +18,19 @@ sc.pp.neighbors(adata, n_neighbors=3)
 schist.inference.planted_model(adata, use_weights=False, save_model='foo')
 schist.inference.nested_model(adata, save_model='test', dispatch_backend='threads')
 schist.tools.calculate_affinity(adata, level=0, back_prob=True)
+
+#test label transfer
+d1 = sc.datasets.blobs()
+d2 = sc.datasets.blobs()
+sc.pp.neighbors(d1)
+sc.tl.leiden(d1)
+adata = d1.concatenate(d2)
+sc.pp.neighbors(d2)
+
+schist.tools.label_transfer(d2, d1, obs='leiden')
+
+sc.pp.neighbors(adata)
+adata.obs['leiden'] = adata.obs['leiden'].cat.add_categories('unknown').fillna('unknown')
+
+schist.tools.label_transfer(adata, obs='leiden')
+
