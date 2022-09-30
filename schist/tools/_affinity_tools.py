@@ -496,7 +496,7 @@ def label_transfer(
         # this is managed when adatas are given separately
             
         _tl = adata_merge.obs[obs].astype(object) #to object and not str to manage nans
-        _tl = _tl.replace('unknown', '_unk') #set identity to unknown
+        _tl = _tl.replace(label_unk, '_unk') #set identity to unknown
         _tl = _tl.fillna('_unk') #assume nans come from unknown
         _tl[_tl != '_unk'] = '_ref' #set reference to the remaining
         adata_merge.obs['_label_transfer'] = pd.Categorical(_tl)
