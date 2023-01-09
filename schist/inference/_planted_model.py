@@ -20,7 +20,7 @@ def planted_model(
     tolerance = 1e-6,
     collect_marginals: bool = True,
     deg_corr: bool = True,
-    samples: int = 100,
+    n_init: int = 100,
     n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
@@ -63,7 +63,7 @@ def planted_model(
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    samples
+    n_init
         Number of initial minimizations to be performed. This influences also the 
         precision for marginals
     key_added
@@ -93,7 +93,7 @@ def planted_model(
     Returns
     -------
     `adata.obs[key_added]`
-        Array of dim (number of samples) that stores the subgroup id
+        Array of dim (number of cells) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell.
     `adata.uns['schist']['params']`
         A dict with the values for the parameters `resolution`, `random_state`,
@@ -109,11 +109,11 @@ def planted_model(
     if random_seed:
         np.random.seed(random_seed)
     
-    seeds = np.random.choice(range(samples**2), size=samples, replace=False)
+    seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
-    if collect_marginals and samples < 100:
-        logg.warning('Collecting marginals requires sufficient number of samples\n'
-                     f'It is now set to {samples} and should be at least 100')
+    if collect_marginals and n_init < 100:
+        logg.warning('Collecting marginals requires sufficient number of n_init\n'
+                     f'It is now set to {n_init} and should be at least 100')
 
     start = logg.info('minimizing the Planted Partition Block Model')
     adata = adata.copy() if copy else adata
@@ -152,8 +152,8 @@ def planted_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if samples < 1:
-        samples = 1
+    if n_init < 1:
+        n_init = 1
         
     # initialize  the block states
     def fast_min(state, beta, n_sweep, fast_tol, seed=None):
@@ -164,13 +164,13 @@ def planted_model(
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
         return state
 
-    states = [gt.PPBlockState(g) for x in range(samples)]
+    states = [gt.PPBlockState(g) for x in range(n_init)]
         
     # perform a mcmc sweep on each 
     # no list comprehension as I need to collect stats
         
     states = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
-             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
+             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
              )
     logg.info('        minimization step done', time=start)        
     pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True)
@@ -196,7 +196,7 @@ def planted_model(
     n_groups = len(u_groups)
     last_group = np.max(u_groups) + 1
     if collect_marginals:
-        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / samples
+        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / n_init
 
     rosetta = dict(zip(u_groups, range(len(u_groups))))
     groups = np.array([rosetta[x] for x in groups])
@@ -247,7 +247,7 @@ def planted_model(
         use_weights=use_weights,
         neighbors_key=neighbors_key,
         key_added=key_added,
-        samples=samples,
+        n_init=n_init,
         collect_marginals=collect_marginals,
         random_seed=random_seed,
         deg_corr=deg_corr,

@@ -29,7 +29,7 @@ def nested_model_multi(
     tolerance: float = 1e-6,
     n_sweep: int = 10,
     beta: float = np.inf,
-    samples: int = 100,
+    n_init: int = 100,
     collect_marginals: bool = True,
     n_jobs: int = -1,
     *,
@@ -73,7 +73,7 @@ def nested_model_multi(
         Number of iterations to be performed in the fast model MCMC greedy approach
     beta
         Inverse temperature for MCMC greedy approach    
-    samples
+    n_init
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
     n_jobs
@@ -105,7 +105,7 @@ def nested_model_multi(
     Returns
     -------
     `adata.obs[key_added]`
-        Array of dim (number of samples) that stores the subgroup id
+        Array of dim (number of cells) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell. 
     `adata.uns['schist']['multi_level_params']`
         A dict with the values for the parameters `resolution`, `random_state`,
@@ -121,12 +121,12 @@ def nested_model_multi(
     if random_seed:
         np.random.seed(random_seed)
     
-    seeds = np.random.choice(range(samples**2), size=samples, replace=False)
+    seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
         
 
-    if collect_marginals and samples < 100:
-        logg.warning('Collecting marginals requires sufficient number of samples\n'
-                     f'It is now set to {samples} and should be at least 100')
+    if collect_marginals and n_init < 100:
+        logg.warning('Collecting marginals requires sufficient number of n_init\n'
+                     f'It is now set to {n_init} and should be at least 100')
         
 
     start = logg.info('minimizing the nested Stochastic Block Model')
@@ -220,15 +220,15 @@ def nested_model_multi(
     union_g.ep['layer'] = layer
     # DONE! now proceed with standard minimization, ish
     
-    if samples < 1:
-        samples = 1
+    if n_init < 1:
+        n_init = 1
 
     states = [gt.NestedBlockState(g=union_g,
                                   base_type=gt.LayeredBlockState,
                                   state_args=dict(deg_corr=deg_corr,
                                   ec=union_g.ep.layer,
                                   layers=True
-                                  )) for n in range(samples)]
+                                  )) for n in range(n_init)]
 
     def fast_min(state, beta, n_sweep, fast_tol, seed=None):
         if seed:
@@ -239,7 +239,7 @@ def nested_model_multi(
         return state                            
             
     states = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
-        delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
+        delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
     )
     logg.info('        minimization step done', time=start)
     pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
@@ -275,7 +275,7 @@ def nested_model_multi(
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pmode.get_marginal(union_g).get_2d_array(range(last_group)).T[:, u_groups] / samples	
+        pv_array = pmode.get_marginal(union_g).get_2d_array(range(last_group)).T[:, u_groups] / n_init	
          
     groups = np.zeros((union_g.num_vertices(), len(bs)), dtype=int)
 
@@ -349,7 +349,7 @@ def nested_model_multi(
             use_weights=use_weights,
             neighbors_key=neighbors_key[xn],
             key_added=key_added,
-            samples=samples,
+            n_init=n_init,
             collect_marginals=collect_marginals,
             random_seed=random_seed,
             deg_corr=deg_corr,

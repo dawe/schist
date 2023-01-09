@@ -19,7 +19,7 @@ def flat_model(
     tolerance: float = 1e-6,
     collect_marginals: bool = True,
     deg_corr: bool = True,
-    samples: int = 100,
+    n_init: int = 100,
     n_jobs: int = -1,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
@@ -58,7 +58,7 @@ def flat_model(
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    samples
+    n_init
         Number of initial minimizations to be performed. This influences also the 
         precision for marginals
     key_added
@@ -86,7 +86,7 @@ def flat_model(
     Returns
     -------
     `adata.obs[key_added]`
-        Array of dim (number of samples) that stores the subgroup id
+        Array of dim (number of cells) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell.
     `adata.uns['schist']['params']`
         A dict with the values for the parameters `resolution`, `random_state`,
@@ -102,11 +102,11 @@ def flat_model(
     if random_seed:
         np.random.seed(random_seed)
     
-    seeds = np.random.choice(range(samples**2), size=samples, replace=False)
+    seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
-    if collect_marginals and samples < 100:
-        logg.warning('Collecting marginals requires sufficient number of samples\n'
-                     f'It is now set to {samples} and should be at least 100')
+    if collect_marginals and n_init < 100:
+        logg.warning('Collecting marginals requires sufficient number of n_init\n'
+                     f'It is now set to {n_init} and should be at least 100')
 
 
     start = logg.info('minimizing the Stochastic Block Model')
@@ -146,8 +146,8 @@ def flat_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if samples < 1:
-        samples = 1
+    if n_init < 1:
+        n_init = 1
         
     # initialize  the block states
     def fast_min(state, beta, n_sweep, fast_tol, seed=None):
@@ -162,13 +162,13 @@ def flat_model(
                             state_args=dict(deg_corr=deg_corr,
                                   recs=recs,
                                   rec_types=rec_types
-                                  )) for x in range(samples)]
+                                  )) for x in range(n_init)]
         
     # perform a mcmc sweep on each 
     # no list comprehension as I need to collect stats
         
     states = Parallel(n_jobs=n_jobs)(
-             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
+             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
              )
         
     pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True)                  
@@ -184,7 +184,7 @@ def flat_model(
     u_groups = np.unique(groups)
 
     if collect_marginals:
-        pv_array = pmode.get_marginal(g).get_2d_array(range(len(u_groups))).T / samples
+        pv_array = pmode.get_marginal(g).get_2d_array(range(len(u_groups))).T / n_init
 
     rosetta = dict(zip(u_groups, range(len(u_groups))))
     groups = np.array([rosetta[x] for x in groups])
@@ -233,7 +233,7 @@ def flat_model(
         model='flat',
         use_weights=use_weights,
         neighbors_key=neighbors_key,
-        samples=samples,
+        n_init=n_init,
         collect_marginals=collect_marginals,
         random_seed=random_seed,
         deg_corr=deg_corr,

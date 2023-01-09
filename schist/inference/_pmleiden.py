@@ -39,7 +39,7 @@ except ImportError:
 def leiden(
     adata: AnnData,
     resolution: float = 1,
-    samples: int = 100,
+    n_init: int = 100,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_state: _utils.AnyRandom = 0,
@@ -78,9 +78,8 @@ def leiden(
         Higher values lead to more clusters.
         Set to `None` if overriding `partition_type`
         to one that doesn’t accept a `resolution_parameter`.
-	samples
-    samples
-	The number of random samples to take for consensus        
+    n_init
+	The number of random initializations to take for consensus        
     random_state
         Change the initialization of the optimization.
     restrict_to
@@ -130,7 +129,7 @@ def leiden(
     Returns
     -------
     `adata.obs[key_added]`
-        Array of dim (number of samples) that stores the subgroup id
+        Array of dim (number of cells) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell.
     `adata.uns['leiden']['params']`
         A dict with the values for the parameters `resolution`, `random_state`,
@@ -172,7 +171,7 @@ def leiden(
         partition_kwargs['weights'] = np.array(g.es['weight']).astype(np.float64)
     partition_kwargs['n_iterations'] = n_iterations
     np.random.seed(random_state)
-    seeds = np.random.choice(range(0, samples**2), size=samples, replace=False)
+    seeds = np.random.choice(range(0, n_init**2), size=n_init, replace=False)
     
 
     if resolution is not None:
@@ -185,7 +184,7 @@ def leiden(
     parts = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
                     delayed(membership)(g, partition_type, 
                                         seeds[i], **partition_kwargs) 
-                                        for i in range(samples))
+                                        for i in range(n_init))
 
     pmode = gt.PartitionModeState(parts, converge=True) 
 
@@ -203,7 +202,7 @@ def leiden(
     n_groups = len(u_groups)
     last_group = np.max(u_groups) + 1
     if collect_marginals:
-        pv_array = pmode.get_marginal(g_gt).get_2d_array(range(last_group)).T[:, u_groups] / samples
+        pv_array = pmode.get_marginal(g_gt).get_2d_array(range(last_group)).T[:, u_groups] / n_init
     # rename groups to ensure they are a continuous range
     rosetta = dict(zip(u_groups, range(len(u_groups))))
     groups = np.array([rosetta[x] for x in groups])
@@ -233,7 +232,7 @@ def leiden(
         resolution=resolution,
         random_state=random_state,
         n_iterations=n_iterations,
-        samples=samples,
+        n_init=n_init,
         collect_marginals=collect_marginals
     )
     logg.info(
