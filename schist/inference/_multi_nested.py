@@ -29,9 +29,11 @@ def nested_model_multi(
     tolerance: float = 1e-6,
     n_sweep: int = 10,
     beta: float = np.inf,
-    n_init: int = 100,
+    n_init: int = 10,
     collect_marginals: bool = True,
     n_jobs: int = -1,
+    refine_model: bool = False,
+    refine_iter: int = 1000,
     *,
     random_seed: Optional[int] = None,
     key_added: str = 'multi_nsbm',
@@ -76,6 +78,10 @@ def nested_model_multi(
     n_init
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
+    refine_model
+    	Wether to perform a further mcmc step to refine the model
+    refine_iter
+    	Number of refinement iterations.
     n_jobs
         Number of parallel computations used during model initialization
     key_added
@@ -245,16 +251,7 @@ def nested_model_multi(
     pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
     bs = pmode.get_max_nested()
     logg.info('        consensus step done', time=start)
-    
-    if save_model:
-        import pickle
-        fname = save_model
-        if not fname.endswith('pkl'):
-            fname = f'{fname}.pkl'
-        logg.info(f'Saving model into {fname}')    
-        with open(fname, 'wb') as fout:
-            pickle.dump(pmode, fout, 2)
-    
+        
     # prune redundant levels at the top
     bs = [x for x in bs if len(np.unique(x)) > 1]
     bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
@@ -265,6 +262,36 @@ def nested_model_multi(
                                   layers=True
                                   ))
     
+    if refine_model:
+        # we here reuse pmode variable, so that it is consistent
+        logg.info('        Refining model')
+        bs = []
+        def collect_partitions(s):
+            bs.append(s.get_bs())
+        gt.mcmc_equilibrate(state, force_niter=refine_iter, 
+                            multiflip=True, 
+                            mcmc_args=dict(niter=n_sweep, beta=beta),
+                            callback=collect_partitions)
+        pmode = gt.PartitionModeState(bs, nested=True, converge=True)
+        bs = [x for x in pmode.get_max_nested() if len(np.unique(x)) > 1]
+        bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
+        state = gt.NestedBlockState(union_g, bs=bs,
+                                  base_type=gt.LayeredBlockState,
+                                  state_args=dict(deg_corr=deg_corr,
+                                  ec=union_g.ep.layer,
+                                  layers=True
+                                  ))
+        logg.info('        refinement complete', time=start)
+    
+    
+    if save_model:
+        import pickle
+        fname = save_model
+        if not fname.endswith('pkl'):
+            fname = f'{fname}.pkl'
+        logg.info(f'Saving model into {fname}')    
+        with open(fname, 'wb') as fout:
+            pickle.dump(pmode, fout, 2)
 
     logg.info('    done', time=start)
     u_groups = np.unique(bs[0])
@@ -353,6 +380,8 @@ def nested_model_multi(
             collect_marginals=collect_marginals,
             random_seed=random_seed,
             deg_corr=deg_corr,
+            refine_model=refine_model,
+            refine_iter=refine_iter
 #            recs=recs,
 #            rec_types=rec_types
         )
