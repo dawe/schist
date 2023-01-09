@@ -33,4 +33,9 @@ sc.pp.neighbors(adata)
 adata.obs['leiden'] = adata.obs['leiden'].cat.add_categories('unknown').fillna('unknown')
 
 schist.tools.label_transfer(adata, obs='leiden')
+d1 = sc.datasets.blobs(n_observations=200)
+d2 = sc.datasets.blobs(n_observations=100)
+sc.pp.neighbors(d1)
+sc.pp.neighbors(d2)
 
+schist.inference.nested_model_multi([d1, d2], samples=2)
