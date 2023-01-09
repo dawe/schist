@@ -117,9 +117,13 @@ def planted_model(
     
     seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
-    if collect_marginals and n_init < 100:
-        logg.warning('Collecting marginals requires sufficient number of n_init\n'
-                     f'It is now set to {n_init} and should be at least 100')
+    if collect_marginals and not refine_model:
+        if n_init < 100:
+            logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'
+                     f'It is now set to {n_init} and should be at least 100\n')
+    elif refine_model and refine_iter < 100:                     
+        logg.warning('Collecting marginals with refinement requires sufficient number of iterations\n'
+                     f'It is now set to {refine_iter} and should be at least 100\n')
 
     start = logg.info('minimizing the Planted Partition Block Model')
     adata = adata.copy() if copy else adata

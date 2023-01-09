@@ -19,8 +19,10 @@ def flat_model(
     tolerance: float = 1e-6,
     collect_marginals: bool = True,
     deg_corr: bool = True,
-    n_init: int = 100,
+    n_init: int = 10,
     n_jobs: int = -1,
+    refine_model: bool = True,
+    refine_iter: int = 100,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -61,6 +63,10 @@ def flat_model(
     n_init
         Number of initial minimizations to be performed. This influences also the 
         precision for marginals
+    refine_model
+    	Wether to perform a further mcmc step to refine the model
+    refine_iter
+    	Number of refinement iterations.
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -104,9 +110,13 @@ def flat_model(
     
     seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
-    if collect_marginals and n_init < 100:
-        logg.warning('Collecting marginals requires sufficient number of n_init\n'
-                     f'It is now set to {n_init} and should be at least 100')
+    if collect_marginals and not refine_model:
+        if n_init < 100:
+            logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'
+                     f'It is now set to {n_init} and should be at least 100\n')
+    elif refine_model and refine_iter < 100:                     
+        logg.warning('Collecting marginals with refinement requires sufficient number of iterations\n'
+                     f'It is now set to {refine_iter} and should be at least 100\n')
 
 
     start = logg.info('minimizing the Stochastic Block Model')
@@ -177,6 +187,23 @@ def flat_model(
                                   recs=recs,
                                   rec_types=rec_types
                                   ))
+    if refine_model:
+        # we here reuse pmode variable, so that it is consistent
+        logg.info('        Refining model')
+        bs = []
+        def collect_partitions(s):
+            bs.append(s.get_blocks().a)
+        gt.mcmc_equilibrate(state, force_niter=refine_iter, 
+                            multiflip=True, 
+                            mcmc_args=dict(niter=n_sweep, beta=beta),
+                            callback=collect_partitions)
+        pmode = gt.PartitionModeState(bs, converge=True)
+        bs = pmode.get_max(g)
+        state = gt.BlockState(g, b=bs,state_args=dict(deg_corr=deg_corr,
+                                  recs=recs,
+                                  rec_types=rec_types
+                                  ))
+        logg.info('        refinement complete', time=start)
 
     logg.info('    done', time=start)
     
@@ -238,7 +265,10 @@ def flat_model(
         random_seed=random_seed,
         deg_corr=deg_corr,
         recs=recs,
-        rec_types=rec_types
+        rec_types=rec_types,
+        refine_model=refine_model,
+        refine_iter=refine_iter
+        
     )
 
 
