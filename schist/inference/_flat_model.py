@@ -31,6 +31,7 @@ def flat_model(
     neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
     use_weights: bool = False,
+    save_model: Union[str, None] = None,
     copy: bool = False,
 #    minimize_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
@@ -81,6 +82,9 @@ def flat_model(
         If `True`, edge weights from the graph are used in the computation
         (placing more emphasis on stronger edges). Note that this
         increases computation times
+    save_model
+        If provided, this will be the filename for the PartitionModeState to 
+        be saved    
     copy
         Whether to copy `adata` or modify it inplace.
     random_seed
@@ -207,6 +211,15 @@ def flat_model(
 
     logg.info('    done', time=start)
     
+    if save_model:
+        import pickle
+        fname = save_model
+        if not fname.endswith('pkl'):
+            fname = f'{fname}.pkl'
+        logg.info(f'Saving model into {fname}')    
+        with open(fname, 'wb') as fout:
+            pickle.dump(pmode, fout, 2)
+
     groups = np.array(bs.get_array())
     u_groups = np.unique(groups)
 
