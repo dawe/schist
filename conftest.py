@@ -5,18 +5,18 @@ adata = sc.datasets.blobs()
 sc.tl.pca(adata)                                                        
 try:
     sc.pp.neighbors(adata, n_neighbors=3, key_added='foo')
-    schist.inference.nested_model(adata,  neighbors_key='foo', samples=2)
+    schist.inference.nested_model(adata,  neighbors_key='foo', n_init=2)
 except TypeError:
     sc.pp.neighbors(adata, n_neighbors=3)
-    schist.inference.nested_model(adata, samples=2)
+    schist.inference.nested_model(adata, n_init=2)
 
 adata.write('foo.h5ad')
-schist.inference.leiden(adata, neighbors_key='foo', save_model='lle', samples=2)
+schist.inference.leiden(adata, neighbors_key='foo', save_model='lle', n_init=2)
 schist.tools.calculate_affinity(adata, neighbors_key='foo', group_by='leiden')
 schist.tools.cell_similarity(adata, neighbors_key='foo')
 sc.pp.neighbors(adata, n_neighbors=3)
-schist.inference.planted_model(adata, use_weights=False, save_model='foo', samples=2)
-schist.inference.nested_model(adata, save_model='test', dispatch_backend='threads', samples=2)
+schist.inference.planted_model(adata, use_weights=False, save_model='foo', n_init=2)
+schist.inference.nested_model(adata, save_model='test', dispatch_backend='threads', n_init=2)
 schist.tools.calculate_affinity(adata, level=0, back_prob=True)
 
 #test label transfer
@@ -38,6 +38,6 @@ d2 = sc.datasets.blobs(n_observations=100)
 sc.pp.neighbors(d1)
 sc.pp.neighbors(d2)
 
-schist.inference.nested_model_multi([d1, d2], samples=2)
+schist.inference.nested_model_multi([d1, d2], n_init=2)
 u = schist._utils.get_multi_graph_from_adata([d1, d2])
 print(u.num_vertices())

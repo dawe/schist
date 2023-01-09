@@ -32,7 +32,7 @@ def nested_model_multi(
     n_init: int = 10,
     collect_marginals: bool = True,
     n_jobs: int = -1,
-    refine_model: bool = False,
+    refine_model: bool = True,
     refine_iter: int = 1000,
     *,
     random_seed: Optional[int] = None,
@@ -130,9 +130,9 @@ def nested_model_multi(
     seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
         
 
-    if collect_marginals and n_init < 100:
+    if collect_marginals and n_init < 10:
         logg.warning('Collecting marginals requires sufficient number of n_init\n'
-                     f'It is now set to {n_init} and should be at least 100')
+                     f'It is now set to {n_init} and should be at least 10')
         
 
     start = logg.info('minimizing the nested Stochastic Block Model')
