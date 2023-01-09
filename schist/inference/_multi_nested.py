@@ -33,7 +33,7 @@ def nested_model_multi(
     collect_marginals: bool = True,
     n_jobs: int = -1,
     refine_model: bool = True,
-    refine_iter: int = 1000,
+    refine_iter: int = 100,
     *,
     random_seed: Optional[int] = None,
     key_added: str = 'multi_nsbm',

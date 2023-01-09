@@ -20,8 +20,10 @@ def planted_model(
     tolerance = 1e-6,
     collect_marginals: bool = True,
     deg_corr: bool = True,
-    n_init: int = 100,
+    n_init: int = 10,
     n_jobs: int = -1,
+    refine_model: bool = True,
+    refine_iter: int = 100,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -66,6 +68,10 @@ def planted_model(
     n_init
         Number of initial minimizations to be performed. This influences also the 
         precision for marginals
+    refine_model
+    	Wether to perform a further mcmc step to refine the model
+    refine_iter
+    	Number of refinement iterations.
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -177,6 +183,22 @@ def planted_model(
         
     bs = pmode.get_max(g)
     logg.info('        consensus step done', time=start)
+    state = gt.PPBlockState(g, b=bs)
+
+    if refine_model:
+        # we here reuse pmode variable, so that it is consistent
+        logg.info('        Refining model')
+        bs = []
+        def collect_partitions(s):
+            bs.append(s.get_blocks().a)
+        gt.mcmc_equilibrate(state, force_niter=refine_iter, 
+                            multiflip=True, 
+                            mcmc_args=dict(niter=n_sweep, beta=beta),
+                            callback=collect_partitions)
+        pmode = gt.PartitionModeState(bs, converge=True)
+        bs = pmode.get_max(g)
+        state = gt.PPBlockState(g, b=bs)
+        logg.info('        refinement complete', time=start)
         
     if save_model:
         import pickle
@@ -188,7 +210,6 @@ def planted_model(
             pickle.dump(pmode, fout, 2)
     
     
-    state = gt.PPBlockState(g, b=bs)
     logg.info('    done', time=start)
 
     groups = np.array(bs.get_array())
@@ -248,6 +269,8 @@ def planted_model(
         neighbors_key=neighbors_key,
         key_added=key_added,
         n_init=n_init,
+        refine_model=refine_model,
+        refine_iter=refine_iter,
         collect_marginals=collect_marginals,
         random_seed=random_seed,
         deg_corr=deg_corr,
