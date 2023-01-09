@@ -122,7 +122,6 @@ def get_multi_graph_from_adata(adatas: List[AnnData],
         if n_keys == 1:
             neighbors_key = [neighbors_key[0] for x in range(n_data)]    
         for x in range(n_data):
-            logg.info(f'getting adjacency for data {x}', time=start)
             if neighbors_key[x] not in adatas[x].uns:
                 raise ValueError(
                     'You need to run `pp.neighbors` first '
