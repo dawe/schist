@@ -34,6 +34,7 @@ def nested_model_multi(
     n_jobs: int = -1,
     refine_model: bool = True,
     refine_iter: int = 100,
+    overlap: bool = False,
     *,
     random_seed: Optional[int] = None,
     key_added: str = 'multi_nsbm',
@@ -82,6 +83,8 @@ def nested_model_multi(
     	Wether to perform a further mcmc step to refine the model
     refine_iter
     	Number of refinement iterations.
+    overlap
+    	Whether the different layers are dependent (overlap=True) or not (overlap=False)
     n_jobs
         Number of parallel computations used during model initialization
     key_added
@@ -237,7 +240,8 @@ def nested_model_multi(
                                   base_type=gt.LayeredBlockState,
                                   state_args=dict(deg_corr=deg_corr,
                                   ec=union_g.ep.layer,
-                                  layers=True
+                                  layers=True,
+                                  overlap=overlap
                                   )) for n in range(n_init)]
 
     def fast_min(state, beta, n_sweep, fast_tol, seed=None):
@@ -263,7 +267,8 @@ def nested_model_multi(
                                   base_type=gt.LayeredBlockState,
                                   state_args=dict(deg_corr=deg_corr,
                                   ec=union_g.ep.layer,
-                                  layers=True
+                                  layers=True,
+                                  overlap=overlap
                                   ))
     
     if refine_model:
@@ -283,7 +288,8 @@ def nested_model_multi(
                                   base_type=gt.LayeredBlockState,
                                   state_args=dict(deg_corr=deg_corr,
                                   ec=union_g.ep.layer,
-                                  layers=True
+                                  layers=True,
+                                  overlap=overlap
                                   ))
         logg.info('        refinement complete', time=start)
     
@@ -385,7 +391,8 @@ def nested_model_multi(
             random_seed=random_seed,
             deg_corr=deg_corr,
             refine_model=refine_model,
-            refine_iter=refine_iter
+            refine_iter=refine_iter,
+            overlap=overlap
 #            recs=recs,
 #            rec_types=rec_types
         )
