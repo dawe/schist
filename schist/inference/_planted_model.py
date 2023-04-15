@@ -24,6 +24,7 @@ def planted_model(
     n_jobs: int = -1,
     refine_model: bool = False,
     refine_iter: int = 100,
+    max_iter: int = 100000,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -72,6 +73,9 @@ def planted_model(
     	Wether to perform a further mcmc step to refine the model
     refine_iter
     	Number of refinement iterations.
+    max_iter
+    	Maximum number of iterations during minimization, set to infinite to stop 
+    	minimization only on tolerance
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -166,13 +170,14 @@ def planted_model(
         n_init = 1
         
     # initialize  the block states
-    def fast_min(state, beta, n_sweep, fast_tol, seed=None):
+    def fast_min(state, beta, n_sweep, fast_tol, max_iter=max_iter, seed=None):
         if seed:
             gt.seed_rng(seed)
-        dS = 1
-        while np.abs(dS) > fast_tol:
-            dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
-        return state
+        dS = 1e9
+        n = 0
+        while (np.abs(dS) > fast_tol) and (n < max_iter):
+            dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+        return state                            
 
     states = [gt.PPBlockState(g) for x in range(n_init)]
         

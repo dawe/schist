@@ -34,6 +34,7 @@ def nested_model(
     n_jobs: int = -1,
     refine_model: bool = False,
     refine_iter: int = 100,
+    max_iter: int = 100000,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -82,6 +83,9 @@ def nested_model(
     	Wether to perform a further mcmc step to refine the model
     refine_iter
     	Number of refinement iterations.
+    max_iter
+    	Maximum number of iterations during minimization, set to infinite to stop 
+    	minimization only on tolerance
     n_jobs
         Number of parallel computations used during model initialization
     key_added
@@ -183,11 +187,12 @@ def nested_model(
                                   rec_types=rec_types
                                   )) for n in range(n_init)]
 
-    def fast_min(state, beta, n_sweep, fast_tol, seed=None):
+    def fast_min(state, beta, n_sweep, fast_tol, max_iter=max_iter, seed=None):
         if seed:
             gt.seed_rng(seed)
-        dS = 1
-        while np.abs(dS) > fast_tol:
+        dS = 1e9
+        n = 0
+        while (np.abs(dS) > fast_tol) and (n < max_iter):
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
         return state                            
             
