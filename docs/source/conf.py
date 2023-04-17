@@ -37,7 +37,7 @@ copyright = '2021, Morelli Leonardo, Giansanti Valentina, Cittaro Davide'
 author = 'Morelli Leonardo, Giansanti Valentina, Cittaro Davide'
 
 # The full version, including alpha/beta/rc tags
-release = '0.7.12'
+release = '0.7.16'
 
 
 # -- General configuration ---------------------------------------------------
