@@ -177,6 +177,7 @@ def planted_model(
         n = 0
         while (np.abs(dS) > fast_tol) and (n < max_iter):
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+            n += 1
         return state                            
 
     states = [gt.PPBlockState(g) for x in range(n_init)]
