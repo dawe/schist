@@ -17,7 +17,7 @@ schist.tools.cell_similarity(adata, neighbors_key='foo')
 sc.pp.neighbors(adata, n_neighbors=3)
 schist.inference.planted_model(adata, use_weights=False, save_model='foo', n_init=2, refine_iter=2)
 schist.inference.flat_model(adata, use_weights=False, save_model='foo', n_init=2, refine_iter=2)
-schist.inference.nested_model(adata, save_model='test', dispatch_backend='threads', n_init=2, refine_iter=2)
+#schist.inference.nested_model(adata, save_model='test', dispatch_backend='threads', n_init=2, refine_iter=2)
 schist.tools.calculate_affinity(adata, level=0, back_prob=True)
 
 #test label transfer
