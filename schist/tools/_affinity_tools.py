@@ -1,6 +1,7 @@
 from typing import Optional, Tuple, Sequence, Type, Union, Dict
 
 import numpy as np
+import anndata as ad
 from anndata import AnnData
 import scipy.stats
 from scipy import sparse
@@ -457,8 +458,13 @@ def label_transfer(
                 use_rep = None
 
         # now do the merge, so that the empty category is now created
-        adata_merge = adata.concatenate(adata_ref, batch_categories=['_unk', '_ref'],
-                                        batch_key='_label_transfer')
+#        adata_merge = adata.concatenate(adata_ref, batch_categories=['_unk', '_ref'],
+#                                        batch_key='_label_transfer')
+        adata_merge = ad.concat([adata, adata_ref],
+                                      keys=['_unk', '_ref'],
+                                      label='_label_transfer',
+                                      join='outer',
+                                )
         # 
         if adata_merge.obs[obs].dtype.name != 'category':
             adata_merge.obs[obs] = pd.Categorical(adata_merge.obs[obs])
