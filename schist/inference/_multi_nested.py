@@ -354,7 +354,8 @@ def nested_model_multi(
     # remove any column with the same key
     for xn in range(n_data):
         drop_columns = groups.columns.intersection(adatas[xn].obs.columns)
-        adatas[xn].obs.drop(drop_columns, 'columns', inplace=True)
+        if len(drop_columns) > 0:
+            adatas[xn].obs.drop(drop_columns, axis='columns', inplace=True)
         adatas[xn].obs = pd.concat([adatas[xn].obs, groups.loc[adatas[xn].obs_names]], axis=1)
 
         # now add marginal probabilities.
