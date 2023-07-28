@@ -143,6 +143,11 @@ def leiden(
         )
     partition_kwargs = dict(partition_kwargs)
 
+    if dispatch_backend == 'threads':
+        logg.warning('We noticed a large performance degradation with this backend\n'
+                     '``dispatch_backend=processes`` should be preferred')
+
+
     start = logg.info('running Leiden clustering')
     adata = adata.copy() if copy else adata
     # are we clustering a user-provided graph or the default AnnData one?

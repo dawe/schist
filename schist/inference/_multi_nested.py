@@ -136,6 +136,9 @@ def nested_model_multi(
     
     seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
         
+    if dispatch_backend == 'threads':
+        logg.warning('We noticed a large performance degradation with this backend\n'
+                     '``dispatch_backend=processes`` should be preferred')
 
     if collect_marginals and not refine_model:
         if n_init < 100:

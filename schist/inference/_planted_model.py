@@ -121,6 +121,10 @@ def planted_model(
     
     seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
+    if dispatch_backend == 'threads':
+        logg.warning('We noticed a large performance degradation with this backend\n'
+                     '``dispatch_backend=processes`` should be preferred')
+
     if collect_marginals and not refine_model:
         if n_init < 100:
             logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'
