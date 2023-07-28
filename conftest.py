@@ -25,6 +25,7 @@ d1 = sc.datasets.blobs()
 d2 = sc.datasets.blobs()
 sc.pp.neighbors(d1)
 sc.tl.leiden(d1)
+import anndata as ad
 adata = ad.concat([d1, d2], join='outer', index_unique='-', keys=['0','1'])
 sc.pp.neighbors(d2)
 
