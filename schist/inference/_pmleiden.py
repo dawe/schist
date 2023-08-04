@@ -55,7 +55,7 @@ def leiden(
     n_jobs: int = -1,
     copy: bool = False,
     save_model: Union[str, None] = None,
-    dispatch_backend: Optional[str] = 'processes',
+    dispatch_backend: Optional[str] = 'threads',
     **partition_kwargs,
 ) -> Optional[AnnData]:
     """\
@@ -143,9 +143,9 @@ def leiden(
         )
     partition_kwargs = dict(partition_kwargs)
 
-    if dispatch_backend == 'threads':
-        logg.warning('We noticed a large performance degradation with this backend\n'
-                     '``dispatch_backend=processes`` should be preferred')
+#    if dispatch_backend == 'threads':
+#        logg.warning('We noticed a large performance degradation with this backend\n'
+#                     '``dispatch_backend=processes`` should be preferred')
 
 
     start = logg.info('running Leiden clustering')

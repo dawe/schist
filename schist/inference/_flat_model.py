@@ -35,6 +35,8 @@ def flat_model(
     save_model: Union[str, None] = None,
     copy: bool = False,
 #    minimize_args: Optional[Dict] = {},
+    dispatch_backend: Optional[str] = 'threads',
+
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -118,6 +120,10 @@ def flat_model(
     
     seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
+#    if dispatch_backend == 'threads':
+#        logg.warning('We noticed a large performance degradation with this backend\n'
+#                     '``dispatch_backend=processes`` should be preferred')
+
     if collect_marginals and not refine_model:
         if n_init < 100:
             logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'
@@ -187,7 +193,7 @@ def flat_model(
     # perform a mcmc sweep on each 
     # no list comprehension as I need to collect stats
         
-    states = Parallel(n_jobs=n_jobs, prefer='processes')(
+    states = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
              delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
              )
         
