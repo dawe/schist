@@ -46,7 +46,7 @@ def nested_model(
     save_model: Union[str, None] = None,
     copy: bool = False,
 #    minimize_args: Optional[Dict] = {},
-    dispatch_backend: Optional[str] = 'processes',
+    dispatch_backend: Optional[str] = 'threads',
 #    equilibrate_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
     """\
@@ -131,9 +131,9 @@ def nested_model(
     
     seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
-    if dispatch_backend == 'threads':
-        logg.warning('We noticed a large performance degradation with this backend\n'
-                     '``dispatch_backend=processes`` should be preferred')
+#    if dispatch_backend == 'threads':
+#        logg.warning('We noticed a large performance degradation with this backend\n'
+#                     '``dispatch_backend=processes`` should be preferred')
 
     if collect_marginals and not refine_model:
         if n_init < 100:
