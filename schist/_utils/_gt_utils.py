@@ -232,7 +232,7 @@ def plug_state(adata: AnnData,
         for c in groups.columns:
             ncat = len(groups[c].cat.categories)
             new_cat = [u'%s' % x for x in range(ncat)]
-            groups[c].cat.rename_categories(new_cat, inplace=True)
+            groups[c] = groups[c].cat.rename_categories(new_cat)
         levels = groups.columns
         groups.columns = [f"{key_added}_level_{level}" for level in range(len(bs))]
         groups.index = adata.obs_names
@@ -267,7 +267,7 @@ def plug_state(adata: AnnData,
         groups = pd.Series(state.get_blocks().get_array()).astype('category')
         ncat = len(groups.cat.categories)
         new_cat = [u'%s' % x for x in range(ncat)]
-        groups.cat.rename_categories(new_cat, inplace=True)
+        groups = groups.cat.rename_categories(new_cat)
         groups.index = adata.obs_names
         adata.obs[key_added] = groups
         adata.uns['schist'] = {}
