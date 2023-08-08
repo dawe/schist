@@ -13,7 +13,7 @@ from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
 
 from scanpy._utils import get_igraph_from_adjacency, _choose_graph
-from joblib import Parallel, delayed
+from joblib import delayed, Parallel, parallel_config
 
 try:
     from leidenalg.VertexPartition import MutableVertexPartition
@@ -143,9 +143,11 @@ def leiden(
         )
     partition_kwargs = dict(partition_kwargs)
 
-#    if dispatch_backend == 'threads':
-#        logg.warning('We noticed a large performance degradation with this backend\n'
-#                     '``dispatch_backend=processes`` should be preferred')
+    # the following lines are for compatibility
+    if dispatch_backend == 'threads':
+        dispatch_backend = 'threading'
+    elif dispatch_backend == 'processes':
+        dispatch_backend = 'loky'
 
 
     start = logg.info('running Leiden clustering')
@@ -185,11 +187,14 @@ def leiden(
     def membership(g, partition_type, seed, **partition_kwargs):
         return leidenalg.find_partition(g, partition_type, 
                                         seed=seed, **partition_kwargs).membership
-    
-    parts = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
-                    delayed(membership)(g, partition_type, 
-                                        seeds[i], **partition_kwargs) 
-                                        for i in range(n_init))
+
+    with parallel_config(backend=dispatch_backend,
+                         max_nbytes=None,
+                         n_jobs=n_jobs):
+        parts = Parallel()(
+            delayed(membership)(g, partition_type, seeds[i], **partition_kwargs) for x in range(n_init)
+        )
+
 
     pmode = gt.PartitionModeState(parts, converge=True) 
 
