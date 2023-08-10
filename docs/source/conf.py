@@ -68,6 +68,16 @@ release = '0.8.1'
 extensions = ['autoapi.extension']
 autoapi_dirs = ['../../schist']
 
+def skip_submodules(app, what, name, obj, skip, options):
+    if what == "module":
+        skip = True
+    return skip
+
+
+def setup(sphinx):
+    sphinx.connect("autoapi-skip-member", skip_submodules)
+
+
 numpydoc_show_class_members = False
 
 # generate autosummary even if no references

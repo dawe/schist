@@ -8,7 +8,7 @@ Analysis of multimodal data
 
 ``schist`` can handle multimodal data, `i.e.` scRNA-seq and scATAC-seq data, given that some cells are represented in both datasets. In principle there's no limit to the number of modalities, but there should be no "disjoint" modalitiy. 
 
-Let's take, for example, three datasets (A, B, C), the integration only works if all datasets are connected by at least one cell. So, this is a legit case::
+Let's take, for example, three datasets (``A``, ``B``, ``C``), the integration only works if all datasets are connected by at least one cell. So, this is a legit case::
 
    AAAAAAAAAAAAA---------
    ---BBBBB-BBBB-BBBBB---
@@ -28,7 +28,7 @@ while this is not::
    -------------------CCC  
 
 
-as layer `C` is completely disjoint from the other. `schist` will provide a solution for this last case, but we expect all cells in layer `C` belonging to clusters that are not including cells from `A` and `B`. The correspondence between different datasets is given my matching the cell names.
+as layer ``C`` is completely disjoint from the other. ``schist`` will provide a solution for this last case, but we expect all cells in layer ``C`` belonging to clusters that are not including cells from ``A`` and ``B``. The correspondence between different datasets is given my matching the cell names.
 
 In this example we will generate two toy datasets with artificial pairings, using the ``scanpy`` blobs::
 
