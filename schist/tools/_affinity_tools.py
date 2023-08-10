@@ -429,7 +429,12 @@ def label_transfer(
     if adata_ref:
         from scanpy.tools import pca
         from scanpy.preprocessing import neighbors
-        from scanpy.external.pp import harmony_integrate
+        try:
+            from scanpy.external.pp import harmony_integrate
+            has_harmonypy = True
+        except ModuleNotFoundError:
+            logg.warning('Harmonypy has not been installed, this will severly affect results')
+            has_harmonypy = False
 
         # we have to create a merged dataset and integrate
         # before that check that the labels are not in the recipient, in case drop
@@ -474,12 +479,15 @@ def label_transfer(
         if not use_rep:
             pca(adata_merge, **pca_args)
             use_rep = 'X_pca'
-        h_rep = f'{use_rep}_harmony'
-        harmony_integrate(adata_merge, 
+        if has_harmonypy:    
+            h_rep = f'{use_rep}_harmony'
+            harmony_integrate(adata_merge, 
                           key='_label_transfer', 
                           basis=use_rep,
                           adjusted_basis=h_rep,
                           **harmony_args)
+        else:
+            h_rep = 'X_pca'                          
         # now calculate the kNN graph		                                 
         n_neighbors = int(np.sqrt(adata_merge.shape[0])/2)
         key_added = neighbors_key
