@@ -55,16 +55,18 @@ release = '0.8.1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.intersphinx', 
-              'sphinx.ext.coverage', 
-              'sphinx.ext.napoleon', 
-              'sphinx.ext.duration',
-#              'sphinx.ext.doctest',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.extlinks',
-              'sphinx.ext.viewcode']
+#extensions = ['sphinx.ext.autodoc',
+#              'sphinx.ext.intersphinx', 
+#              'sphinx.ext.coverage', 
+#              'sphinx.ext.napoleon', 
+#              'sphinx.ext.duration',
+##              'sphinx.ext.doctest',
+#              'sphinx.ext.autosummary',
+#              'sphinx.ext.extlinks',
+#              'sphinx.ext.viewcode']
 
+extensions = ['autoapi.extension']
+autoapi_dirs = ['../../schist']
 
 numpydoc_show_class_members = False
 
