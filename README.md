@@ -3,7 +3,7 @@
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/schist.svg)](https://anaconda.org/conda-forge/schist)  [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/schist.svg)](https://anaconda.org/conda-forge/schist)  [![Anaconda-Server Badge](https://anaconda.org/conda-forge/schist/badges/latest_release_date.svg)](https://anaconda.org/conda-forge/schist)
 
 
-# SCHIST
+# SCHIST (/ ʃɪst /)
 An interface for Nested Stochastic Block Model for single cell analysis. The idea behind `schist` is to create a `scanpy`-compatible interface to `graph-tool` methods.
 
 ## Installation
@@ -54,7 +54,7 @@ author={Morelli, Leonardo and Giansanti, Valentina and Cittaro, Davide}, year={2
 month={Dec},
 pages={576}}
 ```
-
+ 
 
 ## Name
-`schist` is a [type of rock](https://en.wikipedia.org/wiki/Schist). Previous name for this project was `scNSBM`, which was hard to pronounce and caused typos when writing (`scnbsm` or `scbsnm` and so on…). We looked for a name which should have "single cell" in it (sc), something about the stochastic model (st) and something about the hierarchy (hi). That's were `schist` comes from. 
+`schist` (/ ʃɪst /) is a [type of rock](https://en.wikipedia.org/wiki/Schist). Previous name for this project was `scNSBM`, which was hard to pronounce and caused typos when writing (`scnbsm` or `scbsnm` and so on…). We looked for a name which should have "single cell" in it (sc), something about the stochastic model (st) and something about the hierarchy (hi). That's were `schist` comes from. 
