@@ -4,3 +4,4 @@ anndata
 pandas
 scanpy
 leidenalg
+harmonypy

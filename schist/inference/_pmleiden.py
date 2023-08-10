@@ -192,7 +192,7 @@ def leiden(
                          max_nbytes=None,
                          n_jobs=n_jobs):
         parts = Parallel()(
-            delayed(membership)(g, partition_type, seeds[i], **partition_kwargs) for x in range(n_init)
+            delayed(membership)(g, partition_type, seeds[x], **partition_kwargs) for x in range(n_init)
         )
 
 
