@@ -35,7 +35,9 @@ import sys
 #sys.path.insert(0, os.path.abspath('..'))
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../..'))
-sys.path.insert(0, os.path.abspath('../../schist'))
+#sys.path.insert(0, os.path.abspath('../../schist'))
+#for x in os.walk('../../schist'):
+#    sys.path.insert(0, x[0])
 
 
 # -- Project information -----------------------------------------------------
@@ -65,7 +67,6 @@ extensions = ['sphinx.ext.autodoc',
 
 
 numpydoc_show_class_members = False
-
 
 # generate autosummary even if no references
 autosummary_generate = True
