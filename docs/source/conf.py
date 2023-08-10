@@ -39,7 +39,6 @@ sys.path.insert(0, os.path.abspath('../..'))
 #for x in os.walk('../../schist'):
 #    sys.path.insert(0, x[0])
 
-import schist
 
 # -- Project information -----------------------------------------------------
 
@@ -61,7 +60,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.coverage', 
               'sphinx.ext.napoleon', 
               'sphinx.ext.duration',
-              'sphinx.ext.doctest',
+#              'sphinx.ext.doctest',
               'sphinx.ext.autosummary',
               'sphinx.ext.extlinks',
               'sphinx.ext.viewcode']
