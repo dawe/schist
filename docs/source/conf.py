@@ -14,6 +14,7 @@
 import os
 import sys
 
+
 #-----------------------------------------------------------------------------
 # Trying to save autodoc generation on readthedocs, when C packages are imported
 
@@ -25,9 +26,16 @@ import sys
 #    sys.modules[mod_name] = mock.MagicMock()
 #    sys.modules[mod_name] = mock.Mock()
 #------------------------------------------------------------------------------
+#import mock
+
+#MOCK_MODULES = ['schist']
+#for mod_name in MOCK_MODULES:
+#    sys.modules[mod_name] = mock.Mock()
+
 #sys.path.insert(0, os.path.abspath('..'))
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.append(os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../schist'))
 
 
 # -- Project information -----------------------------------------------------
@@ -117,9 +125,9 @@ html_theme_options = {
 #    'html_logo': 'images/garnet.png',
 #    'logo_name': 'true',
     'logo_only': False,
-    'fixed_sidebar': False,
-    'github_user': 'dawe',
-    'github_repo': 'schist',
+#    'fixed_sidebar': False,
+#    'github_user': 'dawe',
+#    'github_repo': 'schist',
 }
 
 #html_theme = 'classic'
