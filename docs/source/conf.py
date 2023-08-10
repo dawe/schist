@@ -39,6 +39,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 #for x in os.walk('../../schist'):
 #    sys.path.insert(0, x[0])
 
+import schist
 
 # -- Project information -----------------------------------------------------
 
