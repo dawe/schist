@@ -12,3 +12,4 @@ A list of currently available tutorials and examples covers
 * :ref:`clustering_pbmc`
 * :ref:`label_transfer`
 * :ref:`multimodal_data`
+* :ref:`cellrank_integration`
