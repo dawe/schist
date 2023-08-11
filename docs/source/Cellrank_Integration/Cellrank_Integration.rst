@@ -9,7 +9,7 @@ In this notebook we introduce the interoperability between ``schist`` and ``cell
 
 First load some libraries that will be required.
 
-.. code:: ipython3
+.. code:: python
 
     import cellrank as cr
     import scanpy as sc
@@ -30,7 +30,7 @@ First load some libraries that will be required.
 
 We first download the Zebrafish dataset and perform some preprocessing as previously showed on ``cellrank`` tutorials
 
-.. code:: ipython3
+.. code:: python
 
     adata = cr.datasets.zebrafish()
     sc.pp.filter_genes(adata, min_cells=10)
@@ -46,7 +46,7 @@ We first download the Zebrafish dataset and perform some preprocessing as previo
 
 We then run a nested model in ``schist`` as usual. Plotting the modularity profile allows us to identify the most likely level of interest, level 2 in this case.
 
-.. code:: ipython3
+.. code:: python
 
     scs.inference.nested_model(adata, max_iter = np.inf)
     
@@ -59,7 +59,7 @@ We then run a nested model in ``schist`` as usual. Plotting the modularity profi
 
 Remove the given color map for developmental stages and plot the hierarchy along with it.
 
-.. code:: ipython3
+.. code:: python
 
     CC = adata.uns.pop('Stage_colors')
     sc.pl.embedding(adata, color=['Stage', 'nsbm_level_2',
@@ -74,7 +74,7 @@ Remove the given color map for developmental stages and plot the hierarchy along
 
 We already appreciate that some groups identified by ``schist`` at level 2 correspond to the developmental stages annotated for this dataset. Now run ``cellrank`` as done in the tutorials, using the ``CytoTraceKernel``.
 
-.. code:: ipython3
+.. code:: python
 
     ctk = cr.kernels.CytoTRACEKernel(adata)
     ctk.compute_cytotrace()
@@ -89,7 +89,7 @@ We already appreciate that some groups identified by ``schist`` at level 2 corre
 
 While there could be 5-6 macrostates, we select the top 3, as done in the original tutorials. 
 
-.. code:: ipython3
+.. code:: python
     
     g_fwd.compute_macrostates(n_states=3, cluster_key="lineages")
     g_fwd.plot_macrostates('all',
@@ -102,7 +102,7 @@ While there could be 5-6 macrostates, we select the top 3, as done in the origin
 
 We highlight three out of the seven groups identified by ``schist`` which seem to correspond to the macrostates
 
-.. code:: ipython3
+.. code:: python
 
     scs_groups = ['6', '5', '4']
     sc.pl.embedding(adata, color='nsbm_level_2', basis='X_force_directed', groups=scs_groups)
@@ -115,7 +115,7 @@ We highlight three out of the seven groups identified by ``schist`` which seem t
 We now go on with processing of macrostates, identifying their fate probabilities and lineage drivers
 
 
-.. code:: ipython3
+.. code:: python
 
     g_fwd.predict_terminal_states()
     g_fwd.compute_fate_probabilities()
@@ -130,7 +130,7 @@ We now go on with processing of macrostates, identifying their fate probabilitie
 
 When ``schist`` infers the best models, it calculates cell marginals by default. These are the probabilities of each cell to be assigned to each group. We now want to see if we can use such marginals as lineage specifications, similar to fate probabilities by ``cellrank``. To do so we instantiate a ``cr.Lineage`` object and use ``cellrank`` internal utilities to calculate lineage drivers.
 
-.. code:: ipython3
+.. code:: python
 
     scs_lineage = cr.Lineage(adata.obsm['CM_nsbm_level_2'], 
                              names=adata.obs['nsbm_level_2'].cat.categories)
@@ -146,7 +146,7 @@ When ``schist`` infers the best models, it calculates cell marginals by default.
 
 Now let's check if lineage drivers are consistent. We compare drivers using their computed correlation coefficient, given by the correlation tests above. For Blastomeres, matched to group 6, we obtain almost perfect match.
 
-.. code:: ipython3
+.. code:: python
 
     X = scs_drivers['6_corr']
     Y = cr_drivers['Early Blastomeres_corr'].loc[X.index]
@@ -163,7 +163,7 @@ Now let's check if lineage drivers are consistent. We compare drivers using thei
 
 For the Prechordal Plate we obtain again fairly good results.
 
-.. code:: ipython3
+.. code:: python
 
     X = scs_drivers['5_corr']
     Y = cr_drivers['Prechordal Plate_corr'].loc[X.index]
@@ -181,7 +181,7 @@ For the Prechordal Plate we obtain again fairly good results.
 
 The situation for Notochord is a bit different. The gene scores for the two methods seem to be slightly different, as if there are two subgroups mixed.
 
-.. code:: ipython3
+.. code:: python
 
     X = scs_drivers['4_corr']
     Y = cr_drivers['Notochord_corr'].loc[X.index]
@@ -198,7 +198,7 @@ The situation for Notochord is a bit different. The gene scores for the two meth
 
 Plotting the actual probabilities makes clear that there is no complete match between the Notochord macrostate and group 4, the former being bigger and including more cells.
 
-.. code:: ipython3
+.. code:: python
 
     g_fwd.plot_fate_probabilities(same_plot=False, basis='force_directed')
 
@@ -207,7 +207,7 @@ Plotting the actual probabilities makes clear that there is no complete match be
    :width: 644px
 
 
-.. code:: ipython3
+.. code:: python
 
     for g in scs_lineage.names:
         adata.obs[f'CM_{g}'] = scs_lineage[g].X.squeeze()
@@ -222,7 +222,7 @@ Plotting the actual probabilities makes clear that there is no complete match be
 Since the Schur decomposition revealed a higher number of macrostates, perform ``cellrank`` analysis with more of them.
 
 
-.. code:: ipython3
+.. code:: python
 
     g_fwd.compute_macrostates(n_states=6, cluster_key="lineages")
     g_fwd.plot_macrostates('all', basis="force_directed", discrete=True)
@@ -234,7 +234,7 @@ Since the Schur decomposition revealed a higher number of macrostates, perform `
 
 The coarse grained transition matrix shows that 6 macrostates are totally legit in this dataset.
 
-.. code:: ipython3
+.. code:: python
 
     g_fwd.plot_coarse_T()
 
@@ -247,7 +247,7 @@ The coarse grained transition matrix shows that 6 macrostates are totally legit 
 
 We proceed with the analysis, extracting lineage drivers for all 6 macrostates.
 
-.. code:: ipython3
+.. code:: python
 
     g_fwd.predict(stability_threshold=0.8)
     g_fwd.compute_fate_probabilities()
@@ -263,7 +263,7 @@ We proceed with the analysis, extracting lineage drivers for all 6 macrostates.
 
 Let's calculate and visualize all the pairwise correlations between drivers identified with both methods
 
-.. code:: ipython3
+.. code:: python
 
     A = scs_drivers.filter(like='_corr').sort_index()
     B = cr_drivers.filter(like='_corr').sort_index()
@@ -282,7 +282,7 @@ Let's calculate and visualize all the pairwise correlations between drivers iden
 
 Allowing for more macrostates causes the "fragmentation" of the Notochord state and, in fact, the match with group 4 is now fairly consistent. Looking at the heatmap we also can spot a correspondence of group 0 with "Early_Blastomeres_3", a group that wasn't identified using only 3 macrostates.
 
-.. code:: ipython3
+.. code:: python
 
     X = scs_drivers['4_corr']
     Y = cr_drivers['Notochord_corr'].loc[X.index]
@@ -305,7 +305,7 @@ Cell Trajectories
 The following section is considered highly experimental and it is currently under study. ``schist`` (actually ``graph-tool``) allows to estimate the affinity of each cell to their group by calculating the gain (or loss) of information that is obtained by moving a cell and putting it back to the original group. We can calculate this at every level of the hierarchy and use it as a proxy to define terminal states. We choose here level 1 (just below the one used for defining groups).
 
 
-.. code:: ipython3
+.. code:: python
 
     scs.tools.calculate_affinity(adata, level=1, back_prob=True)
     M = adata.obsm['CA_nsbm_level_1']
@@ -321,7 +321,7 @@ The following section is considered highly experimental and it is currently unde
 
 Interestingly the terminal states mostly correspond to the biologically relevant ones. As said, we can get the same at every level.
 
-.. code:: ipython3
+.. code:: python
 
     for k in adata.uns['schist']['nsbm']['blocks'].keys():
         scs.tools.calculate_affinity(adata, level=int(k), back_prob=True)
@@ -332,7 +332,7 @@ Interestingly the terminal states mostly correspond to the biologically relevant
 
 To identify trajectories, we start from cells that have the lowest affinity, interpreting those as the ones that "wont' stay" in a group (or are more likely to transition).
 
-.. code:: ipython3
+.. code:: python
 
     first_cell = adata.obs.sort_values('scs_terminal_states_2', ascending=False).index[0]
     adata.uns['iroot'] = np.where(adata.obs_names == first_cell)[0][0]
@@ -341,7 +341,7 @@ To identify trajectories, we start from cells that have the lowest affinity, int
 
 We then exploit the graph topology to travel from the first cell to the rest of the dataset, again recapitulating the main finding for this dataset (that is the differentiation from Blastomeres to Notochord and Prechordal Plate).
 
-.. code:: ipython3
+.. code:: python
 
     state = scs.tools.state_from_blocks(adata)
     tour = gt.topology.shortest_distance(state.g, source=adata.uns['iroot'])
@@ -357,7 +357,7 @@ We then exploit the graph topology to travel from the first cell to the rest of 
 
 Lastly we can get the transition probabilities from the ``BlockState`` relative to level 2 and visualize it as a coarse grained matrix
 
-.. code:: ipython3
+.. code:: python
 
     M = state.get_levels()[2].get_matrix().A
     sns.clustermap(M / np.sum(M, 1)[:, None] , cmap='viridis', fmt=".2f",
