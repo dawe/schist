@@ -344,8 +344,8 @@ We then exploit the graph topology to travel from the first cell to the rest of 
 .. code:: python
 
     state = scs.tools.state_from_blocks(adata)
-    tour = gt.topology.shortest_distance(state.g, source=adata.uns['iroot'])
-    adata.obs['shortest_path_dist'] = np.array(tour.a) / np.max(tour.a)
+    tour = gt.shortest_distance(state.g, source=adata.uns['iroot'])
+    adata.obs['shortest_path_dist'] = np.array(tour.a / np.max(tour.a))
     sc.pl.embedding(adata, color='shortest_path_dist', basis='force_directed')
 
 
