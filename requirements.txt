@@ -5,3 +5,4 @@ pandas
 scanpy
 leidenalg
 harmonypy
+joblib
