@@ -137,6 +137,11 @@ def nested_model(
     elif dispatch_backend == 'processes':
         dispatch_backend = 'loky'
 
+    if dispatch_backend == 'threading' and float(gt.__version__.split()[0]) > 2.55:
+        logg.warning('Threading backend does not work with this version of graph-tool\n'
+                     'Switching to loky backend')
+        dispatch_backend = 'loky'
+
     if collect_marginals and not refine_model:
         if n_init < 100:
             logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'

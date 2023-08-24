@@ -149,6 +149,10 @@ def leiden(
     elif dispatch_backend == 'processes':
         dispatch_backend = 'loky'
 
+    if dispatch_backend == 'threading' and float(gt.__version__.split()[0]) > 2.55:
+        logg.warning('Threading backend does not work with this version of graph-tool\n'
+                     'Switching to loky backend')
+        dispatch_backend = 'loky'
 
     start = logg.info('running Leiden clustering')
     adata = adata.copy() if copy else adata
