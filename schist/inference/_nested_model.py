@@ -8,7 +8,6 @@ from joblib import delayed, Parallel, parallel_config
 
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
-#from scanpy._utils import get_igraph_from_adjacency
 from .._utils import get_graph_tool_from_adjacency
 
 
