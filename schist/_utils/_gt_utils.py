@@ -7,7 +7,7 @@ import pickle
 from scipy import sparse
 from sklearn.metrics import adjusted_mutual_info_score as ami
 import pandas as pd
-from scipy.sparse import ssp
+import scipy.sparse as ssp
 from scanpy._utils import get_igraph_from_adjacency
 
 try:
@@ -31,7 +31,7 @@ def get_graph_tool_from_adjacency(adjacency, directed=False, use_weights=False):
     if isinstance(adjacency, ssp.csr_matrix):
         if not directed:
             adj = ssp.triu(adjacency, 1)
-        idx = adjacency.nonzero()
+        idx = adj.nonzero()
         if use_weights:
             weights = adj.data
         
@@ -43,7 +43,7 @@ def get_graph_tool_from_adjacency(adjacency, directed=False, use_weights=False):
             weights = adj[idx]    
 
     if use_weights:
-        g = gt.Graph(np.array([idx[0], idx[1], weights]), 
+        g = gt.Graph(np.array([idx[0], idx[1], weights]).T, 
                      eprops=[("weight", "double")],
                      directed=directed)
     else:
@@ -75,7 +75,7 @@ def prune_groups(groups, inverse=False):
 
 def get_graph_tool_from_adata(adata: AnnData,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
-    adjacency: Optional[ssp.csr_matrix] = None,
+    adjacency: Optional[ssp.spmatrix] = None,
     neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
     use_weights: bool = False,
@@ -109,7 +109,7 @@ def get_graph_tool_from_adata(adata: AnnData,
     return g
 
 def get_multi_graph_from_adata(adatas: List[AnnData],
-    adjacency: Optional[List[ssp.csr_matrix]] = None,
+    adjacency: Optional[List[ssp.spmatrix]] = None,
     neighbors_key: Optional[List[str]] = ['neighbors'],
     directed: bool = False,
     use_weights: bool = False,
@@ -299,7 +299,7 @@ def state_from_blocks(
     adata: AnnData,
     state_key: Optional[str] = 'nsbm',
     neighbors_key: Optional[str] = 'neighbors',
-    adjacency: Optional[ssp.csr_matrix] = None,
+    adjacency: Optional[ssp.spmatrix] = None,
     directed: bool = False,
     use_weights: bool = False,
     deg_corr: bool = True,

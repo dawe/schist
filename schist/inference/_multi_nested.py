@@ -8,7 +8,7 @@ from joblib import delayed, Parallel, parallel_config
 
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
-from scanpy._utils import get_igraph_from_adjacency
+from .._utils import get_graph_tool_from_adjacency
 
 
 try:
@@ -195,9 +195,7 @@ def nested_model_multi(
     
     graph_list = []
     for x in range(n_data):
-        g = get_igraph_from_adjacency(adjacency[x], directed=directed)
-        g = g.to_graph_tool()
-        gt.remove_parallel_edges(g)
+        g = get_graph_tool_from_adjacency(adjacency[x], directed=directed, use_weights=use_weights)
         # add cell names to graph, this will be used to create
         # layered graph 
         g_names = g.new_vertex_property('string') 

@@ -8,7 +8,8 @@ from joblib import delayed, Parallel, parallel_config
 
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
-from scanpy._utils import get_igraph_from_adjacency
+#from scanpy._utils import get_igraph_from_adjacency
+from .._utils import get_graph_tool_from_adjacency
 
 
 try:
@@ -176,9 +177,10 @@ def nested_model(
             adjacency,
         )
     # convert it to igraph and graph-tool
-    g = get_igraph_from_adjacency(adjacency, directed=directed)
-    g = g.to_graph_tool()
-    gt.remove_parallel_edges(g)
+    g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
+#    g = get_igraph_from_adjacency(adjacency, directed=directed)
+#    g = g.to_graph_tool()
+#    gt.remove_parallel_edges(g)
     
     recs=[]
     rec_types=[]
