@@ -7,7 +7,7 @@ import pickle
 from scipy import sparse
 from sklearn.metrics import adjusted_mutual_info_score as ami
 import pandas as pd
-from scipy.sparse import spmatrix
+from scipy.sparse import ssp
 from scanpy._utils import get_igraph_from_adjacency
 
 try:
@@ -22,20 +22,33 @@ except ImportError:
         """
     )
 
-def get_graph_tool_from_adjacency(adjacency, directed=None):
+def get_graph_tool_from_adjacency(adjacency, directed=False, use_weights=False):
     """Get graph-tool graph from adjacency matrix."""
-    idx = np.nonzero(np.triu(adjacency.todense(),1))
-    weights = adjacency[idx]
-    if isinstance(weights, np.matrix):
-        weights = weights.A1
-    g = gt.Graph(directed=directed)
-    g.add_edge_list(np.transpose(idx))  # add
-    try:
-        ew = g.new_edge_property("double")
-        ew.a = weights
-        g.ep['weight'] = ew
-    except:
-        pass
+    
+    adj = adjacency
+    weights = None
+
+    if isinstance(adjacency, ssp.csr_matrix):
+        if not directed:
+            adj = ssp.triu(adjacency, 1)
+        idx = adjacency.nonzero()
+        if use_weights:
+            weights = adj.data
+        
+    else:
+        if not directed:
+            adj = np.triu(adjacency, 1)
+        idx = np.nonzero(adj)
+        if use_weights:
+            weights = adj[idx]    
+
+    if use_weights:
+        g = gt.Graph(np.array([idx[0], idx[1], weights]), 
+                     eprops=[("weight", "double")],
+                     directed=directed)
+    else:
+        g = gt.Graph(np.transpose(idx), directed=directed)
+
     if g.num_vertices() != adjacency.shape[0]:
         logg.warning(
             f'The constructed graph has only {g.num_vertices()} nodes. '
@@ -62,7 +75,7 @@ def prune_groups(groups, inverse=False):
 
 def get_graph_tool_from_adata(adata: AnnData,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
-    adjacency: Optional[sparse.spmatrix] = None,
+    adjacency: Optional[ssp.csr_matrix] = None,
     neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
     use_weights: bool = False,
@@ -98,7 +111,7 @@ def get_graph_tool_from_adata(adata: AnnData,
     return g
 
 def get_multi_graph_from_adata(adatas: List[AnnData],
-    adjacency: Optional[List[sparse.spmatrix]] = None,
+    adjacency: Optional[List[ssp.csr_matrix]] = None,
     neighbors_key: Optional[List[str]] = ['neighbors'],
     directed: bool = False,
     use_weights: bool = False,
@@ -289,7 +302,7 @@ def state_from_blocks(
     adata: AnnData,
     state_key: Optional[str] = 'nsbm',
     neighbors_key: Optional[str] = 'neighbors',
-    adjacency: Optional[spmatrix] = None,
+    adjacency: Optional[ssp.csr_matrix] = None,
     directed: bool = False,
     use_weights: bool = False,
     deg_corr: bool = True,
