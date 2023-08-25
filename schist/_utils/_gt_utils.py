@@ -104,9 +104,7 @@ def get_graph_tool_from_adata(adata: AnnData,
             adjacency,
         )
     # convert it to igraph
-    g = get_igraph_from_adjacency(adjacency, directed=directed)
-    g = g.to_graph_tool()
-    gt.remove_parallel_edges(g)
+    g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
 
     return g
 
