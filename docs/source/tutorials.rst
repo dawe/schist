@@ -13,3 +13,11 @@ A list of currently available tutorials and examples covers
 * :ref:`label_transfer`
 * :ref:`multimodal_data`
 * :ref:`cellrank_integration`
+
+--------------
+Advanced Usage
+--------------
+
+The following tutorials cover some experimental and/or advanced approaches, useful for specific problems
+
+* :ref:`large_samples`
