@@ -4,8 +4,7 @@
 Analysis of large datasets
 ==========================
 
-It is stated in the (original
-paper)[https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04489-7]
+It is stated in the `original paper <https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04489-7>`__
 (and also raised by users) that ``schist`` may be slow, especially for
 large datasets. While the underlying library is computationally
 efficient, the MCMC problem may be difficult to minimize and scales with
@@ -46,7 +45,8 @@ than 2 millions cells.
     import scipy.sparse as ssp
     import pandas as pd
     from tqdm import tqdm
-    
+    import warnings
+    warnings.filterwarnings('ignore')
     %matplotlib inline
     sc.set_figure_params()
     rcParams['axes.grid'] = False
@@ -67,6 +67,7 @@ information.
     (2282447, 56295)
 
 
+---------------------------
 The Planted Partition Model
 ---------------------------
 
@@ -150,8 +151,6 @@ get cell populations.
 
 .. code:: python
 
-    import warnings
-    warnings.filterwarnings('ignore')
     n_neighbors=10
     use_rep='X_scanvi_emb'
     n_obs = N
@@ -314,6 +313,7 @@ highest detail available for this dataset
    :height: 579px
 
 
+------------------
 The default models
 ------------------
 
@@ -515,7 +515,7 @@ very unlikely that it will pop out using this approach
     0.6123523204785928
 
 
-
+----------------
 Model Refinement
 ----------------
 
@@ -538,14 +538,24 @@ increase it, depending on the available time.
 
 .. parsed-literal::
 
-     10%|█         | 1/10 [01:35<14:17, 95.24s/it]
+    100%|██████████| 10/10 [13:13<00:00, 79.39s/it]
+
 
 .. code:: python
 
     print(f"Entropy before refinement: {E1}")
     print(f"Entropy after refinement: {E2}")
+    print(f"Entropy difference: {E2 - E1}")
     print(f"Number of blocks before refinement: {nb1}")
     print(f"Number of blocks after refinement: {nb2}")
+
+.. parsed-literal::
+
+    Entropy before refinement: 487045167.6521903
+    Entropy after refinement: 463980334.0686416
+    Entropy difference: -23064833.583548725
+    Number of blocks before refinement: 61
+    Number of blocks after refinement: 76
 
 
 .. code:: python
@@ -556,36 +566,96 @@ increase it, depending on the available time.
     sc.pl.umap(_adata, color='refined_ppbm', legend_loc=None)
 
 
+.. image:: output_49_0.png
+   :width: 285px
+   :height: 297px
 
+
+Of course, the refinement has a minimal impact in this example, as we
+ran only 10 iterations. We can do the same for the other models:
 
 .. code:: python
 
     sbm_state = gt.BlockState(g, b=np.array(_adata.obs['sbm'].cat.codes))
     E1 = sbm_state.entropy()
     nb1 = sbm_state.get_nonempty_B()
-
-.. code:: python
-
-    E1, nb1
-
-
+    for n in tqdm(range(10)):
+        sbm_state.multiflip_mcmc_sweep(beta=np.inf, niter=10, c=0.5)
+    E2 = sbm_state.entropy()    
+    nb2 = sbm_state.get_nonempty_B()
 
 
 .. parsed-literal::
 
-    (478289202.93164676, 38)
-
-
+    100%|██████████| 10/10 [16:41<00:00, 100.19s/it]
 
 
 .. code:: python
 
-    for n in tqdm(range(100)):
-        sbm_state.multiflip_mcmc_sweep(beta=np.inf, niter=10, c=0.5)
+    print(f"Entropy before refinement: {E1}")
+    print(f"Entropy after refinement: {E2}")
+    print(f"Entropy difference: {E2 - E1}")
+    print(f"Number of blocks before refinement: {nb1}")
+    print(f"Number of blocks after refinement: {nb2}")
+
+
+.. parsed-literal::
+
+    Entropy before refinement: 478289202.93164676
+    Entropy after refinement: 427199035.4648468
+    Entropy difference: -51090167.466799974
+    Number of blocks before refinement: 38
+    Number of blocks after refinement: 145
+
+
+.. code:: python
+
     scs._utils.plug_state(_adata, sbm_state, key_added='refined_sbm')
-    _adata.uns['refined_sbm_colors'] = [mpl.colors.rgb2hex(x) for x in cm.gist_ncar(np.linspace(0, 1, sbm_state.get_nonempty_B()))]
+    if nb2 > 100:
+        _adata.uns['refined_sbm_colors'] = [mpl.colors.rgb2hex(x) for x in cm.nipy_spectral(np.linspace(0, 1, nb2))]
     sc.pl.umap(_adata, color='refined_sbm', legend_loc=None)
 
+
+
+.. image:: output_53_0.png
+   :width: 285px
+   :height: 297px
+
+
+.. code:: python
+
+    bs = pmode_nested.get_max_nested()
+    nsbm_state = gt.NestedBlockState(g, bs=bs,
+                                deg_corr=True)
+    E1 = nsbm_state.entropy()
+    nb1 = nsbm_state.get_levels()[0].get_nonempty_B()
+    for n in tqdm(range(10)):
+        nsbm_state.multiflip_mcmc_sweep(beta=np.inf, niter=10, c=0.5)
+    E2 = nsbm_state.entropy()    
+    nb2 = nsbm_state.get_levels()[0].get_nonempty_B()
+
+
+.. parsed-literal::
+
+      0%|          | 0/10 [00:00<00:00, 0it/s]
+
+.. code:: python
+
+    print(f"Entropy before refinement: {E1}")
+    print(f"Entropy after refinement: {E2}")
+    print(f"Entropy difference: {E2 - E1}")
+    print(f"Number of blocks before refinement (level 0): {nb1}")
+    print(f"Number of blocks after refinement (level 0): {nb2}")
+
+.. code:: python
+
+    scs._utils.plug_state(_adata, nsbm_state, key_added='refined_nsbm')
+    if nb2 > 100:
+        _adata.uns['refined_nsbm_level_0_colors'] = [mpl.colors.rgb2hex(x) for x in cm.nipy_spectral(np.linspace(0, 1, nb2))]
+    sc.pl.umap(_adata, color='refined_nsbm_level_0', legend_loc=None)
+    
+
+-----------
 Conclusions
 -----------
 
@@ -594,10 +664,7 @@ For the ``planted_model`` and the ``flat_model`` the subsampled
 solutions can be considered coarser descriptions of the same model. In
 the full model, the partition sizes are rather small compared to the
 size of the dataset. The full ``flat_model``, in particular, will find
-thousands of groups (given that $ B
-:raw-latex:`\propto `:raw-latex:`\sqrt{N}`
-:math:`, we may expect ~1.5e3 groups in this case), which may be unpractical to analyze. Since the model from subsampled data will raise many less groups, the subsampled solution may even be preferable. As for the `nested_model`, we will obtain a even coarser description; the nested model, in fact, is able to identify smaller groups (`
-B :raw-latex:`\propto `N/:raw-latex:`\log`(N) $, ~1.35e3 in this case).
+thousands of groups (given that :math:`B \propto \sqrt{N}`, we may expect 10\ :sup:`3` groups in this case), which may be unpractical to analyze. Since the model from subsampled data will raise many less groups, the subsampled solution may even be preferable. As for the `nested_model`, we will obtain a even coarser description; the nested model, in fact, is able to identify smaller groups (:math:`B  \propto N\log(N)`, 10\ :sup:`5` in this case).
 In addition, we should ensure that the hierarchy is somehow consistent,
 otherwise we should drop (for now) the possibility to subsample data for
 the ``nested_model``.
