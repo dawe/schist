@@ -506,14 +506,28 @@ very unlikely that it will pop out using this approach
    :height: 579px
 
 
+Since the NSBM includes a hierarchy, it is important to assess if the
+reconstructed one is meaningful. To answer this question we need the
+results of a ``nested_model`` on the whole dataset. Similarly to what
+has been done with the PPBM, we externally minimized a model for that.
+By comparing two highest levels of the relative hierarchies we already
+appreciate how the reconstruction of the hierarchy in the subsampled
+approach fails, mixing cell groups that do not belong together. Hence,
+we currently discourage inference on subsampled data for the
+``nested_model``, whereas it may be a valid approach for the remaining
+models.
+
 .. code:: python
 
-    skmt.adjusted_mutual_info_score(_adata.obs['ann_finest_level'], _adata.obs['nsbm_level_0'])
+    full_nsbm_state = pickle.load(open("HCA_full_it_1151.pickle", 'rb'))
+    scs._utils.plug_state(_adata, full_nsbm_state, key_added='full_nsbm')
+    sc.pl.umap(_adata, color=['full_nsbm_level_6', 'nsbm_level_2'], ncols=1, legend_loc=None)
 
-.. parsed-literal::
 
-    0.6123523204785928
 
+.. image:: output_46_0.png
+   :width: 313px
+   :height: 579px
 
 ----------------
 Model Refinement
@@ -566,94 +580,14 @@ increase it, depending on the available time.
     sc.pl.umap(_adata, color='refined_ppbm', legend_loc=None)
 
 
-.. image:: output_49_0.png
+.. image:: output_50_0.png
    :width: 285px
    :height: 297px
 
 
 Of course, the refinement has a minimal impact in this example, as we
-ran only 10 iterations. We can do the same for the other models:
+ran only 10 iterations. Refinement could be a solution to correctly reconstruct the hierarchy of the `nested_model`, although the time spent on this may defeat the approach of subsampling.
 
-.. code:: python
-
-    sbm_state = gt.BlockState(g, b=np.array(_adata.obs['sbm'].cat.codes))
-    E1 = sbm_state.entropy()
-    nb1 = sbm_state.get_nonempty_B()
-    for n in tqdm(range(10)):
-        sbm_state.multiflip_mcmc_sweep(beta=np.inf, niter=10, c=0.5)
-    E2 = sbm_state.entropy()    
-    nb2 = sbm_state.get_nonempty_B()
-
-
-.. parsed-literal::
-
-    100%|██████████| 10/10 [16:41<00:00, 100.19s/it]
-
-
-.. code:: python
-
-    print(f"Entropy before refinement: {E1}")
-    print(f"Entropy after refinement: {E2}")
-    print(f"Entropy difference: {E2 - E1}")
-    print(f"Number of blocks before refinement: {nb1}")
-    print(f"Number of blocks after refinement: {nb2}")
-
-
-.. parsed-literal::
-
-    Entropy before refinement: 478289202.93164676
-    Entropy after refinement: 427199035.4648468
-    Entropy difference: -51090167.466799974
-    Number of blocks before refinement: 38
-    Number of blocks after refinement: 145
-
-
-.. code:: python
-
-    scs._utils.plug_state(_adata, sbm_state, key_added='refined_sbm')
-    if nb2 > 100:
-        _adata.uns['refined_sbm_colors'] = [mpl.colors.rgb2hex(x) for x in cm.nipy_spectral(np.linspace(0, 1, nb2))]
-    sc.pl.umap(_adata, color='refined_sbm', legend_loc=None)
-
-
-
-.. image:: output_53_0.png
-   :width: 285px
-   :height: 297px
-
-
-.. code:: python
-
-    bs = pmode_nested.get_max_nested()
-    nsbm_state = gt.NestedBlockState(g, bs=bs,
-                                deg_corr=True)
-    E1 = nsbm_state.entropy()
-    nb1 = nsbm_state.get_levels()[0].get_nonempty_B()
-    for n in tqdm(range(10)):
-        nsbm_state.multiflip_mcmc_sweep(beta=np.inf, niter=10, c=0.5)
-    E2 = nsbm_state.entropy()    
-    nb2 = nsbm_state.get_levels()[0].get_nonempty_B()
-
-
-.. parsed-literal::
-
-      0%|          | 0/10 [00:00<00:00, 0it/s]
-
-.. code:: python
-
-    print(f"Entropy before refinement: {E1}")
-    print(f"Entropy after refinement: {E2}")
-    print(f"Entropy difference: {E2 - E1}")
-    print(f"Number of blocks before refinement (level 0): {nb1}")
-    print(f"Number of blocks after refinement (level 0): {nb2}")
-
-.. code:: python
-
-    scs._utils.plug_state(_adata, nsbm_state, key_added='refined_nsbm')
-    if nb2 > 100:
-        _adata.uns['refined_nsbm_level_0_colors'] = [mpl.colors.rgb2hex(x) for x in cm.nipy_spectral(np.linspace(0, 1, nb2))]
-    sc.pl.umap(_adata, color='refined_nsbm_level_0', legend_loc=None)
-    
 
 -----------
 Conclusions
