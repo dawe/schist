@@ -588,6 +588,60 @@ increase it, depending on the available time.
 Of course, the refinement has a minimal impact in this example, as we
 ran only 10 iterations. Refinement could be a solution to correctly reconstruct the hierarchy of the `nested_model`, although the time spent on this may defeat the approach of subsampling.
 
+.. code:: python
+
+    bs = pmode_nested.get_max_nested()
+    nsbm_state = gt.NestedBlockState(g, bs=bs,
+                                deg_corr=True)
+    E1 = nsbm_state.entropy()
+    nb1 = nsbm_state.get_levels()[0].get_nonempty_B()
+    for n in tqdm(range(500)):
+        nsbm_state.multiflip_mcmc_sweep(beta=np.inf, niter=10, c=0.5)
+    E2 = nsbm_state.entropy()    
+    nb2 = nsbm_state.get_levels()[0].get_nonempty_B()
+
+
+.. parsed-literal::
+
+    100%|██████████| 500/500 [25:25:03<00:00, 183.01s/it]   
+
+
+.. code:: python
+
+    print(f"Entropy before refinement: {E1}")
+    print(f"Entropy after refinement: {E2}")
+    print(f"Entropy difference: {E2 - E1}")
+    print(f"Number of blocks before refinement (level 0): {nb1}")
+    print(f"Number of blocks after refinement (level 0): {nb2}")
+
+
+.. parsed-literal::
+
+    Entropy before refinement: 468677546.2346465
+    Entropy after refinement: 326768701.60364324
+    Entropy difference: -141908844.63100326
+    Number of blocks before refinement (level 0): 60
+    Number of blocks after refinement (level 0): 4210
+
+
+After refinement the hierarchy looks more consistent, although it took almost one day to compute.
+
+.. code:: python
+
+    scs._utils.plug_state(_adata, nsbm_state, key_added='refined_nsbm')
+    for level in range(3, 8):
+        nb2 = len(_adata.obs[f'refined_nsbm_level_{level}'].cat.categories)
+        if nb2 > 100:
+            _adata.uns[f'refined_nsbm_level_{level}_colors'] = [mpl.colors.rgb2hex(x) for x in cm.nipy_spectral(np.linspace(0, 1, nb2))]
+    to_plot = [f'refined_nsbm_level_{level}' for level in range(3, 8)]
+    sc.pl.umap(_adata, color=to_plot, legend_loc=None, ncols=1)
+
+
+.. image:: output_59_0.png
+   :width: 313px
+   :height: 1414px
+
+
 
 -----------
 Conclusions
@@ -595,11 +649,6 @@ Conclusions
 
 How do these solutions compare to a model that takes the whole dataset?
 For the ``planted_model`` and the ``flat_model`` the subsampled
-solutions can be considered coarser descriptions of the same model. In
-the full model, the partition sizes are rather small compared to the
-size of the dataset. The full ``flat_model``, in particular, will find
-thousands of groups (given that :math:`B \propto \sqrt{N}`, we may expect 10\ :sup:`3` groups in this case), which may be unpractical to analyze. Since the model from subsampled data will raise many less groups, the subsampled solution may even be preferable. As for the `nested_model`, we will obtain a even coarser description; the nested model, in fact, is able to identify smaller groups (:math:`B  \propto N\log(N)`, 10\ :sup:`5` in this case).
-In addition, we should ensure that the hierarchy is somehow consistent,
-otherwise we should drop (for now) the possibility to subsample data for
-the ``nested_model``.
+solutions can be considered coarser descriptions of the same model computed on the entire dataset. In the full model, the partition sizes are rather small compared to the
+size of the dataset. The full ``flat_model``, in particular, will find thousands of groups (given that :math:`B \propto \sqrt{N}`, we may expect 10\ :sup:`3` groups in this case), which may be unpractical to analyze. Since the model from subsampled data will raise many less groups, the subsampled solution may even be preferable. As for the `nested_model`, we will obtain a even coarser description compared to the same model on the entire dataset; the nested model, in fact, is able to identify smaller groups (:math:`B  \propto N\log(N)`, 10\ :sup:`5` in this case). In addition, we should ensure that the hierarchy is somehow consistent, otherwise we should drop (for now) the possibility to subsample data for the ``nested_model``, unless some time is spent on model refinement.
 
