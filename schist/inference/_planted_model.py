@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 from scipy import sparse
-from joblib import delayed, Parallel
+from joblib import delayed, Parallel, parallel_config
 from natsort import natsorted
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
-from scanpy._utils import get_igraph_from_adjacency
+from .._utils import get_graph_tool_from_adjacency
 
 import graph_tool.all as gt
 
@@ -20,8 +20,11 @@ def planted_model(
     tolerance = 1e-6,
     collect_marginals: bool = True,
     deg_corr: bool = True,
-    samples: int = 100,
+    n_init: int = 100,
     n_jobs: int = -1,
+    refine_model: bool = False,
+    refine_iter: int = 100,
+    max_iter: int = 100000,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -33,7 +36,7 @@ def planted_model(
     copy: bool = False,
     save_model: Union[str, None] = None,
 #    minimize_args: Optional[Dict] = {},
-    dispatch_backend: Optional[str] = 'processes',
+    dispatch_backend: Optional[str] = 'threads',
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -63,9 +66,16 @@ def planted_model(
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
         the case for KNN graphs used in scanpy.
-    samples
+    n_init
         Number of initial minimizations to be performed. This influences also the 
         precision for marginals
+    refine_model
+    	Wether to perform a further mcmc step to refine the model
+    refine_iter
+    	Number of refinement iterations.
+    max_iter
+    	Maximum number of iterations during minimization, set to infinite to stop 
+    	minimization only on tolerance
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -93,7 +103,7 @@ def planted_model(
     Returns
     -------
     `adata.obs[key_added]`
-        Array of dim (number of samples) that stores the subgroup id
+        Array of dim (number of cells) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell.
     `adata.uns['schist']['params']`
         A dict with the values for the parameters `resolution`, `random_state`,
@@ -109,11 +119,26 @@ def planted_model(
     if random_seed:
         np.random.seed(random_seed)
     
-    seeds = np.random.choice(range(samples**2), size=samples, replace=False)
+    seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
-    if collect_marginals and samples < 100:
-        logg.warning('Collecting marginals requires sufficient number of samples\n'
-                     f'It is now set to {samples} and should be at least 100')
+    # the following lines are for compatibility
+    if dispatch_backend == 'threads':
+        dispatch_backend = 'threading'
+    elif dispatch_backend == 'processes':
+        dispatch_backend = 'loky'
+
+    if dispatch_backend == 'threading' and float(gt.__version__.split()[0]) > 2.55:
+        logg.warning('Threading backend does not work with this version of graph-tool\n'
+                     'Switching to loky backend')
+        dispatch_backend = 'loky'
+
+    if collect_marginals and not refine_model:
+        if n_init < 100:
+            logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'
+                     f'It is now set to {n_init} and should be at least 100\n')
+    elif refine_model and refine_iter < 100:                     
+        logg.warning('Collecting marginals with refinement requires sufficient number of iterations\n'
+                     f'It is now set to {refine_iter} and should be at least 100\n')
 
     start = logg.info('minimizing the Planted Partition Block Model')
     adata = adata.copy() if copy else adata
@@ -140,9 +165,7 @@ def planted_model(
             adjacency,
         )
     # convert it to igraph and graph-tool
-    g = get_igraph_from_adjacency(adjacency, directed=directed)
-    g = g.to_graph_tool()
-    gt.remove_parallel_edges(g)
+    g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
 
     recs=[]
     rec_types=[]
@@ -152,31 +175,53 @@ def planted_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if samples < 1:
-        samples = 1
+    if n_init < 1:
+        n_init = 1
         
     # initialize  the block states
-    def fast_min(state, beta, n_sweep, fast_tol, seed=None):
+    def fast_min(state, beta, n_sweep, fast_tol, max_iter=max_iter, seed=None):
         if seed:
             gt.seed_rng(seed)
-        dS = 1
-        while np.abs(dS) > fast_tol:
-            dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep)
-        return state
+        dS = 1e9
+        n = 0
+        while (np.abs(dS) > fast_tol) and (n < max_iter):
+            dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+            n += 1
+        return state                            
 
-    states = [gt.PPBlockState(g) for x in range(samples)]
+    states = [gt.PPBlockState(g) for x in range(n_init)]
         
     # perform a mcmc sweep on each 
     # no list comprehension as I need to collect stats
         
-    states = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
-             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
-             )
+    with parallel_config(backend=dispatch_backend,
+                         max_nbytes=None,
+                         n_jobs=n_jobs):
+        states = Parallel()(
+            delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
+        )
+
     logg.info('        minimization step done', time=start)        
     pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True)
         
     bs = pmode.get_max(g)
     logg.info('        consensus step done', time=start)
+    state = gt.PPBlockState(g, b=bs)
+
+    if refine_model:
+        # we here reuse pmode variable, so that it is consistent
+        logg.info('        Refining model')
+        bs = []
+        def collect_partitions(s):
+            bs.append(s.get_blocks().a)
+        gt.mcmc_equilibrate(state, force_niter=refine_iter, 
+                            multiflip=True, 
+                            mcmc_args=dict(niter=n_sweep, beta=beta),
+                            callback=collect_partitions)
+        pmode = gt.PartitionModeState(bs, converge=True)
+        bs = pmode.get_max(g)
+        state = gt.PPBlockState(g, b=bs)
+        logg.info('        refinement complete', time=start)
         
     if save_model:
         import pickle
@@ -188,7 +233,6 @@ def planted_model(
             pickle.dump(pmode, fout, 2)
     
     
-    state = gt.PPBlockState(g, b=bs)
     logg.info('    done', time=start)
 
     groups = np.array(bs.get_array())
@@ -196,7 +240,7 @@ def planted_model(
     n_groups = len(u_groups)
     last_group = np.max(u_groups) + 1
     if collect_marginals:
-        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / samples
+        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / n_init
 
     rosetta = dict(zip(u_groups, range(len(u_groups))))
     groups = np.array([rosetta[x] for x in groups])
@@ -247,7 +291,9 @@ def planted_model(
         use_weights=use_weights,
         neighbors_key=neighbors_key,
         key_added=key_added,
-        samples=samples,
+        n_init=n_init,
+        refine_model=refine_model,
+        refine_iter=refine_iter,
         collect_marginals=collect_marginals,
         random_seed=random_seed,
         deg_corr=deg_corr,

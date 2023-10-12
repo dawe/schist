@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Sequence, Type, Union, Dict
+from typing import Optional, Tuple, Sequence, Type, Union, Dict, List
 
 import numpy as np
 from anndata import AnnData
@@ -7,7 +7,7 @@ import pickle
 from scipy import sparse
 from sklearn.metrics import adjusted_mutual_info_score as ami
 import pandas as pd
-from scipy.sparse import spmatrix
+import scipy.sparse as ssp
 from scanpy._utils import get_igraph_from_adjacency
 
 try:
@@ -22,20 +22,33 @@ except ImportError:
         """
     )
 
-def get_graph_tool_from_adjacency(adjacency, directed=None):
+def get_graph_tool_from_adjacency(adjacency, directed=False, use_weights=False):
     """Get graph-tool graph from adjacency matrix."""
-    idx = np.nonzero(np.triu(adjacency.todense(),1))
-    weights = adjacency[idx]
-    if isinstance(weights, np.matrix):
-        weights = weights.A1
-    g = gt.Graph(directed=directed)
-    g.add_edge_list(np.transpose(idx))  # add
-    try:
-        ew = g.new_edge_property("double")
-        ew.a = weights
-        g.ep['weight'] = ew
-    except:
-        pass
+    
+    adj = adjacency
+    weights = None
+
+    if isinstance(adjacency, ssp.csr_matrix):
+        if not directed:
+            adj = ssp.triu(adjacency, 1)
+        idx = adj.nonzero()
+        if use_weights:
+            weights = adj.data
+        
+    else:
+        if not directed:
+            adj = np.triu(adjacency, 1)
+        idx = np.nonzero(adj)
+        if use_weights:
+            weights = adj[idx]    
+
+    if use_weights:
+        g = gt.Graph(np.array([idx[0], idx[1], weights]).T, 
+                     eprops=[("weight", "double")],
+                     directed=directed)
+    else:
+        g = gt.Graph(np.transpose(idx), directed=directed)
+
     if g.num_vertices() != adjacency.shape[0]:
         logg.warning(
             f'The constructed graph has only {g.num_vertices()} nodes. '
@@ -62,9 +75,7 @@ def prune_groups(groups, inverse=False):
 
 def get_graph_tool_from_adata(adata: AnnData,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
-    random_seed: Optional[int] = None,
-    key_added: str = 'nsbm',
-    adjacency: Optional[sparse.spmatrix] = None,
+    adjacency: Optional[ssp.spmatrix] = None,
     neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
     use_weights: bool = False,
@@ -93,8 +104,96 @@ def get_graph_tool_from_adata(adata: AnnData,
             adjacency,
         )
     # convert it to igraph
-    g = get_graph_tool_from_adjacency(adjacency, directed=directed)
+    g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
+
     return g
+
+def get_multi_graph_from_adata(adatas: List[AnnData],
+    adjacency: Optional[List[ssp.spmatrix]] = None,
+    neighbors_key: Optional[List[str]] = ['neighbors'],
+    directed: bool = False,
+    use_weights: bool = False,
+
+):
+    """Get a multigraph from multiple adata objects.
+       To be used in multi-omics analysis with some cells paired.
+    """
+
+    n_keys = len(neighbors_key)
+    n_data = len(adatas)
+    # are we clustering a user-provided graph or the default AnnData one?
+    if adjacency is None:
+        adjacency = []
+        if n_keys > 1 and n_keys < n_data:
+            raise ValueError(
+                'The number of neighbors keys does not match'
+                'the number of data matrices. Either fix this'
+                'or pass a neighbor key that is shared across all modalities'
+            )
+        if n_keys == 1:
+            neighbors_key = [neighbors_key[0] for x in range(n_data)]    
+        for x in range(n_data):
+            if neighbors_key[x] not in adatas[x].uns:
+                raise ValueError(
+                    'You need to run `pp.neighbors` first '
+                    'to compute a neighborhood graph. for'
+                    f'data entry {x}'
+                )
+            elif 'connectivities_key' in adatas[x].uns[neighbors_key[x]]:
+                # scanpy>1.4.6 has matrix in another slot
+                conn_key = adatas[x].uns[neighbors_key[x]]['connectivities_key']
+                adjacency.append(adatas[x].obsp[conn_key])
+            else:
+                # scanpy<=1.4.6 has sparse matrix here
+                adjacency.append(adatas[x].uns[neighbors_key[x]]['connectivities'])
+
+
+    # convert it to igraph and graph-tool
+    
+    graph_list = []
+    for x in range(n_data):
+        g = get_graph_tool_from_adjacency(adjacency[x], directed=directed, use_weights=use_weights)
+
+        # add cell names to graph, this will be used to create
+        # layered graph 
+        g_names = g.new_vertex_property('string') 
+        d_names = adatas[x].obs_names
+        for xn in range(len(d_names)):
+            g_names[xn] = d_names[xn]
+        g.vp['cell'] = g_names
+        graph_list.append(g)
+    
+    
+    # get a non-redundant list of all cell names across all modalities
+    all_names = set(adatas[0].obs_names)
+    [all_names.update(adatas[x].obs_names) for x in range(1, n_data)]
+    all_names = list(all_names)
+    # create the shared graph
+    union_g = gt.Graph(directed=False)
+    union_g.add_vertex(len(all_names))
+    u_names = union_g.new_vertex_property('string')
+    for xn in range(len(all_names)):
+        u_names[xn] = all_names[xn]
+    union_g.vp['cell'] = u_names
+    
+    # now handle in a non elegant way the index mapping across all 
+    # modalities and the unified Graph
+    
+    u_cell_index = dict([(union_g.vp['cell'][x], x) for x in range(union_g.num_vertices())])
+    # now create layers
+    layer = union_g.new_edge_property('int')
+    for ng in range(n_data):
+        for e in graph_list[ng].edges():
+            S, T = e.source(), e.target()
+            Sn = graph_list[ng].vp['cell'][S]
+            Tn = graph_list[ng].vp['cell'][T]
+            Sidx = u_cell_index[Sn]
+            Tidx = u_cell_index[Tn]
+            ne = union_g.add_edge(Sidx, Tidx)
+            layer[ne] = ng + 1 # this is the layer label
+
+    union_g.ep['layer'] = layer
+    return union_g
 
 def plug_state(adata: AnnData,
     state: Union[gt.NestedBlockState, 
@@ -143,7 +242,7 @@ def plug_state(adata: AnnData,
         for c in groups.columns:
             ncat = len(groups[c].cat.categories)
             new_cat = [u'%s' % x for x in range(ncat)]
-            groups[c].cat.rename_categories(new_cat, inplace=True)
+            groups[c] = groups[c].cat.rename_categories(new_cat)
         levels = groups.columns
         groups.columns = [f"{key_added}_level_{level}" for level in range(len(bs))]
         groups.index = adata.obs_names
@@ -178,7 +277,7 @@ def plug_state(adata: AnnData,
         groups = pd.Series(state.get_blocks().get_array()).astype('category')
         ncat = len(groups.cat.categories)
         new_cat = [u'%s' % x for x in range(ncat)]
-        groups.cat.rename_categories(new_cat, inplace=True)
+        groups = groups.cat.rename_categories(new_cat)
         groups.index = adata.obs_names
         adata.obs[key_added] = groups
         adata.uns['schist'] = {}
@@ -200,7 +299,7 @@ def state_from_blocks(
     adata: AnnData,
     state_key: Optional[str] = 'nsbm',
     neighbors_key: Optional[str] = 'neighbors',
-    adjacency: Optional[spmatrix] = None,
+    adjacency: Optional[ssp.spmatrix] = None,
     directed: bool = False,
     use_weights: bool = False,
     deg_corr: bool = True,

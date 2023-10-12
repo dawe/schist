@@ -4,4 +4,5 @@ channels:
 dependencies:
   - pip
   - scanpy
-  - graph-tool=2.43
+  - graph-tool
+  - sphinx-autoapi

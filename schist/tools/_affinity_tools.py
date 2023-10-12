@@ -1,6 +1,7 @@
 from typing import Optional, Tuple, Sequence, Type, Union, Dict
 
 import numpy as np
+import anndata as ad
 from anndata import AnnData
 import scipy.stats
 from scipy import sparse
@@ -363,14 +364,15 @@ def label_transfer(
     directed: bool = False,
     use_weights: bool = False,
     pca_args: Optional[dict] = {},
+    use_rep: Optional[str] = None,
     harmony_args: Optional[dict] = {},
     copy: bool = False
     
 ) -> Optional[AnnData]:
     
     """\
-    Transfer annotation from one dataset to another using cell affinities
-    on the kNN graph. If two datasets are given, it uses harmony to perform
+    Transfer annotation from one dataset to another using cell affinities.
+    If two datasets are given, it uses harmony to perform
     integration and then the kNN graph. If only no reference is given, it is assumed
     that the only adata already contains the proper kNN graph and that
     labels to be reassigned have a specified value.
@@ -408,6 +410,9 @@ def label_transfer(
         (placing more emphasis on stronger edges).
     pca_args
         Parameters to be passed to `sc.tl.pca` before harmony is issued
+    use_rep
+        If specified use this embedding and do not calculate a pca. Note that the
+        embedding must be present in both datasets, with the same number of dimensions 
     harmony_args
     	Parameters to be passed to `sc.external.pp.harmony_integrate`
     copy:
@@ -424,7 +429,12 @@ def label_transfer(
     if adata_ref:
         from scanpy.tools import pca
         from scanpy.preprocessing import neighbors
-        from scanpy.external.pp import harmony_integrate
+        try:
+            from scanpy.external.pp import harmony_integrate
+            has_harmonypy = True
+        except ModuleNotFoundError:
+            logg.warning('Harmonypy has not been installed, this will severly affect results')
+            has_harmonypy = False
 
         # we have to create a merged dataset and integrate
         # before that check that the labels are not in the recipient, in case drop
@@ -438,23 +448,52 @@ def label_transfer(
                 f'Annotation {obs} is not present in reference dataset.'
             )         
 
+        if use_rep:
+            revert_to_pca = False
+            if not use_rep in adata.obsm.keys():
+                logg.warning(f'{use_rep} was not found into dataset 1, reverting to PCA')
+                revert_to_pca = True
+            elif not use_rep in adata_ref.obsm.keys():
+                logg.warning(f'{use_rep} was not found into dataset 2, reverting to PCA')
+                revert_to_pca = True
+            elif adata.obsm[use_rep].shape[1] != adata_ref.obsm[use_rep].shape[1]:
+                logg.warning(f'{use_rep} is inconsistent in two datasets, reverting to PCA')
+                revert_to_pca = True
+            if revert_to_pca:
+                use_rep = None
+
         # now do the merge, so that the empty category is now created
-        adata_merge = adata.concatenate(adata_ref, batch_categories=['_unk', '_ref'],
-                                        batch_key='_label_transfer')
+#        adata_merge = adata.concatenate(adata_ref, batch_categories=['_unk', '_ref'],
+#                                        batch_key='_label_transfer')
+        adata_merge = ad.concat([adata, adata_ref],
+                                      keys=['_unk', '_ref'],
+                                      label='_label_transfer',
+                                      join='outer',
+                                )
         # 
+        if adata_merge.obs[obs].dtype.name != 'category':
+            adata_merge.obs[obs] = pd.Categorical(adata_merge.obs[obs])
         adata_merge.obs[obs] = adata_merge.obs[obs].cat.add_categories(label_unk).fillna(label_unk)
         
         # perform integration using harmony
-        pca(adata_merge, **pca_args)
-        harmony_integrate(adata_merge, 
+        if not use_rep:
+            pca(adata_merge, **pca_args)
+            use_rep = 'X_pca'
+        if has_harmonypy:    
+            h_rep = f'{use_rep}_harmony'
+            harmony_integrate(adata_merge, 
                           key='_label_transfer', 
+                          basis=use_rep,
+                          adjusted_basis=h_rep,
                           **harmony_args)
+        else:
+            h_rep = 'X_pca'                          
         # now calculate the kNN graph		                                 
         n_neighbors = int(np.sqrt(adata_merge.shape[0])/2)
         key_added = neighbors_key
         if key_added == 'neighbors':
             key_added = None
-        neighbors(adata_merge, use_rep='X_pca_harmony', 
+        neighbors(adata_merge, use_rep=h_rep, 
                         n_neighbors=n_neighbors, key_added=key_added) 
     else:
         adata_merge = adata#.copy()
@@ -466,6 +505,21 @@ def label_transfer(
             raise ValueError(
                 f'Label {label_unk} is not present in {obs}.'
             ) 
+        # I can't figure out how it did work without this
+        # it is needed afterwards to select newly labeled cells
+        # this is managed when adatas are given separately
+            
+        _tl = adata_merge.obs[obs].astype(object) #to object and not str to manage nans
+        _tl = _tl.replace(label_unk, '_unk') #set identity to unknown
+        _tl = _tl.fillna('_unk') #assume nans come from unknown
+        _tl[_tl != '_unk'] = '_ref' #set reference to the remaining
+        adata_merge.obs['_label_transfer'] = pd.Categorical(_tl)
+
+    # before going on make sure there are no nans in partitions
+    # otherwise a BlockState is initialized with negative labels, this 
+    # causes a core dump
+    
+    adata_merge.obs[obs] = adata_merge.obs[obs].fillna(label_unk)
 
     # calculate affinity
     
@@ -482,11 +536,15 @@ def label_transfer(
     
     rank_affinity = affinity.rank(axis=1, ascending=False)
     adata_merge.obs[f'_{obs}_tmp'] = adata_merge.obs[obs].values
+    unk_cells = adata_merge.obs.query('_label_transfer == "_unk"').index
     for c in rank_affinity.columns:
         # pretty sure there's a way to do it without a 
         # for loop :-/ I really need a course on pandas
         cells = rank_affinity[rank_affinity[c] == 1].index
-        adata_merge.obs.loc[cells, f'_{obs}_tmp'] = c
+        # do not relabel known cells
+        cells = cells.intersection(unk_cells) 
+        if len(cells) > 0:
+            adata_merge.obs.loc[cells, f'_{obs}_tmp'] = c
     
     # do actual transfer to dataset 1
     # here we assume that concatenation does not change the order of cells
@@ -512,6 +570,10 @@ def label_transfer(
             # add gray for unknown
             colors.append('#aabbcc')
         adata.uns[f'{obs}_colors'] = colors
+
+    # remove unused categories if "use_best" hence no "unknown"
+    if use_best:
+        adata.obs[obs].cat.remove_unused_categories()
     
     return adata if copy else None
     

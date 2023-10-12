@@ -80,6 +80,8 @@ def get_cell_loglikelihood(
 def get_cell_back_p(
     state: Union[graph_tool.inference.nested_blockmodel.NestedBlockState, graph_tool.inference.planted_partition.PPBlockState],
     level: int = 0,
+    rescale: bool = False, 
+    as_prob: bool = False,
 ):
     """
     Returns the matrix of proabilities of moving a cell back to its
@@ -115,5 +117,13 @@ def get_cell_back_p(
     n_blocks = B.get_nonempty_B()
     shape = (n_cells, n_blocks)
     M = np.array([B.get_move_prob(v, s, reverse=True) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
+
+    if rescale:
+        M = M - np.min(M, axis=1)[:, None]
+        
+    if as_prob:
+        E = np.exp(-M)
+        return (E / np.sum(E, axis=1)[:, None])
+
 
     return M    

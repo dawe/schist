@@ -5,178 +5,23 @@ Tutorials
 
 .. highlight:: python
 
+-------------
+Typical Usage
+-------------
+
 In ored to perform cluster analysis on single cell data, count matrices must be previously prepared for the analysis. For a brief and effective example of single cell RNA sequencing (scRNA-seq) data processing, check the `Scanpy tutorial of 3k PBMCs <https://scanpy-tutorials.readthedocs.io/en/latest/pbmc3k.html>`_.
 
-----------------------
-Clustering of 3k PBMCs
-----------------------
+A list of currently available tutorials and examples covers
 
-In this section, the "3k PBMCs" dataset is preprocessed, using ``scanpy``. Afterwards, cluster analysis is performed, using ``schist``. 
-
-The first step necessary to perform cluster analyses with ``schist`` is to import the library::
-    
-    import schist as scs
-
-After that, standard analysis with ``scanpy`` can be performed::
-    
-    import scanpy as sc
-    
-    adata=sc.read(adata = sc.read_10x_mtx('data/filtered_gene_bc_matrices/hg19/', var_names='gene_symbols', cache=True)  
-    sc.pp.filter_cells(adata, min_genes=200)
-    sc.pp.filter_genes(adata, min_cells=3)
-    mito_genes = adata.var_names.str.startswith('MT-') 
-    adata.obs['percent_mito'] = np.sum(adata[:, mito_genes].X, axis=1) / np.sum(adata.X, axis=1)
-    adata.obs['n_counts'] = adata.X.sum(axis=1)
-    adata = adata[adata.obs['percent_mito'] < 0.05, :]
-    sc.pp.normalize_total(adata, target_sum=1e4)
-    sc.pp.log1p(adata)
-    sc.pp.highly_variable_genes(adata, min_mean=0.05, max_mean=3, min_disp=0.5)
-    adata = adata[:, adata.var.highly_variable]
-    sc.pp.regress_out(adata, ['n_counts', 'percent_mito'])
-    sc.pp.scale(adata, max_value=10)
-    sc.tl.pca(adata)
-
-Before the cluster analysis with ``schist``, the *k*\-NN graph must be built, representing connections between cells of the dataset. The *k*\-NN graph can be created, using the scanpy function ``sc.pp.neighbors()``, which allows the selection of the number of neighbors and the number of pca components considered for the analysis::
-
-    sc.pp.neighbors(adata, n_neighbors=20, n_pcs=30)
-
-Moreover, in order to spatially visualize the outcome of cluster analysis, we can compute the UMAP embedding of our dataset, using the function ``sc.tl.umap()``::
-   
-    sc.tl.umap(adata)
-
-nested_model
-^^^^^^^^^^^^
-
-The most prominent function implemented in ``schist`` library is the clustering function ``schist.inference.nested_model()``. It relies on a process called *minimization of the description length*\, implemented in the `graph-tool python library <https://graph-tool.skewed.de/>`_:
-    
-    - in lay terms, different partitions representig the dataset are generated; 
-    - after that, the partition with the *lowest description* length is selected as the final output (the simplest partition among partitions with the highest explanatory power).
-
-However, the *minimization of the description length* could fall into local minima. Therefore, another approach has been implemented in ``graph-tool``: 
-    
-    - in particular, the *minimization step* can be called multiple times;
-    - the partition with the lowest description lenght is stored for each round of *minimization*;
-    - finally, each stored partition is explored, in order to build a single partition, which considers each minimum.
-
-Pratically, this can be achieved, using ``schist``::
-
-    scs.inference.nested_model(adata, samples=100)
-    
-The parameter ``samples`` accounts for the number of minimization step performed: the larger the number of rounds, the slower the process. ``samples`` parameter is set at 100 by default.
-
-In order to effectively visualize the nested hierarchy representing the partition, we have implemented the function ``schist.plotting.alluvial()``::
-
-    scs.plotting.alluvial(adata)
-    
-.. image:: images/alluvial_uncut.png
-   :height: 450
-   :width: 450
-   :alt: alluvial_uncut
-
-The hierarchy can be furtherly cut, using the parameters ``level_start`` and ``level_end``::
-
-    scs.plotting.alluvial(adata, level_start=1, level_end=3)
-    
-.. image:: images/alluvial_cut.png
-   :height: 450
-   :width: 450
-   :alt: alluvial_cut
-
-The final outcome of the function ``schist.inference.nested_model()`` consists of a series of nested levels, stored in ``adata.obs``, with the prefix ``nsbm_level_`` followed by a number, expressing the level of the hierarchy. Each level can be visualized thanks to the ``scanpy`` function ``sc.pl.umap()``::
-
-    sc.pl.umap(adata, color=['nsbm_level_0', 'nsbm_level_1', 'nsbm_level_2', 'nsbm_level_3', 'nsbm_level_4'], ncols=2, legend_loc='on data')
-
-.. image:: images/nested_model.png
-   :height: 1200
-   :width: 700
-   :alt: nested_model
-
-
-planted_model
-^^^^^^^^^^^^^
-
-The function ``nested_model()`` is expected to find reliable communities in networks, however, it pays its statistical significance in terms of runtimes. Another approach implemented in ``graph-tool``, called Planted Partition Block Model, performs Bayesian inference on node groups. This function, in particular, uses the Planted Block Model, which is particularly suitable in case of assortative graphs and it returns the optimal number of communities::
-
-    scs.inference.planted_model(adata)
-
-The final outcome of the function ``schist.inference.planted_model()`` consists of a single layer of annotations, stored in ``adata.obs``, with the prefix ``ppbm``, which can be visualized through ``sc.pl.umap()``::
-
-    sc.pl.umap(adata, color=['ppbm'], legend_loc='on data')
-
-.. image:: images/planted_model.png
-   :height: 400
-   :width: 350
-   :alt: planted_model
+* :ref:`clustering_pbmc`
+* :ref:`label_transfer`
+* :ref:`multimodal_data`
 
 --------------
-Label transfer
+Advanced Usage
 --------------
 
-Differences in **description length** can be used to perform model selection, that is we can choose which model better describes the data. We sought to exploit this property to address the task of annotating cells according to a reference sample. Here, we show an exemple, using data from `Mereu *et al* <https://www.nature.com/articles/s41587-020-0469-4>`_, which includes mixtures of human PBMC and HEK293T cells profiled with various technologies. Cells profiled with 10X V3 platform are used as reference dataset, while annotations are performed on cells profiled with MARS-seq.
+The following tutorials cover some experimental and/or advanced approaches, useful for specific problems
 
-First, libraries and datasets are imported::
-
-    import scanpy as sc
-    import schist as scs
-    import pandas as pd
-    import anndata as ad
-    adata_10x = sc.read("10XV3_075.h5ad")
-    adata_marseq = sc.read("MARSseq_075.h5ad")
-    
-Let's take a look at UMAP embeddings and cell annotations::
-
-    sc.pl.umap(adata_10x, color='annotations')
-    
-.. image:: images/10x_label_transfer.png
-   :height: 350
-   :width: 400
-   :alt: planted_model
-   
-::  
-    
-    sc.pl.umap(adata_marsseq, color='annotations')
-    
-.. image:: images/MARS-seq_label_tranfer.png
-   :height: 350
-   :width: 400
-   :alt: planted_model
-    
-After that, cell annotations of marseq are set as 'Unknown' and the two dataset are concatenated and intagrated using `Harmony <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6884693/>`_::
-  
-    adata_10x.obs['annotation'] = adata_10x.obs['nnet2']
-    adata_marseq.obs['annotation'] = 'Unknown'
-    mdata = adata_10x.concatenate(adata_marseq, batch_categories=['10XV3', 'MARSseq'])
-    mdata.obs['annotation'] = pd.Categorical(mdata.obs['annotation'])
-    sc.pp.scale(mdata)
-    sc.tl.pca(mdata)
-    sc.external.pp.harmony_integrate(mdata, key='batch')
-    sc.pp.neighbors(mdata, n_neighbors=int(np.sqrt(mdata.shape[0])/2), use_rep='X_pca_harmony')
-
-Cell affinities are calculated using ``schist``. Cell affinities are computed, simulating the moves of each cell to each group: each move generates a variation in the **description length**, which is stored as a probability. This measure evaluates the confidence of cell assignments::
-
-    scs.tl.calculate_affinity(mdata, group_by='annotation', neighbors_key='neighbors')
-    
-Finally, cells of MARS-seq platform, previoulsy labelled as 'Unknown', are reassigned to the group, which have led to the lowest **description lenght**::
-
-    categories = mdata.obs['annotation'].cat.categories
-    affinity = pd.DataFrame(mdata.obsm['CA_annotation'], index=mdata.obs_names, columns=categories)
-    rank_affinity = affinity.rank(axis=1, ascending=False)
-    mdata.obs['reassigned'] = mdata.obs['annotation'].values
-    for c in rank_affinity.columns:
-        cells = rank_affinity[rank_affinity[c] == 1].index
-        mdata.obs.loc[cells, 'reassigned'] = c 
-
-Now, the dataset of MARS-seq platform is regenerated and the outcome of label transfer is visualized::
-
-    mdata_marseq = mdata[mdata.obs['batch'] != "10XV3"]
-    mdata_marseq.obs_names = [x.replace('-MARSseq', '') for x in mdata_marseq.obs_names]
-    adata_marseq.obs['reassigned_schist'] = mdata_marseq.obs['reassigned']
-    col_scheme = dict(zip(adata_marseq.obs['annotations'].cat.categories, adata_marseq.uns['annotations_colors']))
-    col_scheme['Unknown'] = '#AABBCC'
-    adata_marseq.uns['reassigned_schist_colors'] = [col_scheme[x] for x in adata_marseq.obs['reassigned_schist'].cat.categories]
-    sc.pl.umap(adata_marseq, color=['annotations', 'reassigned_schist', 'reassigned_knn'], title=['Original', f'schist'], legend_loc='on data')
-    
-.. image:: images/label_transfer_outcome.png
-   :height: 400
-   :width: 700
-   :alt: planted_model
+* :ref:`cellrank_integration`
+* :ref:`large_samples`

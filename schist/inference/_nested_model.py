@@ -4,11 +4,11 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 from scipy import sparse
-from joblib import delayed, Parallel
+from joblib import delayed, Parallel, parallel_config
 
 from scanpy import logging as logg
 from scanpy.tools._utils_clustering import rename_groups, restrict_adjacency
-from scanpy._utils import get_igraph_from_adjacency
+from .._utils import get_graph_tool_from_adjacency
 
 
 try:
@@ -29,9 +29,12 @@ def nested_model(
     tolerance: float = 1e-6,
     n_sweep: int = 10,
     beta: float = np.inf,
-    samples: int = 100,
+    n_init: int = 100,
     collect_marginals: bool = True,
     n_jobs: int = -1,
+    refine_model: bool = False,
+    refine_iter: int = 100,
+    max_iter: int = 100000,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
     random_seed: Optional[int] = None,
@@ -43,7 +46,7 @@ def nested_model(
     save_model: Union[str, None] = None,
     copy: bool = False,
 #    minimize_args: Optional[Dict] = {},
-    dispatch_backend: Optional[str] = 'processes',
+    dispatch_backend: Optional[str] = 'threads',
 #    equilibrate_args: Optional[Dict] = {},
 ) -> Optional[AnnData]:
     """\
@@ -73,9 +76,16 @@ def nested_model(
         Number of iterations to be performed in the fast model MCMC greedy approach
     beta
         Inverse temperature for MCMC greedy approach    
-    samples
+    n_init
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
+    refine_model
+    	Wether to perform a further mcmc step to refine the model
+    refine_iter
+    	Number of refinement iterations.
+    max_iter
+    	Maximum number of iterations during minimization, set to infinite to stop 
+    	minimization only on tolerance
     n_jobs
         Number of parallel computations used during model initialization
     key_added
@@ -103,7 +113,7 @@ def nested_model(
     Returns
     -------
     `adata.obs[key_added]`
-        Array of dim (number of samples) that stores the subgroup id
+        Array of dim (number of cells) that stores the subgroup id
         (`'0'`, `'1'`, ...) for each cell. 
     `adata.uns['schist']['params']`
         A dict with the values for the parameters `resolution`, `random_state`,
@@ -119,12 +129,26 @@ def nested_model(
     if random_seed:
         np.random.seed(random_seed)
     
-    seeds = np.random.choice(range(samples**2), size=samples, replace=False)
-        
+    seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
-    if collect_marginals and samples < 100:
-        logg.warning('Collecting marginals requires sufficient number of samples\n'
-                     f'It is now set to {samples} and should be at least 100')
+    # the following lines are for compatibility
+    if dispatch_backend == 'threads':
+        dispatch_backend = 'threading'
+    elif dispatch_backend == 'processes':
+        dispatch_backend = 'loky'
+
+    if dispatch_backend == 'threading' and float(gt.__version__.split()[0]) > 2.55:
+        logg.warning('Threading backend does not work with this version of graph-tool\n'
+                     'Switching to loky backend')
+        dispatch_backend = 'loky'
+
+    if collect_marginals and not refine_model:
+        if n_init < 100:
+            logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'
+                     f'It is now set to {n_init} and should be at least 100\n')
+    elif refine_model and refine_iter < 100:                     
+        logg.warning('Collecting marginals with refinement requires sufficient number of iterations\n'
+                     f'It is now set to {refine_iter} and should be at least 100\n')
         
 
     start = logg.info('minimizing the nested Stochastic Block Model')
@@ -152,9 +176,10 @@ def nested_model(
             adjacency,
         )
     # convert it to igraph and graph-tool
-    g = get_igraph_from_adjacency(adjacency, directed=directed)
-    g = g.to_graph_tool()
-    gt.remove_parallel_edges(g)
+    g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
+#    g = get_igraph_from_adjacency(adjacency, directed=directed)
+#    g = g.to_graph_tool()
+#    gt.remove_parallel_edges(g)
     
     recs=[]
     rec_types=[]
@@ -164,30 +189,62 @@ def nested_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if samples < 1:
-        samples = 1
+    if n_init < 1:
+        n_init = 1
 
     states = [gt.NestedBlockState(g=g,
                                   state_args=dict(deg_corr=deg_corr,
                                   recs=recs,
                                   rec_types=rec_types
-                                  )) for n in range(samples)]
+                                  )) for n in range(n_init)]
 
-    def fast_min(state, beta, n_sweep, fast_tol, seed=None):
+    def fast_min(state, beta, n_sweep, fast_tol, max_iter=max_iter, seed=None):
         if seed:
             gt.seed_rng(seed)
-        dS = 1
-        while np.abs(dS) > fast_tol:
+        dS = 1e9
+        n = 0
+        while (np.abs(dS) > fast_tol) and (n < max_iter):
             dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+            n += 1
         return state                            
             
-    states = Parallel(n_jobs=n_jobs, prefer=dispatch_backend)(
-        delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(samples)
-    )
+    with parallel_config(backend=dispatch_backend,
+                         max_nbytes=None,
+                         n_jobs=n_jobs):
+        states = Parallel()(
+            delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
+        )
     logg.info('        minimization step done', time=start)
     pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
     bs = pmode.get_max_nested()
     logg.info('        consensus step done', time=start)
+
+    # prune redundant levels at the top
+    bs = [x for x in bs if len(np.unique(x)) > 1]
+    bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
+    state = gt.NestedBlockState(g, bs=bs,
+                                state_args=dict(deg_corr=deg_corr,
+                                recs=recs,
+                                rec_types=rec_types))
+
+    if refine_model:
+        # we here reuse pmode variable, so that it is consistent
+        logg.info('        Refining model')
+        bs = []
+        def collect_partitions(s):
+            bs.append(s.get_bs())
+        gt.mcmc_equilibrate(state, force_niter=refine_iter, 
+                            multiflip=True, 
+                            mcmc_args=dict(niter=n_sweep, beta=beta),
+                            callback=collect_partitions)
+        pmode = gt.PartitionModeState(bs, nested=True, converge=True)
+        bs = [x for x in pmode.get_max_nested() if len(np.unique(x)) > 1]
+        bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
+        state = gt.NestedBlockState(g, bs=bs,
+                                state_args=dict(deg_corr=deg_corr,
+                                recs=recs,
+                                rec_types=rec_types))
+        logg.info('        refinement complete', time=start)
     
     if save_model:
         import pickle
@@ -198,10 +255,6 @@ def nested_model(
         with open(fname, 'wb') as fout:
             pickle.dump(pmode, fout, 2)
     
-    # prune redundant levels at the top
-    bs = [x for x in bs if len(np.unique(x)) > 1]
-    bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-    state = gt.NestedBlockState(g, bs)
     
 
     logg.info('    done', time=start)
@@ -213,7 +266,7 @@ def nested_model(
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / samples	
+        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / n_init	
          
     groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
 
@@ -229,7 +282,7 @@ def nested_model(
     for c in groups.columns:
         ncat = len(groups[c].cat.categories)
         new_cat = [u'%s' % x for x in range(ncat)]
-        groups[c].cat.rename_categories(new_cat, inplace=True)
+        groups[c] = groups[c].cat.rename_categories(new_cat)
 
     levels = groups.columns
     
@@ -293,12 +346,14 @@ def nested_model(
         neighbors_key=neighbors_key,
         use_weights=use_weights,
         key_added=key_added,
-        samples=samples,
+        n_init=n_init,
         collect_marginals=collect_marginals,
         random_seed=random_seed,
         deg_corr=deg_corr,
         recs=recs,
         rec_types=rec_types,
+        refine_model=refine_model,
+        refine_iter=refine_iter,
         directed=directed
     )
 

@@ -14,6 +14,7 @@
 import os
 import sys
 
+
 #-----------------------------------------------------------------------------
 # Trying to save autodoc generation on readthedocs, when C packages are imported
 
@@ -25,9 +26,18 @@ import sys
 #    sys.modules[mod_name] = mock.MagicMock()
 #    sys.modules[mod_name] = mock.Mock()
 #------------------------------------------------------------------------------
+#import mock
+
+#MOCK_MODULES = ['schist']
+#for mod_name in MOCK_MODULES:
+#    sys.modules[mod_name] = mock.Mock()
+
 #sys.path.insert(0, os.path.abspath('..'))
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.append(os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../..'))
+#sys.path.insert(0, os.path.abspath('../../schist'))
+#for x in os.walk('../../schist'):
+#    sys.path.insert(0, x[0])
 
 
 # -- Project information -----------------------------------------------------
@@ -37,7 +47,7 @@ copyright = '2021, Morelli Leonardo, Giansanti Valentina, Cittaro Davide'
 author = 'Morelli Leonardo, Giansanti Valentina, Cittaro Davide'
 
 # The full version, including alpha/beta/rc tags
-release = '0.7.12'
+release = '0.8.2'
 
 
 # -- General configuration ---------------------------------------------------
@@ -45,23 +55,34 @@ release = '0.7.12'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.intersphinx', 
-              'sphinx.ext.coverage', 
-              'sphinx.ext.napoleon', 
-              'sphinx.ext.duration',
-              'sphinx.ext.doctest',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.extlinks',
-              'sphinx.ext.viewcode']
+#extensions = ['sphinx.ext.autodoc',
+#              'sphinx.ext.intersphinx', 
+#              'sphinx.ext.coverage', 
+#              'sphinx.ext.napoleon', 
+#              'sphinx.ext.duration',
+##              'sphinx.ext.doctest',
+#              'sphinx.ext.autosummary',
+#              'sphinx.ext.extlinks',
+#              'sphinx.ext.viewcode']
+
+extensions = ['autoapi.extension']
+autoapi_dirs = ['../../schist']
+
+def skip_submodules(app, what, name, obj, skip, options):
+    if what == "module":
+        skip = True
+    return skip
+
+
+def setup(sphinx):
+    sphinx.connect("autoapi-skip-member", skip_submodules)
 
 
 numpydoc_show_class_members = False
 
-
 # generate autosummary even if no references
-autosummary_generate = True
-autosummary_imported_members = True
+autosummary_generate = False
+autosummary_imported_members = False
 
 napoleon_google_docstring = True
 napoleon_numpy_docstring = True
@@ -117,9 +138,9 @@ html_theme_options = {
 #    'html_logo': 'images/garnet.png',
 #    'logo_name': 'true',
     'logo_only': False,
-    'fixed_sidebar': False,
-    'github_user': 'dawe',
-    'github_repo': 'schist',
+#    'fixed_sidebar': False,
+#    'github_user': 'dawe',
+#    'github_repo': 'schist',
 }
 
 #html_theme = 'classic'
