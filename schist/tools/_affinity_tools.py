@@ -9,8 +9,8 @@ from scipy import sparse
 from scanpy import logging as logg
 import graph_tool.all as gt
 import pandas as pd
-from .._utils import get_cell_loglikelihood, get_cell_back_p, state_from_blocks
-from scanpy._utils import get_igraph_from_adjacency, _choose_graph, get_graph_tool_from_adata
+from .._utils import get_cell_loglikelihood, get_cell_back_p, state_from_blocks, get_graph_tool_from_adata
+from scanpy._utils import get_igraph_from_adjacency, _choose_graph
 
 
 def calculate_affinity(
@@ -567,11 +567,11 @@ def label_transfer(
         
     new_blocks = np.array(state.b.a)
     if keep_old:
-        keep_idx = np.where(adata.obs['_label_transfer'] == '_ref')[0]
+        keep_idx = np.where(adata_merge.obs['_label_transfer'] == '_ref')[0]
         new_blocks[keep_idx] = old_blocks[keep_idx]    
     
     # assign proper categories
-    adata_merge[f'_{obs}_tmp'] = pd.Categorical([label_dict[x] for x in new_blocks], categories=known_labels)
+    adata_merge.obs[f'_{obs}_tmp'] = pd.Categorical([label_dict[x] for x in new_blocks], categories=known_labels)
     
     labels = adata_merge.obs[f'_{obs}_tmp'].cat.categories
     if adata_ref:
