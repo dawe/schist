@@ -585,6 +585,7 @@ def label_transfer(
         # transfer is within dataset
         adata_merge.obs[obs] = adata_merge.obs[f'_{obs}_tmp'].values
         adata_merge.obs.drop(f'_{obs}_tmp', axis='columns', inplace=True)
+        adata_merge.obs.drop('_label_transfer', axis='columns', inplace=True)
         adata = adata_merge
     
     # ensure that it is categorical with proper order
