@@ -545,13 +545,15 @@ def label_transfer(
     unk_idx = np.where(adata_merge.obs['_label_transfer'] == '_unk')[0]
     I = np.transpose(adj_mat[unk_idx].nonzero())
     # assign to each unknown the most common block according to the adj matrix
+    # In reality this works also with random assignments
+    
     for x in range(n_unknowns):
         x_blocks = old_blocks[I[I[:, 0] == x][:, 1]]
         # exclude the unknowns
         x_blocks[x_blocks != block_dict[label_unk]]
         if len(x_blocks) == 0:
             # handle the case of no blocks left
-            x_blocks = [known_labels[np.random.choice(len(known_labels))]]
+            x_blocks = [known_blocks[np.random.choice(len(known_blocks))]]
         b, c = np.unique(x_blocks, return_counts=True)
         new_blocks[unk_idx[x]] = b[np.argmax(c)]
         
