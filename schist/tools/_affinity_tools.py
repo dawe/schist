@@ -562,7 +562,9 @@ def label_transfer(
     n = 0
     max_iter = 100
     while (np.abs(dS) > fast_tol) and (n < max_iter):
-        dS, _, _ = state.multiflip_mcmc_sweep(beta=10, niter=10, c=0.2, psplit=0, pmerge=0, pmergesplit=0)
+        # we essentially move stuff, don't look for new partitions
+        dS, _, _ = state.multiflip_mcmc_sweep(beta=np.inf, niter=10, c=0.2, 
+                                              psplit=0, pmerge=0, pmergesplit=0)
         n += 1
         
     new_blocks = np.array(state.b.a)
