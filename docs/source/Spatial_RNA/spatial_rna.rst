@@ -4,7 +4,7 @@
 Analysis of spatially resolved RNA-seq data
 ===========================================
 
-Similarly to what shown `analyzing ATAC data <../Spatial_ATAC/spatial_atac.html>`_, we retrieved fastq from the paper "**Spatial epigenome–transcriptome co-profiling of mammalian tissues**" (Zhang et al, 2023, DOI:10.1038/s41586-023-05795-1), this time RNA sequences (SRA run ID: SRR22561636) and processed using ``kb_python``. The resulting fragment file is imported and processed as standard scRNA-seq data
+Similarly to what shown `analyzing ATAC data <../Spatial_ATAC/spatial_atac.html>`_, we retrieved fastq from the paper "**Spatial epigenome–transcriptome co-profiling of mammalian tissues**" (Zhang et al, 2023, DOI:10.1038/s41586-023-05795-1), this time RNA sequences (SRA run ID: SRR22561636) and processed using ``kb_python``. The resulting count matrix file is imported and processed as standard scRNA-seq data
 
 
 .. code:: python
@@ -75,6 +75,7 @@ First we import the ``.h5ad`` file computed by ``kb_python``. After that we perf
 In the end we retain most of the pixels
 
 .. code:: python
+
 	print(f"Total number of cells: {adata.n_obs}")
 	adata = adata[(~adata.obs.outlier) & (~adata.obs.mt_outlier)].copy()
 	print(f"Number of cells after filtering of low quality cells: {adata.n_obs}")
@@ -89,6 +90,7 @@ In the end we retain most of the pixels
 We select highly variable genes and then perform normalization (PFlog1pPF). Lastly, after PCA is computed, we save the ``anndata`` to build later the ``spatialdata`` object.
 
 .. code:: python
+
 	sc.pp.highly_variable_genes(adata,  flavor='seurat_v3_paper')
 
 	pf = adata.X.sum(axis=1).A.ravel()
