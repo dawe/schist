@@ -2,7 +2,9 @@ channels:
   - defaults
   - conda-forge
 dependencies:
+  - python<3.11
   - pip
   - scanpy
   - graph-tool
-  - sphinx-autoapi==2.1.1
+  - sphinx-autoapi
+  - sphinx_rtd_theme
