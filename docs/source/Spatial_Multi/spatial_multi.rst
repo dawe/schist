@@ -17,6 +17,7 @@ We start loading required libaries and load the previously saved data.
 	
 	import anndata as ad
 	import scanpy as sc
+	import scipy.sparse as ssp
 	
 	import spatialdata_io
 	import spatialdata_plot
