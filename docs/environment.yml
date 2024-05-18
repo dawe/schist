@@ -5,4 +5,4 @@ dependencies:
   - pip
   - scanpy
   - graph-tool
-  - sphinx-autoapi
+  - sphinx-autoapi==2.1.1
