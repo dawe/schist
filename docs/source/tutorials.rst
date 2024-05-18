@@ -25,3 +25,4 @@ The following tutorials cover some experimental and/or advanced approaches, usef
 
 * :ref:`cellrank_integration`
 * :ref:`large_samples`
+* :ref:`multimodal_spatial`
