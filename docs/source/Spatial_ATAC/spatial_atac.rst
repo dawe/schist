@@ -4,7 +4,7 @@
 Analysis of spatially resolved ATAC-seq data
 ============================================
 
-Fastq from the paper "**Spatial epigenome–transcriptome co-profiling of mammalian tissues**" (Zhang et al, 2023, DOI:10.1038/s41586-023-05795-1) were downloaded (SRA run ID: SRR22565186) and processed using ``chromap``. The resulting fragment file is imported using ``snapatac2```. Here's just a plot showing the general performance of the spatial ATAC-seq data.
+Fastq from the paper "**Spatial epigenome–transcriptome co-profiling of mammalian tissues**" (Zhang et al, 2023, DOI:10.1038/s41586-023-05795-1) were downloaded (SRA run ID: SRR22565186) and processed using ``chromap``. The resulting fragment file is imported using ``snapatac2``. Here's just a plot showing the general performance of the spatial ATAC-seq data.
 First of all, we import all required libraries.
 
 .. code:: python
