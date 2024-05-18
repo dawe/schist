@@ -53,9 +53,7 @@ We here perform the analysis without the need of having the same pixels in both 
 	
 	_tmp =ad.AnnData(emx)
 	_tmp.obs_names = all_cells
-	
 	_tmp.obs[['array_A', 'array_B']] = 0
-	
 	for coord in ['array_A', 'array_B']:
 		_tmp.obs[coord] = rna.table.obs[coord]
 		for p in atac.table.obs_names:

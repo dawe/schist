@@ -220,5 +220,5 @@ Again, we save data for later use in `integrated analysis <../Spatial_Multi/spat
 
 .. code:: python
 
-spdata.write('analysis/SRR22561636.zarr')
+	spdata.write('analysis/SRR22561636.zarr')
 
