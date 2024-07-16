@@ -42,7 +42,7 @@ def leiden(
     n_init: int = 100,
     *,
     restrict_to: Optional[Tuple[str, Sequence[str]]] = None,
-    random_state: _utils.AnyRandom = 0,
+    random_state: int = 0,
     key_added: str = 'leiden',
     adjacency: Optional[sparse.spmatrix] = None,
     directed: bool = True,
