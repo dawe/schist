@@ -49,3 +49,5 @@ sc.pp.neighbors(d2)
 schist.inference.model_multi([d1, d2], model='nsbm', n_init=2, refine_iter=2)
 u = schist._utils.get_multi_graph_from_adata([d1, d2])
 print(u.num_vertices())
+schist.inference.model_multi([d1, d2], model='sbm', n_init=2, refine_iter=2)
+
