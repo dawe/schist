@@ -88,7 +88,8 @@ def model(
         Maximum number of iterations during minimization, set to infinite to stop 
         minimization only on tolerance
     collect_marginals
-        Collect marginal distribution of blocks    
+        Collect marginal distribution of cells, that is the probability
+        to belong to any cluster    
     refine_model
         Wether to perform a further mcmc step to refine the model
     refine_iter
@@ -362,17 +363,17 @@ def model(
         modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     else:
-        modularity=gt.modularity(g, state.get_blocks())
+        modularity=np.array([gt.modularity(g, state.get_blocks())])
 
     if not 'schist' in adata.uns:
         adata.uns['schist'] = {}
-    adata.uns['schist'][model] = {}
-    adata.uns['schist'][model]['stats'] = dict(
-    entropy=state.entropy(),
-    modularity=modularity
-    )
+    adata.uns['schist'][key_added] = {}
+    adata.uns['schist'][key_added]['stats'] = dict(
+              entropy=state.entropy(),
+              modularity=modularity
+              )
     if model == "nsbm":
-        adata.uns['schist'][fmodel]['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
+        adata.uns['schist'][key_added]['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
 
     if model == "nsbm":
         # record state as list of blocks
@@ -384,10 +385,10 @@ def model(
     else:
         bl_d = {'0':np.array(state.get_blocks().a)}        
     
-    adata.uns['schist'][model]['blocks'] = bl_d
+    adata.uns['schist'][key_added]['blocks'] = bl_d
 
     # last step is recording some parameters used in this analysis
-    adata.uns['schist'][model]['params'] = dict(
+    adata.uns['schist'][key_added]['params'] = dict(
         model=model,
         neighbors_key=neighbors_key,
         use_weights=use_weights,
