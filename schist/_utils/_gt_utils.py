@@ -225,6 +225,13 @@ def plug_state(adata: AnnData,
     adata = adata.copy() if copy else adata
     g = state.g
     
+    if g.num_vertices() != adata.shape[0]:
+        raise ValueError(
+                'The number of cells does not match the number of nodes'
+                'in the graph included in the given state.'
+            )
+
+    
     model_type = 'nsbm'
     if type(state) == gt.PPBlockState:
         model_type = 'ppbm'
