@@ -230,7 +230,6 @@ def plug_state(adata: AnnData,
                 'The number of cells does not match the number of nodes'
                 'in the graph included in the given state.'
             )
-
     
     model_type = 'nsbm'
     if type(state) == gt.PPBlockState:
@@ -258,13 +257,13 @@ def plug_state(adata: AnnData,
         adata.obs = adata.obs[keep_columns]
         adata.obs = pd.concat([adata.obs, groups], axis=1)
 
-        adata.uns['schist'] = {}
-        adata.uns['schist']['stats'] = dict(
+        adata.uns['schist'] = {model_type:{}}
+        adata.uns['schist'][model_type]['stats'] = dict(
         level_entropy=np.array([state.level_entropy(x) for x in range(len(bs))]),
         modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len(bs))])
         )
-        adata.uns['schist']['state'] = state
+        adata.uns['schist'][model_type][['state'] = state
         
         if calculate_affinity:
             p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
@@ -278,24 +277,22 @@ def plug_state(adata: AnnData,
                     # this group at current level
                     cl[:, x] = p0[:, np.where(cross_tab.iloc[:, x] > 0)[0]].sum(axis=1)
                 adata.obsm[f'CA_{key_added}_level_{nl + 1}'] = cl / np.sum(cl, axis=1)[:, None]
-
     else:
-        
         groups = pd.Series(state.get_blocks().get_array()).astype('category')
         ncat = len(groups.cat.categories)
         new_cat = [u'%s' % x for x in range(ncat)]
         groups = groups.cat.rename_categories(new_cat)
         groups.index = adata.obs_names
         adata.obs[key_added] = groups
-        adata.uns['schist'] = {}
-        adata.uns['schist']['stats'] = dict(
+        adata.uns['schist'] = {model_type:{}}
+        adata.uns['schist'][model_type][['stats'] = dict(
             modularity=gt.modularity(g, state.get_blocks())
         )
-        adata.uns['schist']['state'] = state
+        adata.uns['schist'][model_type][['state'] = state
         if calculate_affinity:
             adata.obsm[f'CA_{key_added}_level_1'] = get_cell_loglikelihood(state, as_prob=True)
             
-    adata.uns['schist']['params'] = dict(
+    adata.uns['schist'][model_type][['params'] = dict(
     model=model_type,
     calculate_affinity=calculate_affinity,)
 
