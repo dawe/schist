@@ -46,7 +46,7 @@ def model(
     refine_model: bool = False,
     refine_iter: int = 100,
     max_iter: int = 500,
-    model: Literal["nsbm", "sbm", "ppbm"] = "nsbm"
+    model: Literal["nsbm", "sbm", "ppbm"] = "nsbm",
     *,
     random_seed: Optional[int] = None,
     key_added: str | None = None,
@@ -138,7 +138,7 @@ def model(
     gt_model = {'nsbm':gt.NestedBlockState, 
                 'sbm':gt.BlockState,
                 'ppbm':gt.PPBlockState
-    }
+    }[model]
     
     # if key is not set, use the model name
     key_added = model if key_added is None else key_added
@@ -226,8 +226,8 @@ def model(
                          state_args=dict(deg_corr=deg_corr,
                          recs=recs,
                          rec_types=rec_types))
-    else
-        pmode = gt.PartitionModeState([x.get_blocks() for x in states], converge=True, nested=False)
+    else:
+        pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True, nested=False)
         bs = pmode.get_max(g)
         if model == "ppbm":
             state = gt_model(g, b=bs)
