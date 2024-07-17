@@ -14,6 +14,7 @@ except TypeError:
     schist.inference.model(adata, model='nsbm', n_init=2)
 
 adata.write('foo.h5ad')
+lineages = scs.tl.cr_lineages(adata, level=0)
 #comment out as it's broken by numpy
 schist.tools.cell_similarity(adata, neighbors_key='foo')
 sc.pp.neighbors(adata, n_neighbors=3)

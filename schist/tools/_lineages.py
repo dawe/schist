@@ -1,8 +1,9 @@
 from typing import Optional#, Tuple, Sequence, Type, Union, Dict
 
 import numpy as np
+from anndata import AnnData
 from scanpy import logging as logg
-import pandas as pd
+#import pandas as pd
 
 def cr_lineages(
     adata: AnnData,
@@ -76,7 +77,7 @@ def cr_lineages(
     group_key = f'{key_added}_level_{level}' if model == "nsbm" else key_added
     matrix_key = f'{prefix}_{group_key}'
 
-    if matrix_key is not in adata.obsm:
+    if matrix_key not in adata.obsm:
         raise KeyError(
         f"""
         I can't find the specified matrix in adata.obsm ({matrix_key})
