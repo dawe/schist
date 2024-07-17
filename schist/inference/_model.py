@@ -360,14 +360,18 @@ def model(
             adata.obsm[f"CM_{key_added}"] = pv_array
 
     # add some unstructured info
+    if model == "nsbm":
+        modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
+                         for x in range(len((state.levels)))])
+    else:
+        modularity=gt.modularity(g, state.get_blocks())
+
     if not 'schist' in adata.uns:
         adata.uns['schist'] = {}
-
     adata.uns['schist'][f'{model}'] = {}
     adata.uns['schist'][f'{model}']['stats'] = dict(
     entropy=state.entropy(),
-    modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
-                         for x in range(len((state.levels)))])
+    modularity=modularity
     )
     if model == "nsbm":
         adata.uns['schist'][f'{model}']['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
