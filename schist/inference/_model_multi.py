@@ -413,12 +413,13 @@ def model_multi(
         groups = np.array([rosetta[x] for x in groups])
         groups = groups.astype('U')
         groups = pd.Categorical(values=groups, 
+                                index=all_names,
                                 categories=natsorted(np.unique(groups)),
                                 )
         for xn in range(n_data):
-            adatas[xn].obs[key_added] = groups.loc[adatas[xn].obs_names]
+            adatas[xn].obs[key_added] = groups[adatas[xn].obs_names]
 
-            # now add marginal probabilities.
+    # now add marginal probabilities.
 
     if collect_marginals:
         # note that the size of this will be equal to the number of the groups in Mode
@@ -484,7 +485,6 @@ def model_multi(
             overlap=overlap,
             directed=directed
         )
-
 
     logg.info(
         '    finished',
