@@ -14,12 +14,13 @@ except TypeError:
     schist.inference.model(adata, model='nsbm', n_init=2)
 
 adata.write('foo.h5ad')
-lineages = scs.tl.cr_lineages(adata, level=0)
+lineages = schist.tl.cr_lineages(adata, level=0)
 #comment out as it's broken by numpy
 schist.tools.cell_similarity(adata, neighbors_key='foo')
 sc.pp.neighbors(adata, n_neighbors=3)
 print("PLANTED MODEL")
 schist.inference.model(adata, model='ppbm', use_weights=False, save_model='foo', n_init=2, refine_iter=2)
+lineages = schist.tl.cr_lineages(adata, model_key='ppbm', level=0)
 print("SB MODEL")
 schist.inference.model(adata, model='sbm', use_weights=False, save_model='foo', n_init=2, refine_iter=2)
 #schist.inference.nested_model(adata, save_model='test',  n_init=2, refine_iter=2)

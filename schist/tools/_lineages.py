@@ -39,6 +39,8 @@ def cr_lineages(
 """    
     try:
         from cellrank._utils._lineage import Lineage
+    except ModuleNotFoundError:
+        from cellrank.tl import Lineage
     except ImportError:
         raise ImportError(
         """Please install cellrank first. You can do it by pip:
@@ -64,6 +66,7 @@ def cr_lineages(
         """
         )
     key_added = params['key_added']
+    model = params['model']
     obs_df = adata.obs.filter(like=key_added)
     if obs_df.shape[1] == 0:
         raise ValueError(
@@ -97,7 +100,7 @@ def cr_lineages(
         # this can be done because the groups have been previously sorted
         lineage_names = [str(x) for x in range(lineage_matrix.shape[1])]
 
-    lineages = Lineage(lineage_matrix,  names=lin_names)
+    lineages = Lineage(lineage_matrix,  names=lineage_names)
     
     return lineages    
     
