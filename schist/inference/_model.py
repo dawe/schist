@@ -32,7 +32,6 @@ def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=500, seed=N
         dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
         n += 1
     return state                            
-    
 
 def model(
     adata: AnnData,
@@ -210,12 +209,14 @@ def model(
     with parallel_config(backend=dispatch_backend,
                          max_nbytes=None,
                          n_jobs=n_jobs):
-        states = Parallel()(
+        states = list(tqdm(Parallel(return_as="generator")(
             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
-        )
-    logg.info('        minimization step done', time=start)
+                      ),
+                      total=n_init))
+#    logg.info('        minimization step done', time=start)
     
     # generate consensus over n_init models
+
     if model == "nsbm":
         pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
         bs = pmode.get_max_nested() 
