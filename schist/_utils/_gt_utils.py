@@ -225,11 +225,11 @@ def plug_state(adata: AnnData,
     adata = adata.copy() if copy else adata
     g = state.g
     
-    model_type = 'nested'
+    model_type = 'nsbm'
     if type(state) == gt.PPBlockState:
-        model_type = 'planted'
+        model_type = 'ppbm'
     elif type(state) == gt.BlockState:
-        model_type = 'flat'
+        model_type = 'sbm'
     
     if type(state) == gt.NestedBlockState:
         bs = state.get_bs()
@@ -381,16 +381,12 @@ def state_from_blocks(
 
     if params['model'] == 'sbm':
         state = gt.BlockState(g, b=blocks, 
-            state_args=dict(deg_corr=deg_corr,
+            deg_corr=deg_corr,
             recs=recs,
-            rec_types=rec_types)
+            rec_types=rec_types
             )
     elif params['model'] == 'ppbm':
-        state = gt.PPBlockState(g, b=blocks, 
-            state_args=dict(deg_corr=deg_corr,
-            recs=recs,
-            rec_types=rec_types)
-            )
+        state = gt.PPBlockState(g, b=blocks)
     else:
         state = gt.NestedBlockState(g, bs=blocks, 
             state_args=dict(deg_corr=deg_corr,

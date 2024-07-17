@@ -41,8 +41,7 @@ def calculate_affinity(
         The level to calculate affinity. This parameter is effective
         only for Nested partitions
     model_key:
-        The prefix for partitions. This parameter is ignored if the state
-        is not gt.NestedBlockState
+        The partition model.
     group_by:
         The key for group names used for calculations. Setting this will override
         level and model_key. This is effective only for NestedBlockState partitions
