@@ -297,7 +297,7 @@ def plug_state(adata: AnnData,
     
 def state_from_blocks(
     adata: AnnData,
-    state_key: Optional[str] = 'nsbm',
+    model_key: Optional[str] = 'nsbm',
     neighbors_key: Optional[str] = 'neighbors',
     adjacency: Optional[ssp.spmatrix] = None,
     directed: bool = False,
@@ -311,7 +311,7 @@ def state_from_blocks(
     ----------
     adata
         The annotated data matrix.
-    state_key
+    model_key
         The key under which the state has been saved
     neighbors_key
         The key passed to `sc.pp.neighbors`
@@ -336,9 +336,9 @@ def state_from_blocks(
     Nothing, adds a `gt.block_state` object in adata.uns        
         
     """
-    bl_d = adata.uns['schist'][f'{state_key}']['blocks']
-    params = adata.uns['schist'][f'{state_key}']['params']
-    if params['model'] == 'nested' or params['model'] == 'multiome_nested':
+    bl_d = adata.uns['schist'][f'{model_key}']['blocks']
+    params = adata.uns['schist'][f'{model_key}']['params']
+    if params['model'] == 'nsbm' or params['model'] == 'multi_nsbm':
         blocks = []
         for nl in range(len(bl_d)):
             blocks.append(bl_d[str(nl)])
@@ -379,7 +379,7 @@ def state_from_blocks(
     g = g.to_graph_tool()
     gt.remove_parallel_edges(g)
 
-    if params['model'] == 'flat':
+    if params['model'] == 'sbm':
         state = gt.BlockState(g, b=blocks, 
             state_args=dict(deg_corr=deg_corr,
             recs=recs,

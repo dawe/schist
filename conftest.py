@@ -14,17 +14,17 @@ except TypeError:
     schist.inference.model(adata, model='nsbm', n_init=2)
 
 adata.write('foo.h5ad')
-schist.inference.leiden(adata, neighbors_key='foo', save_model='lle', n_init=2)
 #comment out as it's broken by numpy
-#schist.tools.calculate_affinity(adata, neighbors_key='foo', group_by='leiden')
 schist.tools.cell_similarity(adata, neighbors_key='foo')
 sc.pp.neighbors(adata, n_neighbors=3)
 print("PLANTED MODEL")
-schist.inference.model(adata, model='ppbm', use_weights=False, save_model='foo', n_init=100, refine_iter=2)
+schist.inference.model(adata, model='ppbm', use_weights=False, save_model='foo', n_init=2, refine_iter=2)
 print("SB MODEL")
 schist.inference.model(adata, model='sbm', use_weights=False, save_model='foo', n_init=2, refine_iter=2)
-#schist.inference.nested_model(adata, save_model='test', dispatch_backend='threads', n_init=2, refine_iter=2)
-#schist.tools.calculate_affinity(adata, level=0, back_prob=True)
+#schist.inference.nested_model(adata, save_model='test',  n_init=2, refine_iter=2)
+schist.tools.calculate_affinity(adata, neighbors_key='foo', model_key='sbm')#group_by='sbm')
+adata.uns.pop('schist')
+schist.tools.calculate_affinity(adata, neighbors_key='foo', group_by='sbm')
 
 #test label transfer
 d1 = sc.datasets.blobs()

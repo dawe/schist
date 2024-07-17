@@ -9,16 +9,15 @@ from scipy import sparse
 from scanpy import logging as logg
 import graph_tool.all as gt
 import pandas as pd
-from .._utils import get_cell_loglikelihood, get_cell_back_p, state_from_blocks
+from .._utils import get_cell_loglikelihood, get_cell_back_p, state_from_blocks, get_graph_tool_from_adjacency
 from scanpy._utils import get_igraph_from_adjacency, _choose_graph
 
 
 def calculate_affinity(
     adata: AnnData,
     level: int = 1,
-    block_key: Optional[str] = 'nsbm',
+    model_key: Optional[str] = 'nsbm',
     group_by: Optional[str] = None,
-    state: Optional = None,
     neighbors_key: Optional[str] = 'neighbors',
     adjacency: Optional[sparse.spmatrix] = None,
     directed: bool = False,
@@ -41,14 +40,12 @@ def calculate_affinity(
     level:
         The level to calculate affinity. This parameter is effective
         only for Nested partitions
-    block_key:
+    model_key:
         The prefix for partitions. This parameter is ignored if the state
         is not gt.NestedBlockState
     group_by:
         The key for group names used for calculations. Setting this will override
-        level and block_key. This is effective only for NestedBlockState partitions
-    state:
-        Optionally calculate affinities on this state.
+        level and model_key. This is effective only for NestedBlockState partitions
     neighbors_key
         Use neighbors connectivities as adjacency.
         If not specified, leiden looks .obsp['connectivities'] for connectivities
@@ -69,20 +66,40 @@ def calculate_affinity(
     Returns
     -------
     Depending on `copy`, returns or updates `adata` with affinity values 
-    in adata.obsm[f'CA_{block_key}_level_{level}']
+    in adata.obsm[f'CA_{model_key}_level_{level}']
         
 """    
 
-    matrix_key = f'CA_{block_key}_level_{level}' # the default name of the matrix
+    matrix_key = f'CA_{model_key}_level_{level}' # the default name of the matrix
     if group_by:
         logg.info(f'Calculating cell affinity to {group_by}')
     else:
         logg.info(f'Calculating cell affinity to level {level}')
-        
-    if not state:
-        # if no state is provided, use the default to retrieve graph
-        if 'schist' in adata.uns and 'blocks' in adata.uns['schist'][f'{block_key}']:
-            params = adata.uns['schist'][f'{block_key}']['params']
+
+    # the order of evaluations should be:
+    # 1- group_by
+    # 2- given state
+    # 3- a state in the uns['schist'][model_key] slot
+    
+    if group_by:
+        matrix_key = f'CA_{group_by}'
+        # if groups are given, we generate a new BlockState and work on that
+        if group_by in adata.obs.columns and adata.obs[group_by].dtype.name == 'category':
+            partitions = adata.obs[group_by].cat.codes.values
+            adjacency = _choose_graph(adata, obsp, neighbors_key) if adjacency is None else adjacency
+            g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
+
+            state = gt.BlockState(g, b=partitions)
+            if back_prob:
+                ca_matrix = get_cell_back_p(state)
+            else:
+                ca_matrix = get_cell_loglikelihood(state, as_prob=True)
+        else:
+            raise ValueError(f"{group_by} should be a categorical entry in adata.obs")
+    else:
+        # use precomputed groupings
+        if 'schist' in adata.uns and 'blocks' in adata.uns['schist'][f'{model_key}']:
+            params = adata.uns['schist'][f'{model_key}']['params']
             if 'neighbors_key' in params:
                 neighbors_key=params['neighbors_key']
             if 'use_weights' in params:
@@ -90,7 +107,7 @@ def calculate_affinity(
             if 'deg_corr' in params:
                 deg_corr=params['deg_corr']
             state = state_from_blocks(adata, 
-                                  state_key=block_key,
+                                  model_key=model_key,
                                   neighbors_key=neighbors_key,
                                   adjacency=adjacency,
                                   directed=directed,
@@ -102,30 +119,6 @@ def calculate_affinity(
             # no state and no adjacency provided, raise an error
             raise ValueError("A state or an adjacency matrix should be given"
                              "Otherwise a graph cannot be computed")
-        else:
-            # get the graph from the adjacency    
-            adjacency = _choose_graph(adata, obsp, neighbors_key)
-            g = get_igraph_from_adjacency(adjacency, directed=directed)
-            g = g.to_graph_tool()
-            gt.remove_parallel_edges(g)
-            state = gt.BlockState(g)
-    else:
-        g = state.g        
-    
-    if group_by:
-        matrix_key = f'CA_{group_by}'
-        # if groups are given, we generate a new BlockState and work on that
-        if group_by in adata.obs.columns and adata.obs[group_by].dtype.name == 'category':
-            partitions = adata.obs[group_by].cat.codes.values
-            state = gt.BlockState(g, b=partitions)
-            if back_prob:
-                ca_matrix = get_cell_back_p(state)
-            else:
-                ca_matrix = get_cell_loglikelihood(state, as_prob=True)
-        else:
-            raise ValueError(f"{group_by} should be a categorical entry in adata.obs")    
-    else:        
-        # use precomputed blocks and states
         if type(state) == gt.NestedBlockState:
             if back_prob:
                 p0 = get_cell_back_p(state, level=0)
@@ -135,7 +128,7 @@ def calculate_affinity(
             if group_by and group_by in adata.obs.columns:
                 group_col = group_by
             else:
-                g_name = f'{block_key}_level_{level}'
+                g_name = f'{model_key}_level_{level}'
                 if g_name in adata.obs.columns:
                     group_col = g_name
             if not group_col:
@@ -145,13 +138,13 @@ def calculate_affinity(
             cross_tab = pd.crosstab(g0, adata.obs[group_col], normalize='index')
             ca_matrix = (p0 @ cross_tab).values
 
-        elif type(state) == gt.PPBlockState:
+        else:
             if back_prob:
                 ca_matrix = get_cell_back_p(state)
             else:
 	            ca_matrix = get_cell_loglikelihood(state, as_prob=True)
-            matrix_key = 'CA_ppbm'
-    
+            matrix_key = f'CA_{model_key}'
+
     adata.obsm[matrix_key] = ca_matrix 
     
     return adata if copy else None
@@ -216,7 +209,7 @@ def cluster_consistency(
 
 def cell_stability(
     adata: AnnData,
-    block_key: Optional[str] = 'nsbm', # dummy default
+    model_key: Optional[str] = 'nsbm', # dummy default
     key_added: Optional[str] = 'cell_stability',
     use_marginals: Optional[bool] = False,
     neighbors_key: Optional[str] = 'neighbors',
@@ -253,10 +246,10 @@ def cell_stability(
         matrix_prefix = 'CM'
 
     if not state:
-        if not adata.uns['schist'][f'{block_key}']['blocks']:
+        if not adata.uns['schist'][f'{model_key}']['blocks']:
             raise ValueError("No state detected")
         else:
-            params = adata.uns['schist'][f'{block_key}']['params']
+            params = adata.uns['schist'][f'{model_key}']['params']
             if 'neighbors_key' in params:
                 neighbors_key=params['neighbors_key']
             if 'use_weights' in params:
@@ -264,7 +257,7 @@ def cell_stability(
             if 'deg_corr' in params:
                 deg_corr=params['deg_corr']
             state = state_from_blocks(adata, 
-                                  state_key=block_key,
+                                  state_key=model_key,
                                   neighbors_key=neighbors_key,
                                   adjacency=adjacency,
                                   directed=directed,
@@ -275,7 +268,7 @@ def cell_stability(
     # check if we have levels we want to prune
     n_effective_levels = sum([x.get_nonempty_B() > 1 for x in state.get_levels()])
     n_effective_levels = min(n_effective_levels, len(state.get_levels()))
-    obsm_names = [x for x in adata.obsm if x.startswith(f"{matrix_prefix}_{block_key}_level")]    
+    obsm_names = [x for x in adata.obsm if x.startswith(f"{matrix_prefix}_{model_key}_level")]    
     if len(obsm_names) < n_effective_levels:
         logg.warning("Your dataset doesn't contain all the required matrices\n")
         if use_marginals:
@@ -283,14 +276,14 @@ def cell_stability(
             matrix_prefix='CA'
         logg.warning("They will be recalculated from scratch")
         if back_prob:
-            adata.obsm[f'{matrix_prefix}_{block_key}_level_0'] = get_cell_back_p(state, level=0)
+            adata.obsm[f'{matrix_prefix}_{model_key}_level_0'] = get_cell_back_p(state, level=0)
         else:
-            adata.obsm[f'{matrix_prefix}_{block_key}_level_0'] = get_cell_loglikelihood(state, level=0, 
+            adata.obsm[f'{matrix_prefix}_{model_key}_level_0'] = get_cell_loglikelihood(state, level=0, 
                                                                       as_prob=True)
-        obsm_names = [f'{matrix_prefix}_{block_key}_level_0']
+        obsm_names = [f'{matrix_prefix}_{model_key}_level_0']
         for n in range(n_effective_levels):
-            calculate_affinity(adata, level = n+1, block_key=block_key, state=state)
-            obsm_names.append(f'{matrix_prefix}_{block_key}_level_{n}')
+            calculate_affinity(adata, level = n+1, model_key=model_key, state=state)
+            obsm_names.append(f'{matrix_prefix}_{model_key}_level_{n}')
 
     # take only matrices with at least 2 groups
     obsm_names = [x for x in obsm_names if adata.obsm[x].shape[1] > 1] 
