@@ -235,6 +235,17 @@ def model_multi(
         u_names[xn] = all_names[xn]
     union_g.vp['cell'] = u_names
     
+    # check that there are overlapping nodes, otherwise exit
+    if union_g.num_vertices() == sum(adatas[xn].shape[0] for xn in range(n_data)):
+        raise ValueError(
+                'The number of nodes in the merged graph is the same as'
+                'the total number of cells across all datasets, it seems'
+                'there are no shared cells across modalities.'
+                'Check if this is the case and change cell names so that'
+                'shared cells have the same name across modalities.'
+            )
+        
+    
     # now handle in a non elegant way the index mapping across all 
     # modalities and the unified Graph
     

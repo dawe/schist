@@ -75,6 +75,6 @@ def select_affinity(
         if update_state and adata.uns['schist'][f'{key}']:
             logg.warning('Removing a vertex from a BlockState may result in inconsistent data')
             v_idx = np.where(np.bitwise_not(mask)) #vertex to be removed
-            adata.uns['schist']['state'].remove_vertex(v_idx)
+            adata.uns['schist'][key]['state'].remove_vertex(v_idx)
     
     return adata if copy else None
