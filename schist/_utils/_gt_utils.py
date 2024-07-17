@@ -263,7 +263,7 @@ def plug_state(adata: AnnData,
         modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len(bs))])
         )
-        adata.uns['schist'][model_type][['state'] = state
+        adata.uns['schist'][model_type]['state'] = state
         
         if calculate_affinity:
             p0 = get_cell_loglikelihood(state, level=0, as_prob=True)
@@ -285,14 +285,14 @@ def plug_state(adata: AnnData,
         groups.index = adata.obs_names
         adata.obs[key_added] = groups
         adata.uns['schist'] = {model_type:{}}
-        adata.uns['schist'][model_type][['stats'] = dict(
+        adata.uns['schist'][model_type]['stats'] = dict(
             modularity=gt.modularity(g, state.get_blocks())
         )
-        adata.uns['schist'][model_type][['state'] = state
+        adata.uns['schist'][model_type]['state'] = state
         if calculate_affinity:
             adata.obsm[f'CA_{key_added}_level_1'] = get_cell_loglikelihood(state, as_prob=True)
             
-    adata.uns['schist'][model_type][['params'] = dict(
+    adata.uns['schist'][model_type]['params'] = dict(
     model=model_type,
     calculate_affinity=calculate_affinity,)
 
