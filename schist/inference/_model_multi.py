@@ -295,7 +295,7 @@ def model_multi(
 
     else:
         pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True, nested=False)
-        bs = pmode.get_max(g)
+        bs = pmode.get_max(union_g)
         state = gt_model(union_g, b=bs,
                          deg_corr=deg_corr,
                          ec=union_g.ep.layer,
@@ -337,7 +337,7 @@ def model_multi(
                              ))
         else:
             pmode = gt_model(bs, converge=True)
-            bs = pmode.get_max(g)
+            bs = pmode.get_max(union_g)
             state = gt_model(union_g, b=bs,
                              deg_corr=deg_corr,
                              ec=union_g.ep.layer,
@@ -360,7 +360,7 @@ def model_multi(
     logg.info('    done', time=start)
     # reorganize things so that groups are ordered literals
     if model == "nsbm":
-        groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
+        groups = np.zeros((union_g.num_vertices(), len(bs)), dtype=int)
         u_groups = np.unique(bs[0])
     else:
         groups = np.array(bs.get_array())
@@ -412,12 +412,11 @@ def model_multi(
         rosetta = dict(zip(u_groups, range(len(u_groups))))
         groups = np.array([rosetta[x] for x in groups])
         groups = groups.astype('U')
-        groups = pd.Categorical(values=groups, 
-                                index=all_names,
-                                categories=natsorted(np.unique(groups)),
-                                )
+        groups = pd.Series(groups, index=all_names)
         for xn in range(n_data):
-            adatas[xn].obs[key_added] = groups[adatas[xn].obs_names]
+            adatas[xn].obs[key_added] = pd.Categorical(groups.loc[adatas[xn].obs_names], 
+                                                       categories=natsorted(np.unique(groups)),
+                                                       )
 
     # now add marginal probabilities.
 
