@@ -46,6 +46,6 @@ d2 = sc.datasets.blobs(n_observations=100)
 sc.pp.neighbors(d1)
 sc.pp.neighbors(d2)
 
-schist.inference.nested_model_multi([d1, d2], n_init=2, refine_iter=2)
+schist.inference.model_multi([d1, d2], model='nsbm', n_init=2, refine_iter=2)
 u = schist._utils.get_multi_graph_from_adata([d1, d2])
 print(u.num_vertices())
