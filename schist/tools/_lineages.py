@@ -11,7 +11,7 @@ def cr_lineages(
     level: int = 1,
     use_affinity: bool = False,
     
-) -> Optional[AnnData]:
+):
     
     """\
     Return marginals/affinities as cellrank Lineage.
