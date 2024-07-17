@@ -1,11 +1,12 @@
-from typing import Optional, Tuple, Sequence, Type, Union, Dict
+from typing import Optional, Tuple, Sequence, Type, Union, Dict, Literal
 
 import numpy as np
 import pandas as pd
 from anndata import AnnData
 from scipy import sparse
+from natsort import natsorted
 from joblib import delayed, Parallel, parallel_config
-
+from tqdm import tqdm
 from scanpy import logging as logg
 from .._utils import get_graph_tool_from_adjacency
 
@@ -21,11 +22,22 @@ except ImportError:
         or by conda: `conda install -c conda-forge graph-tool`
         """
     )
+    
+def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=500, seed=None):
+    if seed:
+        gt.seed_rng(seed)
+    dS = 1e9
+    n = 0
+    while (np.abs(dS) > fast_tol) and (n < max_iter):
+        dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
+        n += 1
+    return state                            
+    
 
-def nested_model(
+def model(
     adata: AnnData,
     deg_corr: bool = True,
-    tolerance: float = 1e-6,
+    tolerance: float = 1e-4,
     n_sweep: int = 10,
     beta: float = np.inf,
     n_init: int = 100,
@@ -33,19 +45,18 @@ def nested_model(
     n_jobs: int = -1,
     refine_model: bool = False,
     refine_iter: int = 100,
-    max_iter: int = 100000,
+    max_iter: int = 500,
+    model: Literal["nsbm", "sbm", "ppbm"] = "nsbm"
     *,
     random_seed: Optional[int] = None,
-    key_added: str = 'nsbm',
+    key_added: str | None = None,
     adjacency: Optional[sparse.spmatrix] = None,
     neighbors_key: Optional[str] = 'neighbors',
     directed: bool = False,
     use_weights: bool = False,
     save_model: Union[str, None] = None,
     copy: bool = False,
-#    minimize_args: Optional[Dict] = {},
-    dispatch_backend: Optional[str] = 'threads',
-#    equilibrate_args: Optional[Dict] = {},
+    dispatch_backend: Optional[str] = 'loky',
 ) -> Optional[AnnData]:
     """\
     Cluster cells into subgroups [Peixoto14]_.
@@ -78,12 +89,12 @@ def nested_model(
         Number of initial minimizations to be performed. The one with smaller
         entropy is chosen
     refine_model
-    	Wether to perform a further mcmc step to refine the model
+        Wether to perform a further mcmc step to refine the model
     refine_iter
-    	Number of refinement iterations.
+        Number of refinement iterations.
     max_iter
-    	Maximum number of iterations during minimization, set to infinite to stop 
-    	minimization only on tolerance
+        Maximum number of iterations during minimization, set to infinite to stop 
+        minimization only on tolerance
     n_jobs
         Number of parallel computations used during model initialization
     key_added
@@ -124,9 +135,19 @@ def nested_model(
         The NestedBlockModel state object
     """
 
+    gt_model = {'nsbm':gt.NestedBlockState, 
+                'sbm':gt.BlockState,
+                'ppbm':gt.PPBlockState
+    }
+    
+    # if key is not set, use the model name
+    key_added = model if key_added is None else key_added
+    
     if random_seed:
         np.random.seed(random_seed)
     
+    if n_init < 1:
+        n_init = 1
     seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
 
     # the following lines are for compatibility
@@ -148,8 +169,7 @@ def nested_model(
         logg.warning('Collecting marginals with refinement requires sufficient number of iterations\n'
                      f'It is now set to {refine_iter} and should be at least 100\n')
         
-
-    start = logg.info('minimizing the nested Stochastic Block Model')
+    start = logg.info('minimizing the Model')
     adata = adata.copy() if copy else adata
     # are we clustering a user-provided graph or the default AnnData one?
     if adjacency is None:
@@ -165,12 +185,10 @@ def nested_model(
         else:
             # scanpy<=1.4.6 has sparse matrix here
             adjacency = adata.uns[neighbors_key]['connectivities']
+
     # convert it to igraph and graph-tool
     g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
-#    g = get_igraph_from_adjacency(adjacency, directed=directed)
-#    g = g.to_graph_tool()
-#    gt.remove_parallel_edges(g)
-    
+
     recs=[]
     rec_types=[]
     if use_weights:
@@ -179,25 +197,16 @@ def nested_model(
         recs=[g.ep.weight]
         rec_types=['real-normal']
 
-    if n_init < 1:
-        n_init = 1
-
-    states = [gt.NestedBlockState(g=g,
+    if model == 'ppbm':
+        # PPBlockState does not support state_args
+        states = [gt_model(g) for x in range(n_init)]
+    else:
+        states = [gt_model(g=g,
                                   state_args=dict(deg_corr=deg_corr,
                                   recs=recs,
                                   rec_types=rec_types
                                   )) for n in range(n_init)]
 
-    def fast_min(state, beta, n_sweep, fast_tol, max_iter=max_iter, seed=None):
-        if seed:
-            gt.seed_rng(seed)
-        dS = 1e9
-        n = 0
-        while (np.abs(dS) > fast_tol) and (n < max_iter):
-            dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
-            n += 1
-        return state                            
-            
     with parallel_config(backend=dispatch_backend,
                          max_nbytes=None,
                          n_jobs=n_jobs):
@@ -205,35 +214,67 @@ def nested_model(
             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
         )
     logg.info('        minimization step done', time=start)
-    pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
-    bs = pmode.get_max_nested()
-    logg.info('        consensus step done', time=start)
+    
+    # generate consensus over n_init models
+    if model == "nsbm":
+        pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
+        bs = pmode.get_max_nested() 
+        # prune redundant levels at the top
+        bs = [x for x in bs if len(np.unique(x)) > 1]
+        bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
+        state = gt_model(g, bs=bs,
+                         state_args=dict(deg_corr=deg_corr,
+                         recs=recs,
+                         rec_types=rec_types))
+    else
+        pmode = gt.PartitionModeState([x.get_blocks() for x in states], converge=True, nested=False)
+        bs = pmode.get_max(g)
+        if model == "ppbm":
+            state = gt_model(g, b=bs)
+        else:
+            state = gt_model(g, b=bs,
+                            state_args=dict(deg_corr=deg_corr,
+                            recs=recs,
+                            rec_types=rec_types
+                            ))
 
-    # prune redundant levels at the top
-    bs = [x for x in bs if len(np.unique(x)) > 1]
-    bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-    state = gt.NestedBlockState(g, bs=bs,
-                                state_args=dict(deg_corr=deg_corr,
-                                recs=recs,
-                                rec_types=rec_types))
+    logg.info('        consensus step done', time=start)
 
     if refine_model:
         # we here reuse pmode variable, so that it is consistent
         logg.info('        Refining model')
         bs = []
-        def collect_partitions(s):
-            bs.append(s.get_bs())
+        if model == "nsbm":
+            def collect_partitions(s):
+                bs.append(s.get_bs())
+        else:
+            def collect_partitions(s):
+                bs.append(s.get_blocks().a)
+
         gt.mcmc_equilibrate(state, force_niter=refine_iter, 
                             multiflip=True, 
                             mcmc_args=dict(niter=n_sweep, beta=beta),
                             callback=collect_partitions)
-        pmode = gt.PartitionModeState(bs, nested=True, converge=True)
-        bs = [x for x in pmode.get_max_nested() if len(np.unique(x)) > 1]
-        bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-        state = gt.NestedBlockState(g, bs=bs,
-                                state_args=dict(deg_corr=deg_corr,
-                                recs=recs,
-                                rec_types=rec_types))
+
+        if model == "nsbm":
+            pmode = gt.PartitionModeState(bs, nested=True, converge=True)
+            bs = [x for x in pmode.get_max_nested() if len(np.unique(x)) > 1]
+            bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
+            state = gt_model(g, bs=bs,
+                             state_args=dict(deg_corr=deg_corr,
+                             recs=recs,
+                             rec_types=rec_types))
+        else:
+            pmode = gt_model(bs, converge=True)
+            bs = pmode.get_max(g)
+            if model == "ppbm":
+                state = gt_model(g, b=bs)
+            else:
+                state = gt_model(g, b=bs,state_args=dict(deg_corr=deg_corr,
+                                 recs=recs,
+                                 rec_types=rec_types
+                                 ))
+        
         logg.info('        refinement complete', time=start)
     
     if save_model:
@@ -245,91 +286,107 @@ def nested_model(
         with open(fname, 'wb') as fout:
             pickle.dump(pmode, fout, 2)
     
-    
-
     logg.info('    done', time=start)
-    u_groups = np.unique(bs[0])
-    n_groups = len(u_groups)
-    last_group = np.max(u_groups) + 1
+    # reorganize things so that groups are ordered literals
+    if model == "nsbm":
+        groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
+        u_groups = np.unique(bs[0])
+    else:
+        groups = np.array(bs.get_array())
+        u_groups = np.unique(groups)
 
+    last_group = np.max(u_groups) + 1
+    n_groups = len(u_groups)
+
+    if model == "nsbm":
+        # this is harder as we have to consider and refactor the entire hierarchy
+        for x in range(len(bs)):
+            # for each level, project labels to the vertex level
+            # so that every cell has a name. Note that at this level
+            # the labels are not necessarily consecutive
+            groups[:, x] = state.project_partition(x, 0).get_array()
+        groups = pd.DataFrame(groups).astype('category')
+        # rename categories from 0 to n
+        for c in groups.columns:
+            ncat = len(groups[c].cat.categories)
+            new_cat = [u'%s' % x for x in range(ncat)]
+            groups[c] = groups[c].cat.rename_categories(new_cat)
+    
+        levels = groups.columns
+        
+        # recode block names to have consistency with group names
+        i_groups = groups.astype(int)
+        bs = [i_groups.iloc[:, 0].values]
+        for x in range(1, groups.shape[1]):
+            bs.append(np.where(pd.crosstab(i_groups.iloc[:, x - 1], i_groups.iloc[:, x])> 0)[1])
+        state = gt_model(g, bs, 
+                         state_args=dict(deg_corr=deg_corr,recs=recs,
+                                         rec_types=rec_types
+                                         ))
+        del(i_groups)
+    
+        groups.index = adata.obs_names
+    
+        # add column names
+        groups.columns = [f"{key_added}_level_{level}" for level in range(len(bs))]
+    
+        # remove any column with the same key
+        keep_columns = [x for x in adata.obs.columns if not x.startswith('%s_level_' % key_added)]
+        adata.obs = adata.obs[keep_columns]
+        adata.obs = pd.concat([adata.obs, groups], axis=1)
+
+    else:
+        # for ppbm and sbm is simpler
+        rosetta = dict(zip(u_groups, range(len(u_groups))))
+        groups = np.array([rosetta[x] for x in groups])
+        groups = groups.astype('U')
+        adata.obs[key_added] = pd.Categorical(values=groups,
+                                              categories=natsorted(np.unique(groups)),
+                                              )
+
+    # now add marginal probabilities.
     if collect_marginals:
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / n_init	
-         
-    groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
-
-    for x in range(len(bs)):
-        # for each level, project labels to the vertex level
-        # so that every cell has a name. Note that at this level
-        # the labels are not necessarily consecutive
-        groups[:, x] = state.project_partition(x, 0).get_array()
-
-    groups = pd.DataFrame(groups).astype('category')
-
-    # rename categories from 0 to n
-    for c in groups.columns:
-        ncat = len(groups[c].cat.categories)
-        new_cat = [u'%s' % x for x in range(ncat)]
-        groups[c] = groups[c].cat.rename_categories(new_cat)
-
-    levels = groups.columns
-    
-    # recode block names to have consistency with group names
-    i_groups = groups.astype(int)
-    bs = [i_groups.iloc[:, 0].values]
-    for x in range(1, groups.shape[1]):
-        bs.append(np.where(pd.crosstab(i_groups.iloc[:, x - 1], i_groups.iloc[:, x])> 0)[1])
-    state = gt.NestedBlockState(g, bs, state_args=dict(deg_corr=deg_corr,
-                                  recs=recs,
-                                  rec_types=rec_types
-                                  ))
-    del(i_groups)
-
-    groups.index = adata.obs_names
-
-    # add column names
-    groups.columns = [f"{key_added}_level_{level}" for level in range(len(bs))]
-
-    # remove any column with the same key
-    keep_columns = [x for x in adata.obs.columns if not x.startswith('%s_level_' % key_added)]
-    adata.obs = adata.obs[keep_columns]
-    adata.obs = pd.concat([adata.obs, groups], axis=1)
-
-    # now add marginal probabilities.
-
-    if collect_marginals:
-        # add marginals for level 0, the sum up according to the hierarchy
-        adata.obsm[f"CM_{key_added}_level_0"] = pv_array
-        for group in groups.columns[1:]:
-            ct = pd.crosstab(groups[groups.columns[0]], groups[group], normalize='index')
-            adata.obsm[f'CM_{group}'] = pv_array @ ct.values
+        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / n_init
+        if model == "nsbm":
+            # add marginals for level 0, the sum up according to the hierarchy
+            adata.obsm[f"CM_{key_added}_level_0"] = pv_array
+            for group in groups.columns[1:]:
+                ct = pd.crosstab(groups[groups.columns[0]], groups[group], normalize='index')
+                adata.obsm[f'CM_{group}'] = pv_array @ ct.values
+        else:
+            adata.obsm[f"CM_{key_added}"] = pv_array
 
     # add some unstructured info
     if not 'schist' in adata.uns:
         adata.uns['schist'] = {}
 
-    adata.uns['schist'][f'{key_added}'] = {}
-    adata.uns['schist'][f'{key_added}']['stats'] = dict(
-    level_entropy=np.array([state.level_entropy(x) for x in range(len(state.levels))]),
+    adata.uns['schist'][f'{model}'] = {}
+    adata.uns['schist'][f'{model}']['stats'] = dict(
+    entropy=state.entropy(),
     modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     )
+    if model == "nsbm":
+        adata.uns['schist'][f'{model}']['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
 
-    # record state as list of blocks
-    # unfortunately this cannot be a list of lists but needs to be a dictionary
-    bl_d = {}
-    levels = state.get_levels()
-    for nl in range(len(levels)):
-        bl_d[str(nl)] = np.array(levels[nl].get_blocks().a)
+    if model == "nsbm":
+        # record state as list of blocks
+        # unfortunately this cannot be a list of lists but needs to be a dictionary
+        bl_d = {}
+        levels = state.get_levels()
+        for nl in range(len(levels)):
+            bl_d[str(nl)] = np.array(levels[nl].get_blocks().a)
+    else:
+        bl_d = {'0':np.array(state.get_blocks().a)}        
     
-    adata.uns['schist'][f'{key_added}']['blocks'] = bl_d
-
+    adata.uns['schist'][f'{model}']['blocks'] = bl_d
 
     # last step is recording some parameters used in this analysis
-    adata.uns['schist'][f'{key_added}']['params'] = dict(
-        model='nested',
+    adata.uns['schist'][f'{model}']['params'] = dict(
+        model=model,
         neighbors_key=neighbors_key,
         use_weights=use_weights,
         key_added=key_added,
