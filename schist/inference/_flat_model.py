@@ -115,6 +115,10 @@ def flat_model(
         The BlockModel state object
     """
 
+    logg.warning('This function has been deprecated, and soon will be removed\n'
+                  'use `scs.inference.model(adata, model="sbm")` instead')
+
+
     if random_seed:
         np.random.seed(random_seed)
     

@@ -213,10 +213,8 @@ def model(
             delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
                       ),
                       total=n_init))
-#    logg.info('        minimization step done', time=start)
-    
-    # generate consensus over n_init models
 
+    # generate consensus over n_init models
     if model == "nsbm":
         pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
         bs = pmode.get_max_nested() 

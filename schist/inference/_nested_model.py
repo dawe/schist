@@ -126,6 +126,9 @@ def nested_model(
         The NestedBlockModel state object
     """
 
+    logg.warning('This function has been deprecated, and soon will be removed\n'
+                  'use `scs.inference.model(adata, model="nsbm")` instead')
+
     if random_seed:
         np.random.seed(random_seed)
     

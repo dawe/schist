@@ -115,6 +115,8 @@ def planted_model(
     `adata.uns['schist']['state']`
         The BlockModel state object
     """
+    logg.warning('This function has been deprecated, and soon will be removed\n'
+                  'use `scs.inference.model(adata, model="ppbm")` instead')
 
     if random_seed:
         np.random.seed(random_seed)
