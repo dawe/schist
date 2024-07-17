@@ -202,10 +202,10 @@ def model(
         states = [gt_model(g) for x in range(n_init)]
     else:
         states = [gt_model(g=g,
-                                  state_args=dict(deg_corr=deg_corr,
+                                  deg_corr=deg_corr,
                                   recs=recs,
                                   rec_types=rec_types
-                                  )) for n in range(n_init)]
+                                  ) for n in range(n_init)]
 
     with parallel_config(backend=dispatch_backend,
                          max_nbytes=None,
@@ -233,10 +233,10 @@ def model(
             state = gt_model(g, b=bs)
         else:
             state = gt_model(g, b=bs,
-                            state_args=dict(deg_corr=deg_corr,
+                            deg_corr=deg_corr,
                             recs=recs,
                             rec_types=rec_types
-                            ))
+                            )
 
     logg.info('        consensus step done', time=start)
 
@@ -270,10 +270,10 @@ def model(
             if model == "ppbm":
                 state = gt_model(g, b=bs)
             else:
-                state = gt_model(g, b=bs,state_args=dict(deg_corr=deg_corr,
+                state = gt_model(g, b=bs, deg_corr=deg_corr,
                                  recs=recs,
                                  rec_types=rec_types
-                                 ))
+                                 )
         
         logg.info('        refinement complete', time=start)
     
