@@ -45,7 +45,7 @@ def nested_model(
 ) -> Optional[AnnData]:
     """\
     This function has been deprecated and it soon will be removed.
-    It now wraps scs.inference.model() function.
+    It now wraps ``scs.inference.model()`` function.
     """
 
     logg.warning('This function has been deprecated, and soon will be removed\n'
