@@ -48,7 +48,7 @@ We then run a nested model in ``schist`` as usual. Plotting the modularity profi
 
 .. code:: python
 
-    scs.inference.model(adata, max_iter = np.inf)
+    scs.inference.fit_model(adata, max_iter = np.inf)
     
     plot(adata.uns['schist']['nsbm']['stats']['modularity'])
 

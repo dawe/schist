@@ -43,7 +43,7 @@ Moreover, in order to spatially visualize the outcome of cluster analysis, we ca
 Nested Model
 ^^^^^^^^^^^^
 
-The most prominent function implemented in ``schist`` library is the clustering function ``schist.inference.model()``. It relies on a process called *minimization of the description length*\, implemented in the `graph-tool python library <https://graph-tool.skewed.de/>`_:
+The most prominent function implemented in ``schist`` library is the clustering function ``schist.inference.fit_model()``. It relies on a process called *minimization of the description length*\, implemented in the `graph-tool python library <https://graph-tool.skewed.de/>`_:
     
     - in lay terms, different partitions representig the dataset are generated; 
     - after that, the partition with the *lowest description* length is selected as the final output (the simplest partition among partitions with the highest explanatory power).
@@ -56,7 +56,7 @@ However, the *minimization of the description length* could fall into local mini
 
 Pratically, this can be achieved, using ``schist``::
 
-    scs.inference.model(adata, n_init=100)
+    scs.inference.fit_model(adata, n_init=100)
     
 The parameter ``n_init`` accounts for the number of minimization step performed: the larger the number of rounds, the slower the process. ``n_init`` parameter is set at 100 by default.
 
@@ -78,7 +78,7 @@ The hierarchy can be furtherly cut, using the parameters ``level_start`` and ``l
    :width: 277
    :alt: alluvial_cut
 
-The final outcome of the function ``schist.inference.model()`` consists of a series of nested levels, stored in ``adata.obs``, with the prefix ``nsbm_level_`` followed by a number, expressing the level of the hierarchy. Each level can be visualized thanks to the ``scanpy`` function ``sc.pl.umap()``::
+The final outcome of the function ``schist.inference.fit_model()`` consists of a series of nested levels, stored in ``adata.obs``, with the prefix ``nsbm_level_`` followed by a number, expressing the level of the hierarchy. Each level can be visualized thanks to the ``scanpy`` function ``sc.pl.umap()``::
 
     sc.pl.umap(adata, color=['nsbm_level_0', 'nsbm_level_1', 'nsbm_level_2', 'nsbm_level_3', 'nsbm_level_4'], ncols=2, legend_loc='on data')
 
@@ -93,7 +93,7 @@ Planted Model
 
 The nested model is expected to find reliable communities in networks, however, it pays its statistical significance in terms of runtimes. Another approach implemented in ``graph-tool``, called Planted Partition Block Model, performs Bayesian inference on node groups. This function, in particular, uses the Planted Block Model, which is particularly suitable in case of assortative graphs and it returns the optimal number of communities::
 
-    scs.inference.model(adata, model='ppbm')
+    scs.inference.fit_model(adata, model='ppbm')
 
 The final outcome of the function consists of a single layer of annotations, stored in ``adata.obs``, with the prefix ``ppbm``, which can be visualized through ``sc.pl.umap()``::
 

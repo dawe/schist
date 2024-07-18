@@ -82,7 +82,6 @@ def draw_tree(
         # this is here only to try overrides, it won't ever work!
         mpl.use(use_backend)
 
-    print(plt.get_backend())        
     params = adata.uns['schist'][model_key]['params']
     if 'neighbors_key' in params:
         neighbors_key=params['neighbors_key']
@@ -98,26 +97,20 @@ def draw_tree(
     g = state.g # the graph in graph-tool format
 
     fill_color = g.new_vertex_property('vector<double>')
-    g.vertex_properties['fill_color'] = fill_color
+   
 
     if not level and not color:
         for v in range(g.num_vertices()):
             fill_color[v] = [0.502, 0.502, 0.502, 1.0] #gray
     elif level:
+        # categorical
         level = int(level)
         if level < 1:
             logg.warning("Cannot plot level below 1, setting to level 1")
             level = 1
-        obs_key = f'{model_key}_level_{level}'
-        uns_key = f'{model_key}_level_{level}_colors'
-        adata_colors = adata.uns[uns_key]
-        categories = adata.obs[obs_key].cat.categories
-        colors = [mpl.colors.to_rgba(x) for x in adata_colors]
-        colors = dict(zip(categories, colors))
-        node_color = [colors[x] for x in adata.obs[obs_key]]
-        for v in range(len(node_color)):
-            fill_color[v] = node_color[v]
-    elif color:
+        color = f'{model_key}_level_{level}'
+
+    if color:
         # let's give the opportunity to color by properties other than nsbm
         obs_key = color
         if color in adata.obs_keys():
@@ -145,21 +138,22 @@ def draw_tree(
 
                 map_values = MinMaxScaler().fit_transform(adata.obs[[color]]).squeeze()
                 node_color = cmap(map_values)
-                fill_color = node_color
-#                for v in range(len(node_color)):
-#                    fill_color[v] = node_color[v]
+                for v in range(len(node_color)):
+                    fill_color[v] = node_color[v]
         elif color in adata.var_names:
             cmap = color_map
             if not color_map:
                 cmap = mpl.cm.get_cmap(plt.rcParams['image.cmap'])
             elif type(color_map) == str:
                 cmap = mpl.cm.get_cmap(color_map)
-            map_values = MinMaxScaler().fit_transform(np.array(adata[:, color].X)).ravel()    
+            map_values = MinMaxScaler().fit_transform(np.array(adata[:, color].X)).squeeze()    
             node_color = cmap(map_values)
 
     if ax is None:
         fig = plt.figure(frameon=False)
         ax = fig.add_subplot(111)
+
+    g.vertex_properties['fill_color'] = fill_color
     pos, t, tpos = gt.draw_hierarchy(state,  
                        vertex_fill_color=g.vertex_properties['fill_color'], 
                        vertex_color=g.vertex_properties['fill_color'],  

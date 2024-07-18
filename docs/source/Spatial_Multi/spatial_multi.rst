@@ -77,7 +77,7 @@ Now we can all the nested model on three modalities (actually 2 + spatial) to ge
 .. code:: python
 	
 	sc.settings.verbosity=2
-	scs.inference.model_multi([atac.table, rna.table, _tmp], key_added='mspt',
+	scs.inference.fit_model_multi([atac.table, rna.table, _tmp], key_added='mspt',
 	                                 neighbors_key=['spectral_neighbors', 'pca_neighbors', 'spatial_neighbors'])
 	sc.settings.verbosity=0
 

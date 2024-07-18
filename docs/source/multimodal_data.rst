@@ -44,7 +44,7 @@ In this example we will generate two toy datasets with artificial pairings, usin
 
  adata1 = sc.datasets.blobs(n_observations=500, n_centers=5, cluster_std=2)
  sc.pp.neighbors(adata1)
- scs.inference.model(adata1, model='ppbm')
+ scs.inference.fit_model(adata1, model='ppbm')
  sc.tl.umap(adata1)
 
 ``adata1`` will contain 500 cells, 11 features with randomly distributed over 5 clusters. The clusters have been identified using the planted partition model. The paired dataset will contain 500 cells, from the same clusters, but we will change cluster order, so that there's no direct correspondence::

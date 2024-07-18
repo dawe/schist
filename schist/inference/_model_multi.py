@@ -174,7 +174,7 @@ def fit_model_multi(
                      f'It is now set to {refine_iter} and should be at least 100\n')
         
 
-    start = logg.info('minimizing the nested Stochastic Block Model')
+    start = logg.info('minimizing the Block Model')
     
     if copy:
         adatas = [x.copy() for x in adatas]

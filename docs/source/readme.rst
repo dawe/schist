@@ -36,7 +36,7 @@ How to use
 Once ``schist`` has been installed, it can be used out of the box on ``scanpy`` objects::
 
     import schist as scs
-    scs.inference.model(adata)
+    scs.inference.fit_model(adata)
 
 
 Once the MCMC has converged, the ``adata.obs`` object will contain additional columns for multiple levels, named ``nsbm_level_0``, ``nsbm_level_1``, ``nsbm_level_2`` and so on. 

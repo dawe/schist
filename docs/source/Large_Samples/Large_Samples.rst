@@ -161,7 +161,7 @@ get cell populations.
     for x in tqdm(range(n_iter)):    
         sketch_data.obsm[use_rep] = adata[ski[x]].obsm[use_rep].copy()
         sc.pp.neighbors(sketch_data, n_neighbors=n_neighbors, use_rep=use_rep)
-        scs.inference.model(sketch_data, model='ppbm')
+        scs.inference.fit_model(sketch_data, model='ppbm')
         index = NNDescent(sketch_data.obsm['X_scanvi_emb'], n_neighbors=n_neighbors, metric='cosine', )
         C = np.array(sketch_data.obs['ppbm'].values).astype(int)
         pred = np.unique(C[index.query(query, k=5)[0]], axis=1)[:, 0]
@@ -261,7 +261,7 @@ same procedure taking 5 times more cells
     for x in tqdm(range(n_iter)):    
         sketch_data.obsm[use_rep] = adata[ski[x]].obsm[use_rep].copy()
         sc.pp.neighbors(sketch_data, n_neighbors=n_neighbors, use_rep=use_rep)
-        scs.inference.model(sketch_data, model='ppbm')
+        scs.inference.fit_model(sketch_data, model='ppbm')
         index = NNDescent(sketch_data.obsm['X_scanvi_emb'], n_neighbors=n_neighbors, metric='cosine', )
         C = np.array(sketch_data.obs['ppbm'].values).astype(int)
         pred = np.unique(C[index.query(query, k=5)[0]], axis=1)[:, 0]
@@ -346,7 +346,7 @@ using a dictionary.
     for x in tqdm(range(n_iter)):    
         sketch_data.obsm[use_rep] = adata[ski[x]].obsm[use_rep].copy()
         sc.pp.neighbors(sketch_data, n_neighbors=n_neighbors, use_rep=use_rep)
-        scs.inference.model(sketch_data, model='sbm', deg_corr=True)
+        scs.inference.fit_model(sketch_data, model='sbm', deg_corr=True)
         index = NNDescent(sketch_data.obsm['X_scanvi_emb'], n_neighbors=n_neighbors, metric='cosine', )
         C = np.array(sketch_data.obs['sbm'].values).astype(int)
         pred = np.unique(C[index.query(query, k=5)[0]], axis=1)[:, 0]
@@ -413,7 +413,7 @@ Lastly we can try the ``nested_model``
     for x in tqdm(range(n_iter)):
         sketch_data.obsm[use_rep] = adata[ski[x]].obsm[use_rep].copy()
         sc.pp.neighbors(sketch_data, n_neighbors=n_neighbors, use_rep=use_rep)
-        scs.inference.model(sketch_data)
+        scs.inference.fit_model(sketch_data)
         index = NNDescent(sketch_data.obsm['X_scanvi_emb'], n_neighbors=n_neighbors, metric='cosine', )
         C = np.array(sketch_data.obs['nsbm_level_0'].values).astype(int)
         pred0 = np.unique(C[index.query(query, k=5)[0]], axis=1)[:, 0]
