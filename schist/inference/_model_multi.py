@@ -67,7 +67,6 @@ def fit_model_multi(
     experiments, possibly across different modalities, and perform joint
     clustering.
     
-
     This requires having ran :func:`~scanpy.pp.neighbors` or
     :func:`~scanpy.external.pp.bbknn` first. It also requires cells having the same
     names if coming from paired experiments
@@ -76,7 +75,10 @@ def fit_model_multi(
     ----------
     mdata
         A list of processed AnnData. Neighbors must have been already
-        calculated. A MuData object can also be passed.
+        calculated. If a MuData object is passed, a model on the layered graph
+        will be fitted. If you want to fit a model on the shared graph representation, 
+        e.g. WNN graph or a graph built on MOFA latent factors, you still can use
+        the standard ``scs.inference.model()`` function.
     deg_corr
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
@@ -144,18 +146,7 @@ def fit_model_multi(
     gt_model = {'nsbm':gt.NestedBlockState, 
                 'sbm':gt.LayeredBlockState,
     }[model]
-    
-    is_mudata = False
-    adata_list = []
-    if type(mdata) == MuData:
-        is_mudata = True
-        # treat MuData as a list of anndatas
-        # just keep it aside as we need to reconstruct it later
-        #_mdata = 
-        adata_list = list(mdata.mod.values())
-    else:
-        adata_list = mdata
-    
+        
     # if key is not set, use the model name
     key_added = f'multi_{model}' if key_added is None else key_added
 
@@ -187,9 +178,23 @@ def fit_model_multi(
         
 
     start = logg.info('minimizing the Block Model')
-    
-    if copy:
-        adata_list = [x.copy() for x in mdata]
+
+    is_mudata = False
+    adata_list = []
+    if type(mdata) == MuData:
+        is_mudata = True
+        # treat MuData as a list of anndatas
+        # just keep it aside as we need to reconstruct it later
+        if copy:
+            mdata = mdata.copy()
+        # adata_list will keep reference to mdata, whether it's a copy or not
+        # remember, in case, to put things back    
+        adata_list = list(mdata.mod.values())
+    else:
+        if copy:
+            adata_list = [x.copy() for x in mdata]
+        else:
+            adata_list = mdata
 
     n_keys = len(neighbors_key)
     n_data = len(adata_list)
@@ -516,6 +521,10 @@ def fit_model_multi(
             f'    {key_added!r}, the cluster labels (adata.obs, categorical)'
         ),
     )
-    return adata_list if copy else None
+    if copy:
+        if is_mudata:
+            return mdata
+        return adata_list
+    return None
 
     

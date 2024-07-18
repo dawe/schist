@@ -1,5 +1,6 @@
 import schist as scs
-import scanpy as sc                          
+import scanpy as sc            
+from mudata import MuData              
 sc.settings.verbosity=2                           
 adata = sc.datasets.blobs() 
 sc.tl.pca(adata)                                                        
@@ -47,5 +48,6 @@ sc.pp.neighbors(d2)
 scs.inference.fit_model_multi([d1, d2], model='nsbm', n_init=2, refine_iter=2)
 u = scs._utils.get_multi_graph_from_adata([d1, d2])
 print(u.num_vertices())
-scs.inference.fit_model_multi([d1, d2], model='sbm', n_init=2, refine_iter=2)
+mdata = MuData({'A':d1, 'B':d2})
+scs.inference.fit_model_multi(mdata, model='sbm', n_init=2, refine_iter=2)
 
