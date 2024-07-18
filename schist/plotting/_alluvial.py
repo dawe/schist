@@ -1,7 +1,7 @@
 from typing import Optional, Tuple, Sequence, Type, Union, Literal
 import numpy as np
 
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 #from matplotlib import rcParams, ticker
 #from matplotlib.axes import Axes
 #from matplotlib.colors import is_color_like

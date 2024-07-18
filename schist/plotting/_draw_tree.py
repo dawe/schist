@@ -1,10 +1,11 @@
 from typing import Optional, Tuple, Sequence, Type, Union
 import numpy as np
 import os
-
+from importlib import reload
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
+
 from anndata import AnnData
 import pandas as pd
 import graph_tool.all as gt
@@ -12,20 +13,17 @@ from scanpy import logging as logg
 from sklearn.preprocessing import MinMaxScaler
 from .._utils import state_from_blocks
 
-def isnotebook():
+def is_interactive():
     # from Stackoverflow
     # https://stackoverflow.com/questions/15411967/how-can-i-check-if-code-is-executed-in-the-ipython-notebook
     try:
         shell = get_ipython().__class__.__name__
-        if shell == 'ZMQInteractiveShell':
-            return True   # Jupyter notebook or qtconsole
-        elif shell == 'TerminalInteractiveShell':
-            return False  # Terminal running IPython
+        if shell == 'ZMQInteractiveShell' or shell == 'TerminalInteractiveShell':
+            return True   # Jupyter notebook or IPython
         else:
             return False  # Other type (?)
     except NameError:
         return False      # Probably standard Python interpreter        
-
 
 def draw_tree(
     adata: AnnData,
@@ -62,35 +60,22 @@ def draw_tree(
 """    
     
     # first thing switch backend to cairo
-    backend = mpl.pyplot.get_backend()
-    if use_backend is None:
-        try:
-            mpl.use('cairo')
-            import matplotlib.pyplot as plt
-
-            # note that CAIRO backend cannot show figures in console, 
-            # it works in jupyter, though
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-            f'Cairo backend is not available, cannot plot tree'
-        )
     
-        if not isnotebook() and save is None:
-            if level is not None:
-                key = f'level_sc.{level}'
-            elif color is not None:
-                key = color
-            else:
-                key = ''
-            save = f'draw_tree{key}.png'
-            logg.warning(f'Cannot show the plot here, saving to {save}')
-            mpl.use('gtk3cairo')
-            import matplotlib.pyplot as plt
-    else:
-        # this is here only to try overrides, it won't ever work!
+    if is_interactive():
+        import matplotlib as mpl
+        mpl.use('gtk3cairo')
+        if level is not None:
+            key = f'level_{level}'
+        elif color is not None:
+            key = color
+        else:
+            key = ''
+        save = f'draw_tree{key}.png'
+        logg.warning('Backend switching needs to be fixed for all platforms'
+                     f'Interactive tree plot is not possible, saving to {save}')
+    elif use_backend is not None:
+        import matplotlib as mpl
         mpl.use(use_backend)
-        import matplotlib.pyplot as plt
-
 
     params = adata.uns['schist'][model_key]['params']
     if 'neighbors_key' in params:
@@ -195,8 +180,8 @@ def draw_tree(
             None
         fig.savefig(f"figures/draw_tree{save}")
     # switch to default backend 
-    if not isnotebook():
-	    mpl.use(backend)
+    if is_interactive():
+        reload(mpl)
     if show is False:
         return ax
         
