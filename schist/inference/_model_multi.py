@@ -3,6 +3,7 @@ from typing import Optional, Tuple, Sequence, Type, Union, Dict, List, Literal
 import numpy as np
 import pandas as pd
 from anndata import AnnData
+from mudata import MuData
 from scipy import sparse
 from natsort import natsorted
 from joblib import delayed, Parallel, parallel_config
