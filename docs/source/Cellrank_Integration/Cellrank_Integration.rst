@@ -48,7 +48,7 @@ We then run a nested model in ``schist`` as usual. Plotting the modularity profi
 
 .. code:: python
 
-    scs.inference.nested_model(adata, max_iter = np.inf)
+    scs.inference.model(adata, max_iter = np.inf)
     
     plot(adata.uns['schist']['nsbm']['stats']['modularity'])
 
@@ -132,8 +132,8 @@ When ``schist`` infers the best models, it calculates cell marginals by default.
 
 .. code:: python
 
-    scs_lineage = cr.Lineage(adata.obsm['CM_nsbm_level_2'], 
-                             names=adata.obs['nsbm_level_2'].cat.categories)
+    scs_lineage = scs.tl.cr_lineages(adata, level=2)
+
     scs_drivers = cr._utils._utils._correlation_test(
         adata.X,
         scs_lineage,
