@@ -67,6 +67,7 @@ release = '0.8.3'
 
 extensions = ['autoapi.extension']
 autoapi_dirs = ['../../schist']
+autoapi_ignore = ['**_utils**']
 
 def skip_submodules(app, what, name, obj, skip, options):
     if what == "module":
@@ -124,7 +125,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_utils']
 
 
 # -- Options for HTML output -------------------------------------------------
