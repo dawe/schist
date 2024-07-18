@@ -34,7 +34,7 @@ def draw_tree(
     color: Union[str, None] = None,
 #    annotation: Union[Sequence[str], None] = None,
     color_map: Union[mpl.colors.Colormap, str, None] = None,
-    block_key: str = 'nsbm',
+    model_key: str = 'nsbm',
     ax: Axes = None,
     show: bool = True,
     use_backend: str = None,
@@ -57,7 +57,7 @@ def draw_tree(
     save
         Name of the output file. If a non interactive notebook is detected, 
         this parameter is automatically set.    
-    block_key
+    model_key
         The key used to perform nsbm    
 """    
     
@@ -65,7 +65,7 @@ def draw_tree(
     backend = plt.get_backend()
     if use_backend is None:
         try:
-            plt.switch_backend('cairo')
+            mpl.use('cairo')
             # note that CAIRO backend cannot show figures in console, 
             # it works in jupyter, though
         except ModuleNotFoundError:
@@ -73,15 +73,17 @@ def draw_tree(
             f'Cairo backend is not available, cannot plot tree'
         )
     
-        if not isnotebook() and not save:
+        if not isnotebook():
 #        logg.warning(f'Cannot show the plot here, saving to `default_tree.png`')
-            plt.switch_backend('GTK3Cairo')
-            save = 'default_tree.png'
+            mpl.use('gtk3cairo')
+
+#            save = 'default_tree.png'
     else:
         # this is here only to try overrides, it won't ever work!
-        plt.switch_backend(use_backend)
-        
-    params = adata.uns['schist'][f'{block_key}']['params']
+        mpl.use(use_backend)
+
+    print(plt.get_backend())        
+    params = adata.uns['schist'][model_key]['params']
     if 'neighbors_key' in params:
         neighbors_key=params['neighbors_key']
     if 'use_weights' in params:
@@ -89,7 +91,7 @@ def draw_tree(
     if 'deg_corr' in params:
         deg_corr=params['deg_corr']
     state = state_from_blocks(adata, 
-                              state_key=block_key,
+                              model_key=model_key,
                               neighbors_key=neighbors_key,
                              )
 
@@ -106,8 +108,8 @@ def draw_tree(
         if level < 1:
             logg.warning("Cannot plot level below 1, setting to level 1")
             level = 1
-        obs_key = f'{block_key}_level_{level}'
-        uns_key = f'{block_key}_level_{level}_colors'
+        obs_key = f'{model_key}_level_{level}'
+        uns_key = f'{model_key}_level_{level}_colors'
         adata_colors = adata.uns[uns_key]
         categories = adata.obs[obs_key].cat.categories
         colors = [mpl.colors.to_rgba(x) for x in adata_colors]
@@ -141,10 +143,11 @@ def draw_tree(
                 elif type(color_map) == str:
                     cmap = mpl.cm.get_cmap(color_map)
 
-                map_values = MinMaxScaler().fit_transform(adata.obs[color][:, None]).ravel()
+                map_values = MinMaxScaler().fit_transform(adata.obs[[color]]).squeeze()
                 node_color = cmap(map_values)
-                for v in range(len(node_color)):
-                    fill_color[v] = node_color[v]
+                fill_color = node_color
+#                for v in range(len(node_color)):
+#                    fill_color[v] = node_color[v]
         elif color in adata.var_names:
             cmap = color_map
             if not color_map:
@@ -155,7 +158,7 @@ def draw_tree(
             node_color = cmap(map_values)
 
     if ax is None:
-        fig = plt.figure(figsize=(10, 10), frameon=False)
+        fig = plt.figure(frameon=False)
         ax = fig.add_subplot(111)
     pos, t, tpos = gt.draw_hierarchy(state,  
                        vertex_fill_color=g.vertex_properties['fill_color'], 
@@ -170,9 +173,9 @@ def draw_tree(
         state_len = np.array([len(x) for x in state.get_bs()])
         dfc = pd.DataFrame(coords[:g.num_vertices()], index=adata.obs_names)
         dfc = pd.concat([dfc, adata.obs[obs_key]], axis=1)
-        g_coords = dfc.groupby(obs_key).agg('mean').T
+        g_coords = dfc.groupby(obs_key, observed=True).agg('mean').T
         g_radius = np.sqrt(np.sum(g_coords**2, axis=0))
-        max_rx = g_radius.max() + .8
+        max_rx = g_radius.max() + .4
         for group in g_coords.columns:
             text_p = g_coords[group] * max_rx / g_radius[group]
             ax.text(text_p[0], text_p[1], f'{group}', 
@@ -191,7 +194,7 @@ def draw_tree(
         return ax
     # switch to default backend 
     if not isnotebook():
-	    plt.switch_backend(backend)
+	    mpl.use(backend)
         
     # everything works fine in Jupyter, but not in ipython and, obvsiously
     # in normal terminal. In that case, cairo backend can't be used to show figures.

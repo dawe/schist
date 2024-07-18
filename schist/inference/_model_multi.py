@@ -34,7 +34,7 @@ def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=500, seed=N
     return state                            
 
 
-def model_multi(
+def fit_model_multi(
     adatas: List[AnnData],
     deg_corr: bool = True,
     tolerance: float = 1e-4,

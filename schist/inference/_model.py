@@ -33,7 +33,7 @@ def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=500, seed=N
         n += 1
     return state                            
 
-def model(
+def fit_model(
     adata: AnnData,
     deg_corr: bool = True,
     tolerance: float = 1e-4,

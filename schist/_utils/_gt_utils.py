@@ -59,7 +59,7 @@ def get_graph_tool_from_adjacency(adjacency, directed=False, use_weights=False):
 
 def prune_groups(groups, inverse=False):
     """
-    Returns the index of informative levels after the nested_model has
+    Returns the index of informative levels after the nested model has
     been run. It works by looking at level entropy and, moreover, checks if
     two consecutive levels have the same clustering
     """
@@ -340,8 +340,8 @@ def state_from_blocks(
     Nothing, adds a `gt.block_state` object in adata.uns        
         
     """
-    bl_d = adata.uns['schist'][f'{model_key}']['blocks']
-    params = adata.uns['schist'][f'{model_key}']['params']
+    bl_d = adata.uns['schist'][model_key]['blocks']
+    params = adata.uns['schist'][model_key]['params']
     if params['model'] == 'nsbm' or params['model'] == 'multi_nsbm':
         blocks = []
         for nl in range(len(bl_d)):

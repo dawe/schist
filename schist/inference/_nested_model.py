@@ -2,7 +2,7 @@ from typing import Optional, Tuple, Sequence, Type, Union, Dict
 from anndata import AnnData
 import numpy as np
 import scipy.sparse as sparse
-from . import model
+from . import fit_model
 from scanpy import logging as logg
 
 try:
@@ -45,11 +45,11 @@ def nested_model(
 ) -> Optional[AnnData]:
     """\
     This function has been deprecated and it soon will be removed.
-    It now wraps ``scs.inference.model()`` function.
+    It now wraps ``scs.inference.fit_model()`` function.
     """
 
     logg.warning('This function has been deprecated, and soon will be removed\n'
-                  'use `scs.inference.model(adata, model="nsbm")` instead')
+                  'use `scs.inference.fit_model(adata, model="nsbm")` instead')
 
     return model(adata, model='nsbm',
                  deg_corr = deg_corr,
