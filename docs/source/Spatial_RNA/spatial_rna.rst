@@ -146,9 +146,8 @@ We create the kNN graph using the PCA embedding, then we apply ``schist`` to fin
 	
 	basis='pca'
 	sc.settings.verbosity=2
-	scs.inference.nested_model(spdata.table, 
-							   neighbors_key=f'{basis}_neighbors', 
-							   dispatch_backend='loky')
+	scs.inference.model(spdata.table, 
+							   neighbors_key=f'{basis}_neighbors')
 	sc.settings.verbosity=0
 
 .. code:: parsed-literal
@@ -188,10 +187,9 @@ Similarly to what has been done for ATAC, we perform the analysis of a multimoda
 
 	_tmp = spdata.table.copy()
 	sc.settings.verbosity=2
-	scs.inference.nested_model_multi([spdata.table, _tmp], 
+	scs.inference.model_multi([spdata.table, _tmp], 
 									 key_added='spt', 
-									 neighbors_key=['pca_neighbors', 'spatial_neighbors'], 
-									 dispatch_backend='loky')
+									 neighbors_key=['pca_neighbors', 'spatial_neighbors'])
 	sc.settings.verbosity=0
 
 .. code:: parsed-literal 
