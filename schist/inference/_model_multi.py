@@ -36,7 +36,7 @@ def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=500, seed=N
 
 
 def fit_model_multi(
-    adatas: List[AnnData],
+    mdata: Union[List[AnnData], MuData],
     deg_corr: bool = True,
     tolerance: float = 1e-4,
     n_sweep: int = 10,
@@ -58,7 +58,7 @@ def fit_model_multi(
     copy: bool = False,
     dispatch_backend: Optional[str] = 'loky',
     random_seed: Optional[int] = None,
-) -> Optional[List[AnnData]]:
+) -> [Union[List[AnnData]], MuData, None]:
     """\
     Cluster cells into subgroups using multiple modalities.
 
@@ -74,9 +74,9 @@ def fit_model_multi(
 
     Parameters
     ----------
-    adatas
+    mdata
         A list of processed AnnData. Neighbors must have been already
-        calculated.
+        calculated. A MuData object can also be passed.
     deg_corr
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
@@ -145,6 +145,17 @@ def fit_model_multi(
                 'sbm':gt.LayeredBlockState,
     }[model]
     
+    is_mudata = False
+    adata_list = []
+    if type(mdata) == MuData:
+        is_mudata = True
+        # treat MuData as a list of anndatas
+        # just keep it aside as we need to reconstruct it later
+        #_mdata = 
+        adata_list = list(mdata.mod.values())
+    else:
+        adata_list = mdata
+    
     # if key is not set, use the model name
     key_added = f'multi_{model}' if key_added is None else key_added
 
@@ -178,10 +189,10 @@ def fit_model_multi(
     start = logg.info('minimizing the Block Model')
     
     if copy:
-        adatas = [x.copy() for x in adatas]
+        adata_list = [x.copy() for x in mdata]
 
     n_keys = len(neighbors_key)
-    n_data = len(adatas)
+    n_data = len(adata_list)
     # are we clustering a user-provided graph or the default AnnData one?
     if adjacency is None:
         adjacency = []
@@ -195,19 +206,19 @@ def fit_model_multi(
             neighbors_key = [neighbors_key[0] for x in range(n_data)]    
         for x in range(n_data):
             logg.info(f'getting adjacency for data {x}', time=start)
-            if neighbors_key[x] not in adatas[x].uns:
+            if neighbors_key[x] not in adata_list[x].uns:
                 raise ValueError(
                     'You need to run `pp.neighbors` first '
                     'to compute a neighborhood graph. for'
                     f'data entry {x}'
                 )
-            elif 'connectivities_key' in adatas[x].uns[neighbors_key[x]]:
+            elif 'connectivities_key' in adata_list[x].uns[neighbors_key[x]]:
                 # scanpy>1.4.6 has matrix in another slot
-                conn_key = adatas[x].uns[neighbors_key[x]]['connectivities_key']
-                adjacency.append(adatas[x].obsp[conn_key])
+                conn_key = adata_list[x].uns[neighbors_key[x]]['connectivities_key']
+                adjacency.append(adata_list[x].obsp[conn_key])
             else:
                 # scanpy<=1.4.6 has sparse matrix here
-                adjacency.append(adatas[x].uns[neighbors_key[x]]['connectivities'])
+                adjacency.append(adata_list[x].uns[neighbors_key[x]]['connectivities'])
 
 
     # create a union graph with layers
@@ -218,15 +229,15 @@ def fit_model_multi(
         # add cell names to graph, this will be used to create
         # layered graph 
         g_names = g.new_vertex_property('string') 
-        d_names = adatas[x].obs_names
+        d_names = adata_list[x].obs_names
         for xn in range(len(d_names)):
             g_names[xn] = d_names[xn]
         g.vp['cell'] = g_names
         graph_list.append(g)
        
     # get a non-redundant list of all cell names across all modalities
-    all_names = set(adatas[0].obs_names)
-    [all_names.update(adatas[x].obs_names) for x in range(1, n_data)]
+    all_names = set(adata_list[0].obs_names)
+    [all_names.update(adata_list[x].obs_names) for x in range(1, n_data)]
     all_names = list(all_names)
     # create the shared graph
     union_g = gt.Graph(directed=False)
@@ -237,7 +248,7 @@ def fit_model_multi(
     union_g.vp['cell'] = u_names
     
     # check that there are overlapping nodes, otherwise exit
-    if union_g.num_vertices() == sum(adatas[xn].shape[0] for xn in range(n_data)):
+    if union_g.num_vertices() == sum(adata_list[xn].shape[0] for xn in range(n_data)):
         raise ValueError(
                 'The number of nodes in the merged graph is the same as'
                 'the total number of cells across all datasets, it seems'
@@ -415,10 +426,10 @@ def fit_model_multi(
 
         # remove any column with the same key
         for xn in range(n_data):
-            drop_columns = groups.columns.intersection(adatas[xn].obs.columns)
+            drop_columns = groups.columns.intersection(adata_list[xn].obs.columns)
             if len(drop_columns) > 0:
-                adatas[xn].obs.drop(drop_columns, axis='columns', inplace=True)
-            adatas[xn].obs = pd.concat([adatas[xn].obs, groups.loc[adatas[xn].obs_names]], axis=1)
+                adata_list[xn].obs.drop(drop_columns, axis='columns', inplace=True)
+            adata_list[xn].obs = pd.concat([adata_list[xn].obs, groups.loc[adata_list[xn].obs_names]], axis=1)
     else:
         # for ppbm and sbm is simpler
         rosetta = dict(zip(u_groups, range(len(u_groups))))
@@ -426,7 +437,7 @@ def fit_model_multi(
         groups = groups.astype('U')
         groups = pd.Series(groups, index=all_names)
         for xn in range(n_data):
-            adatas[xn].obs[key_added] = pd.Categorical(groups.loc[adatas[xn].obs_names], 
+            adata_list[xn].obs[key_added] = pd.Categorical(groups.loc[adata_list[xn].obs_names], 
                                                        categories=natsorted(np.unique(groups)),
                                                        )
 
@@ -439,16 +450,16 @@ def fit_model_multi(
         pv_array = pmode.get_marginal(union_g).get_2d_array(range(last_group)).T[:, u_groups] / n_init    
         for xn in range(n_data):
             # add marginals for level 0, the sum up according to the hierarchy
-            _groups = groups.loc[adatas[xn].obs_names]
-            _pv_array = pd.DataFrame(pv_array, index=all_names).loc[adatas[xn].obs_names].values
+            _groups = groups.loc[adata_list[xn].obs_names]
+            _pv_array = pd.DataFrame(pv_array, index=all_names).loc[adata_list[xn].obs_names].values
             if model == "nsbm":
-                adatas[xn].obsm[f"CM_{key_added}_level_0"] = _pv_array
+                adata_list[xn].obsm[f"CM_{key_added}_level_0"] = _pv_array
                 for group in groups.columns[1:]:
                     ct = pd.crosstab(_groups[_groups.columns[0]], _groups[group], 
                                      normalize='index', dropna=False)
-                    adatas[xn].obsm[f'CM_{group}'] = _pv_array @ ct.values
+                    adata_list[xn].obsm[f'CM_{group}'] = _pv_array @ ct.values
             else:
-                adatas[xn].obsm[f"CM_{key_added}"] = _pv_array
+                adata_list[xn].obsm[f"CM_{key_added}"] = _pv_array
 
     # add some unstructured info
     if model == "nsbm":
@@ -458,16 +469,16 @@ def fit_model_multi(
         modularity=np.array([gt.modularity(union_g, state.get_blocks())])
     
     for xn in range(n_data):
-        if not 'schist' in adatas[xn].uns:
-            adatas[xn].uns['schist'] = {}
+        if not 'schist' in adata_list[xn].uns:
+            adata_list[xn].uns['schist'] = {}
 
-        adatas[xn].uns['schist'][key_added] = {}
-        adatas[xn].uns['schist'][key_added]['stats'] = dict(
+        adata_list[xn].uns['schist'][key_added] = {}
+        adata_list[xn].uns['schist'][key_added]['stats'] = dict(
               entropy=state.entropy(),
               modularity=modularity
               )
         if model == "nsbm":
-            adatas[xn].uns['schist'][key_added]['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
+            adata_list[xn].uns['schist'][key_added]['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
 
         if model == "nsbm":
             # record state as list of blocks
@@ -479,10 +490,10 @@ def fit_model_multi(
         else:
             bl_d = {'0':np.array(state.get_blocks().a)}        
     
-        adatas[xn].uns['schist'][key_added]['blocks'] = bl_d
+        adata_list[xn].uns['schist'][key_added]['blocks'] = bl_d
 
         # last step is recording some parameters used in this analysis
-        adatas[xn].uns['schist'][key_added]['params'] = dict(
+        adata_list[xn].uns['schist'][key_added]['params'] = dict(
             model=model,
             use_weights=use_weights,
             neighbors_key=neighbors_key[xn],
@@ -505,6 +516,6 @@ def fit_model_multi(
             f'    {key_added!r}, the cluster labels (adata.obs, categorical)'
         ),
     )
-    return adatas if copy else None
+    return adata_list if copy else None
 
     
