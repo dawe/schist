@@ -179,5 +179,5 @@ def alluvial(
     ax.set_xticklabels(levels, fontsize=axis_fontsize, 
                        fontweight=axis_fontweight)
     ax.set_yticks([])
-    ax.grid(b=False)
+    ax.grid(visible=False)
     ax.set_xlabel(f"{key} level")

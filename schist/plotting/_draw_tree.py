@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 import matplotlib as mpl
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from anndata import AnnData
 import pandas as pd
@@ -62,10 +62,12 @@ def draw_tree(
 """    
     
     # first thing switch backend to cairo
-    backend = plt.get_backend()
+    backend = mpl.pyplot.get_backend()
     if use_backend is None:
         try:
             mpl.use('cairo')
+            import matplotlib.pyplot as plt
+
             # note that CAIRO backend cannot show figures in console, 
             # it works in jupyter, though
         except ModuleNotFoundError:
@@ -73,14 +75,22 @@ def draw_tree(
             f'Cairo backend is not available, cannot plot tree'
         )
     
-        if not isnotebook():
-#        logg.warning(f'Cannot show the plot here, saving to `default_tree.png`')
+        if not isnotebook() and save is None:
+            if level is not None:
+                key = f'level_sc.{level}'
+            elif color is not None:
+                key = color
+            else:
+                key = ''
+            save = f'draw_tree{key}.png'
+            logg.warning(f'Cannot show the plot here, saving to {save}')
             mpl.use('gtk3cairo')
-
-#            save = 'default_tree.png'
+            import matplotlib.pyplot as plt
     else:
         # this is here only to try overrides, it won't ever work!
         mpl.use(use_backend)
+        import matplotlib.pyplot as plt
+
 
     params = adata.uns['schist'][model_key]['params']
     if 'neighbors_key' in params:
@@ -183,12 +193,12 @@ def draw_tree(
             os.mkdir('figures')
         except FileExistsError:
             None
-        fig.savefig(f"figures/{save}")
-    if show is False:
-        return ax
+        fig.savefig(f"figures/draw_tree{save}")
     # switch to default backend 
     if not isnotebook():
 	    mpl.use(backend)
+    if show is False:
+        return ax
         
     # everything works fine in Jupyter, but not in ipython and, obvsiously
     # in normal terminal. In that case, cairo backend can't be used to show figures.
