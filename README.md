@@ -33,7 +33,7 @@ Once `schist` has been installed, it can be used out of the box on `scanpy` obje
 ```python
 import schist as scs
 
-scs.inference.nested_model(adata)
+scs.inference.model(adata)
 ```
 
 Once the MCMC has converged, the `adata.obs` object will contain additional columns for multiple levels, named `nsbm_level_0`, `nsbm_level_1`, `nsbm_level_2` and so on (by default up to `nsbm_level_10`). 
