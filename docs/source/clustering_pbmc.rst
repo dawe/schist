@@ -40,7 +40,7 @@ Moreover, in order to spatially visualize the outcome of cluster analysis, we ca
    
     sc.tl.umap(adata)
 
-nested_model
+Nested Model
 ^^^^^^^^^^^^
 
 The most prominent function implemented in ``schist`` library is the clustering function ``schist.inference.model()``. It relies on a process called *minimization of the description length*\, implemented in the `graph-tool python library <https://graph-tool.skewed.de/>`_:
@@ -88,10 +88,10 @@ The final outcome of the function ``schist.inference.model()`` consists of a ser
    :alt: nested_model
 
 
-planted_model
+Planted Model
 ^^^^^^^^^^^^^
 
-The function ``nested_model()`` is expected to find reliable communities in networks, however, it pays its statistical significance in terms of runtimes. Another approach implemented in ``graph-tool``, called Planted Partition Block Model, performs Bayesian inference on node groups. This function, in particular, uses the Planted Block Model, which is particularly suitable in case of assortative graphs and it returns the optimal number of communities::
+The nested model is expected to find reliable communities in networks, however, it pays its statistical significance in terms of runtimes. Another approach implemented in ``graph-tool``, called Planted Partition Block Model, performs Bayesian inference on node groups. This function, in particular, uses the Planted Block Model, which is particularly suitable in case of assortative graphs and it returns the optimal number of communities::
 
     scs.inference.model(adata, model='ppbm')
 
