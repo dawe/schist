@@ -1,6 +1,7 @@
 numpy
 scipy
 anndata
+mudata
 pandas
 scanpy
 leidenalg

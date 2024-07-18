@@ -3,6 +3,7 @@ import numpy as np
 import os
 from importlib import reload
 import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 
@@ -24,6 +25,9 @@ def is_interactive():
             return False  # Other type (?)
     except NameError:
         return False      # Probably standard Python interpreter        
+
+
+
 
 def draw_tree(
     adata: AnnData,
@@ -60,9 +64,9 @@ def draw_tree(
 """    
     
     # first thing switch backend to cairo
+    default_backend = plt.get_backend()
     
     if is_interactive():
-        import matplotlib as mpl
         mpl.use('gtk3cairo')
         if level is not None:
             key = f'level_{level}'
@@ -73,9 +77,11 @@ def draw_tree(
         save = f'draw_tree{key}.png'
         logg.warning('Backend switching needs to be fixed for all platforms'
                      f'Interactive tree plot is not possible, saving to {save}')
-    elif use_backend is not None:
-        import matplotlib as mpl
-        mpl.use(use_backend)
+    else:
+        mpl.use('cairo')
+#    elif use_backend is not None:
+#        import matplotlib as mpl
+#        mpl.use(use_backend)
 
     params = adata.uns['schist'][model_key]['params']
     if 'neighbors_key' in params:
@@ -180,8 +186,7 @@ def draw_tree(
             None
         fig.savefig(f"figures/draw_tree{save}")
     # switch to default backend 
-    if is_interactive():
-        reload(mpl)
+    mpl.use(default_backend)
     if show is False:
         return ax
         
