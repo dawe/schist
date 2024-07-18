@@ -1,6 +1,9 @@
 from typing import Optional, Tuple, Sequence, Type, Union, Dict
 from anndata import AnnData
+import numpy as np
+import scipy.sparse as sparse
 from . import model
+from scanpy import logging as logg
 
 try:
     import graph_tool.all as gt
