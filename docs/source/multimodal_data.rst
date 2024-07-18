@@ -44,7 +44,7 @@ In this example we will generate two toy datasets with artificial pairings, usin
 
  adata1 = sc.datasets.blobs(n_observations=500, n_centers=5, cluster_std=2)
  sc.pp.neighbors(adata1)
- scs.inference.planted_model(adata1)
+ scs.inference.model(adata1, model='ppbm')
  sc.tl.umap(adata1)
 
 ``adata1`` will contain 500 cells, 11 features with randomly distributed over 5 clusters. The clusters have been identified using the planted partition model. The paired dataset will contain 500 cells, from the same clusters, but we will change cluster order, so that there's no direct correspondence::
@@ -79,7 +79,7 @@ In the last line we reversed colors for ppbm clusters, so that it's easy to spot
 
 In these two datasets pairings can be appreciated by colors, only cluster 2 has not been changed. At this point we can apply the multimodal nested model::
 
- scs.inference.nested_model_multi([adata1, adata2])
+ scs.inference.moodel_multi([adata1, adata2])
 
 Note that ``schist`` does not support (yet) actual multimodal data structures (such as ``MuData``), so different layers should be provided in a list of ``AnnData`` objects. The datasets will be annotated with clusters consistent across datasets::
 
