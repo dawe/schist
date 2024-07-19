@@ -7,7 +7,8 @@ Welcome to schist's documentation!
    
    readme
    tutorials
-
+   release_notes
+   
 Indices and tables
 ==================
 
