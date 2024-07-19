@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.8"
+  - "3.12"
 install:
   - sudo apt-get update
   # We do this conditionally because it saves us some downloading if the
@@ -20,7 +20,7 @@ install:
 
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION 
   - conda activate test-environment
-  - conda install -c conda-forge graph-tool=2.37
+  - conda install -c conda-forge graph-tool=2.59
   - pip install -r requirements.txt
   - python setup.py install
 script:
