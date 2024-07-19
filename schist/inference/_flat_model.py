@@ -51,7 +51,7 @@ def flat_model(
     logg.warning('This function has been deprecated, and soon will be removed\n'
                   'use `scs.inference.fit_model(adata, model="sbm")` instead')
 
-    return model(adata, model='sbm',
+    return fit_model(adata, model='sbm',
                  deg_corr = deg_corr,
                  tolerance = tolerance,
                  n_sweep = n_sweep,
