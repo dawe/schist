@@ -5,6 +5,11 @@ Release notes
 .. highlight:: python
 
 -------------
+version 0.9.1
+-------------
+This version addresses a vicious bug that prevented convergence during minimization.
+
+-------------
 version 0.9.0
 -------------
 In addition to various bugfixes, this version unifies the inteference functions into one (`fit_model`), so that it's easier to use and maintain. Similarly, `fit_model_multi` works for multimodal data, now supporting `sbm` in addition to `nsbm`. Multimodal analysis now supports `MuData` objects.
