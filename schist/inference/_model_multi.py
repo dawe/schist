@@ -24,7 +24,7 @@ except ImportError:
         """
     )
 
-def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=500, seed=None):
+def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=1000, seed=None):
     if seed:
         gt.seed_rng(seed)
     dS = 1e9
@@ -43,7 +43,7 @@ def fit_model_multi(
     beta: float = np.inf,
     n_init: int = 100,
     model: Literal["nsbm", "sbm"] = "nsbm",
-    max_iter: int = 500,
+    max_iter: int = 1000,
     collect_marginals: bool = True,
     refine_model: bool = False,
     refine_iter: int = 100,
@@ -303,7 +303,7 @@ def fit_model_multi(
                          max_nbytes=None,
                          n_jobs=n_jobs):
         states = list(tqdm(Parallel(return_as="generator")(
-            delayed(fast_min)(states[x], beta, n_sweep, tolerance, seeds[x]) for x in range(n_init)
+            delayed(fast_min)(states[x], beta, n_sweep, tolerance, max_iter, seeds[x]) for x in range(n_init)
                       ),
                       total=n_init))
 
