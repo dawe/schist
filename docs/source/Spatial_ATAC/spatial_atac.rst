@@ -144,7 +144,7 @@ Here a simple hierarchical model is performed using ``schist`` on the kNN graph 
 .. code:: python
 
 	basis='spectral'
-	sc.pp.neighbors(spdata.table, key_added=f'{basis}_neighbors')
+	sc.pp.neighbors(spdata.table, key_added=f'{basis}_neighbors', use_rep=f'X_{basis}')
 	sc.settings.verbosity=2
 	scs.inference.fit_model(spdata.table, neighbors_key=f'{basis}_neighbors')
 	sc.settings.verbosity=0
