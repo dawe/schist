@@ -383,7 +383,10 @@ def fit_model_multi(
             fname = f'{fname}.pkl'
         logg.info(f'Saving model into {fname}')    
         with open(fname, 'wb') as fout:
-            pickle.dump(pmode, fout, 2)
+            dump = {'PartitionModeState':pmode,
+                    'Graph':g
+                    }
+            pickle.dump(dump, fout, 2)
 
     logg.info('    done', time=start)
     # reorganize things so that groups are ordered literals
