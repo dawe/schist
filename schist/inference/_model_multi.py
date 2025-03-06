@@ -384,7 +384,7 @@ def fit_model_multi(
         logg.info(f'Saving model into {fname}')    
         with open(fname, 'wb') as fout:
             dump = {'PartitionModeState':pmode,
-                    'Graph':g
+                    'Graph':union_g
                     }
             pickle.dump(dump, fout, 2)
 
