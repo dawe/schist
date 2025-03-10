@@ -79,7 +79,7 @@ In the last line we reversed colors for ppbm clusters, so that it's easy to spot
 
 In these two datasets pairings can be appreciated by colors, only cluster 2 has not been changed. At this point we can apply the multimodal nested model::
 
- scs.inference.moodel_multi([adata1, adata2])
+ scs.inference.fit_model_multi([adata1, adata2])
 
 Note that ``schist`` does not support (yet) actual multimodal data structures (such as ``MuData``), so different layers should be provided in a list of ``AnnData`` objects. The datasets will be annotated with clusters consistent across datasets::
 
