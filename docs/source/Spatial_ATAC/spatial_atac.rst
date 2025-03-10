@@ -194,12 +194,13 @@ Can we perform better than this? One idea would be to integrate the spatial info
 
 
 .. code:: python
+
 	_tmp = spdata.table.copy()
 
 	sc.settings.verbosity=2
 	scs.inference.fit_model_multi([spdata.table, _tmp], 
-									 key_added='spt', 
-									 neighbors_key=['spectral_neighbors', 'spatial_neighbors'])
+	                              key_added='spt', 
+	                              neighbors_key=['spectral_neighbors', 'spatial_neighbors'])
 	sc.settings.verbosity=0
 
 .. code:: parsed-literal

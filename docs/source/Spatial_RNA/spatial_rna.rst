@@ -183,13 +183,14 @@ Similarly to what has been done for ATAC, we perform the analysis of a multimoda
 
 
 .. code:: python
+
 	sq.gr.spatial_neighbors(spdata.table, n_neighs=8, coord_type='grid')
 
 	_tmp = spdata.table.copy()
 	sc.settings.verbosity=2
 	scs.inference.fit_model_multi([spdata.table, _tmp], 
-									 key_added='spt', 
-									 neighbors_key=['pca_neighbors', 'spatial_neighbors'])
+	                              key_added='spt', 
+	                              neighbors_key=['pca_neighbors', 'spatial_neighbors'])
 	sc.settings.verbosity=0
 
 .. code:: parsed-literal 
