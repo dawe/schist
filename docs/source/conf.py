@@ -14,7 +14,7 @@
 import os
 import sys
 
-import mock
+#import mock
 
 #-----------------------------------------------------------------------------
 # Trying to save autodoc generation on readthedocs, when C packages are imported
@@ -30,8 +30,8 @@ import mock
 #import mock
 
 #MOCK_MODULES = ['schist']
-for mod_name in ['graph_tool', 'graph_tool.all']:
-    sys.modules[mod_name] = mock.Mock()
+#for mod_name in ['graph_tool', 'graph_tool.all']:
+#    sys.modules[mod_name] = mock.Mock()
 
 #sys.path.insert(0, os.path.abspath('..'))
 #sys.path.insert(0, os.path.abspath('.'))
