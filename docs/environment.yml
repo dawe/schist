@@ -2,7 +2,6 @@ channels:
   - conda-forge
 dependencies:
   - python
-  - pip
   - scanpy
   - graph-tool
   - sphinx-autoapi
