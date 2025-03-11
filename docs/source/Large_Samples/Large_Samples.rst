@@ -72,7 +72,7 @@ The Planted Partition Model
 ---------------------------
 
 Before going with subsampling, we show the results of a
-``planted_model`` calculated on this dataset using a single iteration,
+``ppbm`` calculated on this dataset using a single iteration,
 in place of the 100 typically performed with ``schist``. It took
 approximately 13 hours to converge, which is long but possibly
 tractable, if you consider we are dealing with 2M cells
@@ -146,7 +146,7 @@ nearest neighbor approach. Since we are dealing with more than 2M cells,
 we will use ``pynndescent`` library that is pretty efficient. To be
 honest, I haven’t found a way to use ``NNDescent`` to classify objects,
 so we will use a majority vote on its predictions. To start, we analyze
-data using the ``planted_model``, which is a simple and faster way to
+data using the ``ppbm``, which is a simple and faster way to
 get cell populations.
 
 .. code:: python
@@ -317,14 +317,14 @@ highest detail available for this dataset
 The default models
 ------------------
 
-The ``planted_model`` is an effective approach and returns assortative
+The ``ppbm`` is an effective approach and returns assortative
 communities, in the analysis of kNN graphs derived from single cell data
 it is reasonable to expect those communities to reflect the population
 structure in terms of cell types. Nevertheless, we may be interested in
 the Stochastic Block Model or its Nested formulation as well. Those
 approach incorporate other priors in the model, possibly identifying
-other properties of the dataset. While the code for the ``flat_model``
-is substantially the same, for the ``nested_model`` we need to collect
+other properties of the dataset. While the code for the ``sbm``
+is substantially the same, for the ``nsbm`` we need to collect
 the matrix of groupings at different levels. It’s sufficient to transfer
 level 0 to the original dataset, the remaining levels will be mapped
 using a dictionary.
@@ -363,8 +363,8 @@ using a dictionary.
     100%|██████████| 20/20 [16:50<00:00, 50.51s/it]
 
 
-The resolution for the ``flat_model`` using a small subsample is similar
-to the one obtained with the ``planted_model`` on larger sampling.
+The resolution for the ``sbm`` using a small subsample is similar
+to the one obtained with the ``ppbm`` on larger sampling.
 
 .. code:: python
 
@@ -389,7 +389,7 @@ to the one obtained with the ``planted_model`` on larger sampling.
 
 
 
-Lastly we can try the ``nested_model``
+Lastly we can try the ``nsbm``
 
 .. code:: python
 
@@ -433,8 +433,8 @@ Lastly we can try the ``nested_model``
     100%|██████████| 20/20 [24:47<00:00, 74.38s/it]
 
 
-In terms of computation time, we notice that ``nested_model`` >
-``flat_model`` > ``planted_model``. To proceed, we need a different way
+In terms of computation time, we notice that ``nsbm`` >
+``sbm`` > ``ppbm``. To proceed, we need a different way
 to treat the consesus partition. First we need to create the necessary
 block states.
 
@@ -508,13 +508,13 @@ very unlikely that it will pop out using this approach
 
 Since the NSBM includes a hierarchy, it is important to assess if the
 reconstructed one is meaningful. To answer this question we need the
-results of a ``nested_model`` on the whole dataset. Similarly to what
+results of a ``nsbm`` on the whole dataset. Similarly to what
 has been done with the PPBM, we externally minimized a model for that.
 By comparing two highest levels of the relative hierarchies we already
 appreciate how the reconstruction of the hierarchy in the subsampled
 approach fails, mixing cell groups that do not belong together. Hence,
 we currently discourage inference on subsampled data for the
-``nested_model``, whereas it may be a valid approach for the remaining
+``nsbm``, whereas it may be a valid approach for the remaining
 models.
 
 .. code:: python
@@ -586,7 +586,7 @@ increase it, depending on the available time.
 
 
 Of course, the refinement has a minimal impact in this example, as we
-ran only 10 iterations. Refinement could be a solution to correctly reconstruct the hierarchy of the `nested_model`, although the time spent on this may defeat the approach of subsampling.
+ran only 10 iterations. Refinement could be a solution to correctly reconstruct the hierarchy of the ``nsbm``, although the time spent on this may defeat the approach of subsampling.
 
 .. code:: python
 
@@ -648,7 +648,7 @@ Conclusions
 -----------
 
 How do these solutions compare to a model that takes the whole dataset?
-For the ``planted_model`` and the ``flat_model`` the subsampled
+For the ``ppbm`` and the ``sbm`` the subsampled
 solutions can be considered coarser descriptions of the same model computed on the entire dataset. In the full model, the partition sizes are rather small compared to the
-size of the dataset. The full ``flat_model``, in particular, will find thousands of groups (given that :math:`B \propto \sqrt{N}`, we may expect 10\ :sup:`3` groups in this case), which may be unpractical to analyze. Since the model from subsampled data will raise many less groups, the subsampled solution may even be preferable. As for the `nested_model`, we will obtain a even coarser description compared to the same model on the entire dataset; the nested model, in fact, is able to identify smaller groups (:math:`B  \propto N\log(N)`, 10\ :sup:`5` in this case). In addition, we should ensure that the hierarchy is somehow consistent, otherwise we should drop (for now) the possibility to subsample data for the ``nested_model``, unless some time is spent on model refinement.
+size of the dataset. The full ``sbm``, in particular, will find thousands of groups (given that :math:`B \propto \sqrt{N}`, we may expect 10\ :sup:`3` groups in this case), which may be unpractical to analyze. Since the model from subsampled data will raise many less groups, the subsampled solution may even be preferable. As for the ``nsbm``, we will obtain a even coarser description compared to the same model on the entire dataset; the nested model, in fact, is able to identify smaller groups (:math:`B  \propto N\log(N)`, 10\ :sup:`5` in this case). In addition, we should ensure that the hierarchy is somehow consistent, otherwise we should drop (for now) the possibility to subsample data for the ``nsbm``, unless some time is spent on model refinement.
 
