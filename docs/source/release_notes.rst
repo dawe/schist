@@ -5,6 +5,11 @@ Release notes
 .. highlight:: python
 
 -------------
+version 0.9.2
+-------------
+This is a minor update. It fixes dumping of state objects and also removes a legacy dependency for numpy <2.
+
+-------------
 version 0.9.1
 -------------
 This version addresses a vicious bug that prevented convergence during minimization.
