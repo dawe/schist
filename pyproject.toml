@@ -1,0 +1,28 @@
+[build-system]
+# XXX: If your project needs other packages to build properly, add them to this list.
+requires = ["setuptools >= 42.0.0", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "schist"
+dynamic = ["version", "dependencies",
+           ]
+
+description = 'Nested Stochastic Block Model applied to single cell data.'
+authors = [
+    {name = "Davide Cittaro", email = "cittaro.davide@gmail.com"}
+]
+readme = "README.md"
+
+classifiers=[
+  'Development Status :: 3 - Alpha',
+  'Intended Audience :: Science/Research',
+  'Topic :: Scientific/Engineering :: Bio-Informatics',
+  'License :: OSI Approved :: BSD License',
+  'Programming Language :: Python :: 3.8',          
+  'Programming Language :: Python :: 3.10',          
+  'Programming Language :: Python :: 3.12',          
+]
+
+[tool.setuptools_scm]
+#enabled = true
