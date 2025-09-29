@@ -209,8 +209,7 @@ def fit_model_multi(
             )
         if n_keys == 1:
             neighbors_key = [neighbors_key[0] for x in range(n_data)]    
-        for x in range(n_data):
-            logg.info(f'getting adjacency for data {x}', time=start)
+        for x in range(n_data):            
             if neighbors_key[x] not in adata_list[x].uns:
                 raise ValueError(
                     'You need to run `pp.neighbors` first '
@@ -230,6 +229,7 @@ def fit_model_multi(
         
     graph_list = []
     for x in range(n_data):
+        logg.info(f'getting adjacency for data {x}', time=start)
         g = get_graph_tool_from_adjacency(adjacency[x], directed=directed, use_weights=use_weights)
         # add cell names to graph, this will be used to create
         # layered graph 
@@ -253,7 +253,7 @@ def fit_model_multi(
     union_g.vp['cell'] = u_names
     
     # check that there are overlapping nodes, otherwise exit
-    if union_g.num_vertices() == sum(adata_list[xn].shape[0] for xn in range(n_data)):
+    if union_g.num_vertices() == sum([adata_list[xn].shape[0] for xn in range(n_data)]):
         raise ValueError(
                 'The number of nodes in the merged graph is the same as'
                 'the total number of cells across all datasets, it seems'
@@ -270,6 +270,7 @@ def fit_model_multi(
     # now create layers
     layer = union_g.new_edge_property('int')
     for ng in range(n_data):
+        logg.info(f'getting cells for data {ng}', time=start)
         for e in graph_list[ng].edges():
             S, T = e.source(), e.target()
             Sn = graph_list[ng].vp['cell'][S]
