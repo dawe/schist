@@ -425,7 +425,13 @@ def fit_model_multi(
         bs = [i_groups.iloc[:, 0].values]
         for x in range(1, groups.shape[1]):
             bs.append(np.where(pd.crosstab(i_groups.iloc[:, x - 1], i_groups.iloc[:, x])> 0)[1])
-        state = gt_model(union_g, bs)
+        state = gt_model(union_g, b=bs,
+                             deg_corr=deg_corr,
+                             ec=union_g.ep.layer,
+                             layers=True,
+                             overlap=overlap
+                             )
+
         del(i_groups)
 
         groups.index = all_names
