@@ -56,12 +56,12 @@ def get_cell_loglikelihood(
     
     n_cells = state.g.num_vertices()
     n_blocks = B.get_nonempty_B()
-#    M = np.zeros((n_cells, n_blocks))
-#    for v in range(n_cells): #one day this will be parallel
-#        for s in range(n_blocks):
-#            M[v, s] = B.virtual_vertex_move(v, s)
-    shape = (n_cells, n_blocks)
-    M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
+    M = np.zeros((n_cells, n_blocks))
+    for v in range(n_cells): #one day this will be parallel
+        for s in range(n_blocks):
+            M[v, s] = B.virtual_vertex_move(v, s)
+#    shape = (n_cells, n_blocks)
+#    M = np.array([B.virtual_vertex_move(v, s) for v in range(n_cells) for s in range(n_blocks)]).reshape(shape)
 
    
     if rescale:
