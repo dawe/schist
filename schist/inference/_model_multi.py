@@ -26,6 +26,7 @@ except ImportError:
 
 def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=1000, seed=None):
     if seed:
+        np.random.seed(seed)
         gt.seed_rng(seed)
     dS = 1e9
     n = 0
