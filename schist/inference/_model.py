@@ -145,6 +145,7 @@ def fit_model(
     
     if random_seed:
         np.random.seed(random_seed)
+        gt.seed_rng(random_seed)
     
     if n_init < 1:
         n_init = 1
