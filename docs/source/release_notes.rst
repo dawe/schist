@@ -5,6 +5,16 @@ Release notes
 .. highlight:: python
 
 -------------
+version 0.9.4
+-------------
+This is a minor update. It fixes setting random seed for reproducibile cell marginals.
+
+-------------
+version 0.9.3
+-------------
+This is a minor update. It fixes setting random seed for reproducibile modeling.
+
+-------------
 version 0.9.2
 -------------
 This is a minor update. It fixes dumping of state objects and also removes a legacy dependency for numpy <2.
