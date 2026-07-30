@@ -133,7 +133,7 @@ def draw_tree(
                 # numeric type, use a colormap
                 cmap = color_map
                 if not color_map:
-                    cmap = mpl.cm.get_cmap(plt.rcParams['image.cmap'])
+                    cmap = mpl.colormaps.get_cmap(plt.rcParams['image.cmap'])
                 elif type(color_map) == str:
                     cmap = mpl.cm.get_cmap(color_map)
 
