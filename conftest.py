@@ -25,9 +25,9 @@ lineages = scs.tl.cr_lineages(adata, model_key='ppbm', level=0)
 print("SB MODEL")
 scs.inference.fit_model(adata, nested=False, use_weights=False, save_model='foo', n_init=2)
 #scs.inference.nested_model(adata, save_model='test',  n_init=2, refine_iter=2)
-#scs.tools.calculate_affinity(adata, neighbors_key='foo', model_key='sbm')#group_by='sbm')
-#adata.uns.pop('schist')
-#scs.tools.calculate_affinity(adata, neighbors_key='foo', group_by='sbm')
+scs.tools.calculate_affinity(adata, neighbors_key='foo', model_key='sbm')#group_by='sbm')
+adata.uns.pop('schist')
+scs.tools.calculate_affinity(adata, neighbors_key='foo', group_by='sbm')
 
 #test label transfer
 d1 = sc.datasets.blobs()
