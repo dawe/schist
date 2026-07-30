@@ -390,7 +390,7 @@ def state_from_blocks(
     elif params['assortative']:
         state=gt.PPBlockState(g, b=blocks)
     else:
-        state=base_state(g=g, b=bs, **base_state_args)
+        state=base_state(g=g, b=blocks, **base_state_args)
 
     return state            
     
