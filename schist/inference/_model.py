@@ -27,10 +27,8 @@ def fit_model(
     adata: AnnData,
     nested: bool = True,
     assortative: bool = False,
-    tolerance: float = 1e-4,
-    n_init: int = 100,
     collect_marginals: bool = True,
-    n_jobs: int = -1,
+    n_samples: int = 100,
     key_added: str | None = None,
     adjacency: Optional[sparse.spmatrix] = None,
     neighbors_key: Optional[str] = 'neighbors',
@@ -39,6 +37,7 @@ def fit_model(
     use_weights: bool = False,
     bisection: bool = True,
     simple_init: bool = False,
+    n_jobs: int = -1,
     save_model: Union[str, None] = None,
     copy: bool = False,
     random_seed: Optional[int] = None,
@@ -54,35 +53,18 @@ def fit_model(
     ----------
     adata
         The annotated data matrix.
-    deg_corr
-        Whether to use degree correction in the minimization step. In many
-        real world networks this is the case, although this doesn't seem
-        the case for KNN graphs used in scanpy.
-    tolerance
-        Tolerance for fast model convergence.
-    n_sweep 
-        Number of iterations to be performed in the fast model MCMC greedy approach
-    beta
-        Inverse temperature for MCMC greedy approach    
-    n_init
-        Number of concurrent minimizations to be performed. The final model will be
-        a consensus over these models.
-    model
-        The SBM model to use. `nsbm` implements Nested Stochastic Block Model. 
-        `sbm` is the Stochastic Block Model. `ppbm` is the Planted Partition Block Model
-        which only has an assortativity prior.
-    max_iter
-        Maximum number of iterations during minimization, set to infinite to stop 
-        minimization only on tolerance
+    nested
+        Wether to use the hierarchical version of SBM (default) or a simple SBM
+    assortative
+        Wether to use the planted partition model, using only a prior on assorativity.
+        Note that setting this option disables the ability to use hierarchical models.
     collect_marginals
         Collect marginal distribution of cells, that is the probability
-        to belong to any cluster    
-    refine_model
-        Wether to perform a further mcmc step to refine the model
-    refine_iter
-        Number of refinement iterations.
-    n_jobs
-        Number of parallel computations used during model initialization
+        to belong to any cluster. Note that enabling this option requires sampling
+        from the posterior and modifying the community structure.
+    n_samples
+        If marginals are collected, this number of samples is taken from the posterior.
+        These are then used to compute the consensus and the marginals.
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -91,12 +73,24 @@ def fit_model(
         `adata.obsp[neighbors_key][connectivity_key]` for scanpy>1.4.6
     neighbors_key
         The key passed to `sc.pp.neighbors`
+    deg_corr
+        Whether to use degree correction in the minimization step. In many
+        real world networks this is the case, although this doesn't seem
+        the case for KNN graphs used in scanpy.
     directed
         Whether to treat the graph as directed or undirected.
     use_weights
         If `True`, edge weights from the graph are used in the computation
         (placing more emphasis on stronger edges). Note that this
         increases computation times
+    bisection
+        Bisection search is enabled by default to determine the appropriate number of
+        groups. Disable this to obtain a faster computation by agglomerative search.
+    simple_init
+        This parameter estimates an upper bound on the number of groups at each level, 
+        the space of solutions is reduced and so is the time needed to converge.
+    n_jobs
+        Number of OMP threads used during model minimization
     save_model
         If provided, this will be the filename for the PartitionModeState to 
         be saved. The PartitionModeState contains all the models minimized during 
@@ -152,11 +146,11 @@ def fit_model(
         np.random.seed(random_seed)
         gt.seed_rng(random_seed)
     
-    if n_init < 1:
-        n_init = 1
-    if collect_marginals and n_init < 100:
-            logg.warning('Collecting marginals requires sufficient number of n_init\n'
-                     f'It is now set to {n_init} and should be at least 100\n')
+    if n_samples < 1:
+        n_samples = 1
+    if collect_marginals and n_samples < 100:
+            logg.warning('Collecting marginals requires sufficient number of n_samples\n'
+                     f'It is now set to {n_samples} and should be at least 100\n')
                      
 
     start = logg.info('minimizing the Model')
@@ -198,10 +192,11 @@ def fit_model(
         f_args['state']=base_state
         f_args['state_args'].update(base_state_args) #merge...
     
-    if simple_init:
+    if simple_init and nested:
         bisection=False
     f_args['multilevel_mcmc_args'] = {'bisection':bisection}
-    f_args['simple_init']=simple_init
+    if nested:
+        f_args['simple_init']=simple_init
 
 
     n_threads_set = gt.openmp_get_num_threads()
@@ -228,7 +223,7 @@ def fit_model(
                 bs.append(s.b.a.copy())
             
         with gt.openmp_context(nthreads=n_jobs):
-            gt.mcmc_equilibrate(state, force_niter=n_init + 1, 
+            gt.mcmc_equilibrate(state, force_niter=n_samples + 1, 
                             mcmc_args=dict(niter=10),
                             callback=collect_partitions
             )
@@ -338,7 +333,7 @@ def fit_model(
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pv.get_2d_array(range(last_group)).T[:, u_groups] / n_init
+        pv_array = pv.get_2d_array(range(last_group)).T[:, u_groups] / n_samples
         if nested:
             # add marginals for level 0, the sum up according to the hierarchy
             adata.obsm[f"CM_{key_added}_level_0"] = pv_array
@@ -384,7 +379,7 @@ def fit_model(
         neighbors_key=neighbors_key,
         use_weights=use_weights,
         key_added=key_added,
-        n_init=n_init,
+        n_samples=n_samples,
         collect_marginals=collect_marginals,
         random_seed=random_seed,
         deg_corr=deg_corr,
