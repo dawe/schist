@@ -66,7 +66,6 @@ def cr_lineages(
         """
         )
     key_added = params['key_added']
-    model = params['model']
     obs_df = adata.obs.filter(like=key_added)
     if obs_df.shape[1] == 0:
         raise ValueError(
@@ -77,7 +76,7 @@ def cr_lineages(
         )
 
     prefix = 'CA' if use_affinity else 'CM'
-    group_key = f'{key_added}_level_{level}' if model == "nsbm" else key_added
+    group_key = f'{key_added}_level_{level}' if params['nested'] else key_added
     matrix_key = f'{prefix}_{group_key}'
 
     if matrix_key not in adata.obsm:
