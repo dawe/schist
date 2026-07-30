@@ -23,38 +23,25 @@ except ImportError:
         """
     )
     
-def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=1000, seed=None):
-    if seed:
-        np.random.seed(seed)
-        gt.seed_rng(seed)
-    dS = 1e9
-    n = 0
-    while (np.abs(dS) > fast_tol) and (n < max_iter):
-        dS, _, _ = state.multiflip_mcmc_sweep(beta=beta, niter=n_sweep, c=0.5)
-        n += 1
-    return state                            
-
 def fit_model(
     adata: AnnData,
-    deg_corr: bool = True,
     nested: bool = True,
     assortative: bool = False,
     tolerance: float = 1e-4,
-    n_sweep: int = 10,
-    beta: float = np.inf,
     n_init: int = 100,
-    max_iter: int = 1000,
     collect_marginals: bool = True,
     n_jobs: int = -1,
     key_added: str | None = None,
     adjacency: Optional[sparse.spmatrix] = None,
     neighbors_key: Optional[str] = 'neighbors',
+    deg_corr: bool = True,
     directed: bool = False,
     use_weights: bool = False,
+    bisection: bool = True,
+    simple_init: bool = False,
     save_model: Union[str, None] = None,
     copy: bool = False,
     random_seed: Optional[int] = None,
-    dispatch_backend: Optional[str] = 'loky',
 ) -> Optional[AnnData]:
     """\
     Cluster cells using the nested Stochastic Block Model [Peixoto14]_,
@@ -150,8 +137,10 @@ def fit_model(
     if use_weights:
         # if weighted, it cannot be assortative, overrides any previous choice
         base_state = gt.WeightedBlockState
-        logg.warning('Working with weighted graphs usually requires\n'
-                     f'considerably more time\n')
+        if simple_init==False:
+            logg.warning('Working with weighted graphs usually requires\n'
+                     f'considerably more time, consider enabling speed options\n'
+                     f'as ```simple_init``` or disabling bisection')
 
     # define the function that will be used to minimize    
     f_minimize = gt.minimize_blockmodel_dl
@@ -208,6 +197,12 @@ def fit_model(
     else:
         f_args['state']=base_state
         f_args['state_args'].update(base_state_args) #merge...
+    
+    if simple_init:
+        bisection=False
+    f_args['multilevel_mcmc_args'] = {'bisection':bisection}
+    f_args['simple_init']=simple_init
+
 
     n_threads_set = gt.openmp_get_num_threads()
     if n_jobs <= 0:
