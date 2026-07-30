@@ -383,6 +383,7 @@ def fit_model(
     # last step is recording some parameters used in this analysis
     adata.uns['schist'][key_added]['params'] = dict(
         nested=nested,
+        assortative=assortative,
         neighbors_key=neighbors_key,
         use_weights=use_weights,
         key_added=key_added,

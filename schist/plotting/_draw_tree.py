@@ -114,7 +114,7 @@ def draw_tree(
     if color:
         # let's give the opportunity to color by properties other than nsbm
         obs_key = color
-        if color in adata.obs_keys():
+        if color in adata.obs:
             color_series = adata.obs[color]
             if color_series.dtype.name == 'category':
                 # categorical type, use their colors

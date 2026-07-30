@@ -340,31 +340,6 @@ def state_from_blocks(
     Nothing, adds a `gt.block_state` object in adata.uns        
         
     """
-    bl_d = adata.uns['schist'][model_key]['blocks']
-    params = adata.uns['schist'][model_key]['params']
-    if params['model'] == 'nsbm' or params['model'] == 'multi_nsbm':
-        blocks = []
-        for nl in range(len(bl_d)):
-            blocks.append(bl_d[str(nl)])
-    else:
-        blocks = bl_d['0']
-    
-    if 'deg_corr' in params:
-        deg_corr=params['deg_corr']
-
-    recs=[]
-    rec_types=[]
-    if use_weights:
-        # this is not ideal to me, possibly we may need to transform
-        # weights. More tests needed.
-        recs=[g.ep.weight]
-        rec_types=['real-normal']
-        
-    if 'recs' in params:
-        recs=params['recs']
-    if 'rec_types' in params:
-        rec_types=params['rec_types']
-            
     if adjacency is None:
         if neighbors_key not in adata.uns:
             raise ValueError(
@@ -378,24 +353,44 @@ def state_from_blocks(
         else:
             # scanpy<=1.4.6 has sparse matrix here
             adjacency = adata.uns[neighbors_key]['connectivities']
-
-    g = get_igraph_from_adjacency(adjacency, directed=directed)
-    g = g.to_graph_tool()
-    gt.remove_parallel_edges(g)
-
-    if params['model'] == 'sbm':
-        state = gt.BlockState(g, b=blocks, 
-            deg_corr=deg_corr,
-            recs=recs,
-            rec_types=rec_types
-            )
-    elif params['model'] == 'ppbm':
-        state = gt.PPBlockState(g, b=blocks)
+    
+    g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
+        
+    bl_d = adata.uns['schist'][model_key]['blocks']
+    params = adata.uns['schist'][model_key]['params']
+    if params['nested']:
+        blocks = []
+        for nl in range(len(bl_d)):
+            blocks.append(bl_d[str(nl)])
     else:
-        state = gt.NestedBlockState(g, bs=blocks, 
-            state_args=dict(deg_corr=deg_corr,
-            recs=recs,
-            rec_types=rec_types)
-            )
+        blocks = bl_d['0']
+
+    state_args={}
+    base_state_args={}
+    if 'deg_corr' in params:
+        state_args['deg_corr']=params['deg_corr']
+
+    rec=[]
+    rec_types=[]
+    if use_weights:
+        # this is not ideal to me, possibly we may need to transform
+        # weights. More tests needed.
+        base_state_args['rec']=[g.ep.weight]
+        base_state_args['rec_types']=['real-exponential']
+##
+    base_state=gt.BlockState
+    if params['use_weights']:
+        base_state=gt.WeightedBlockState
+
+    if params['nested']:
+        state=gt.NestedBlockState(g, bs=blocks,
+                                  base_state=base_state,
+                                  base_state_args=base_state_args
+        )
+    elif params['assortative']:
+        state=gt.PPBlockState(g, b=blocks)
+    else:
+        state=base_state(g=g, b=bs, **base_state_args)
+
     return state            
     
