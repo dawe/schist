@@ -38,7 +38,7 @@ def fit_model(
     adata: AnnData,
     deg_corr: bool = True,
     nested: bool = True,
-    assortative: bool = True,
+    assortative: bool = False,
     tolerance: float = 1e-4,
     n_sweep: int = 10,
     beta: float = np.inf,
@@ -136,22 +136,26 @@ def fit_model(
 
     # define the block model class to be used
     if assortative:
-        base_model = gt.PPBlockState
+        base_state = gt.PPBlockState
+        key_added = 'ppbm' if key_added is None else key_added      
+        nested=False #force this  
     else:
-        base_model = gt.BlockState
+        base_state = gt.BlockState
+        if nested:
+            key_added = 'nsbm' if key_added is None else key_added
+        else:
+            key_added = 'sbm' if key_added is None else key_added
+
         
     if use_weights:
         # if weighted, it cannot be assortative, overrides any previous choice
-        base_model = gt.WeightedBlockState
+        base_state = gt.WeightedBlockState
     
     # define the function that will be used to minimize    
     f_minimize = gt.minimize_blockmodel_dl
     if nested:
         f_minimize = gt.minimize_nested_blockmodel_dl
         
-    
-    # if key is not set, use the model name
-    key_added = model if key_added is None else key_added
     
     if random_seed:
         np.random.seed(random_seed)
@@ -386,8 +390,6 @@ def fit_model(
         collect_marginals=collect_marginals,
         random_seed=random_seed,
         deg_corr=deg_corr,
-        recs=recs,
-        rec_types=rec_types,
         directed=directed
     )
 
