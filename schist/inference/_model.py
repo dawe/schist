@@ -150,7 +150,9 @@ def fit_model(
     if use_weights:
         # if weighted, it cannot be assortative, overrides any previous choice
         base_state = gt.WeightedBlockState
-    
+        logg.warning('Working with weighted graphs usually requires\n'
+                     f'considerably more time\n')
+
     # define the function that will be used to minimize    
     f_minimize = gt.minimize_blockmodel_dl
     if nested:
