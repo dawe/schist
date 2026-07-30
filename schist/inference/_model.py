@@ -37,15 +37,14 @@ def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=1000, seed=
 def fit_model(
     adata: AnnData,
     deg_corr: bool = True,
+    nested: bool = True,
+    assortative: bool = True,
     tolerance: float = 1e-4,
     n_sweep: int = 10,
     beta: float = np.inf,
     n_init: int = 100,
-    model: Literal["nsbm", "sbm", "ppbm"] = "nsbm",
     max_iter: int = 1000,
     collect_marginals: bool = True,
-    refine_model: bool = False,
-    refine_iter: int = 100,
     n_jobs: int = -1,
     key_added: str | None = None,
     adjacency: Optional[sparse.spmatrix] = None,
@@ -135,10 +134,21 @@ def fit_model(
         The block model, to be used in case a gt state should be initialized
     """
 
-    gt_model = {'nsbm':gt.NestedBlockState, 
-                'sbm':gt.BlockState,
-                'ppbm':gt.PPBlockState
-    }[model]
+    # define the block model class to be used
+    if assortative:
+        base_model = gt.PPBlockState
+    else:
+        base_model = gt.BlockState
+        
+    if use_weights:
+        # if weighted, it cannot be assortative, overrides any previous choice
+        base_model = gt.WeightedBlockState
+    
+    # define the function that will be used to minimize    
+    f_minimize = gt.minimize_blockmodel_dl
+    if nested:
+        f_minimize = gt.minimize_nested_blockmodel_dl
+        
     
     # if key is not set, use the model name
     key_added = model if key_added is None else key_added
@@ -149,27 +159,11 @@ def fit_model(
     
     if n_init < 1:
         n_init = 1
-    seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
-
-    # the following lines are for compatibility
-    if dispatch_backend == 'threads':
-        dispatch_backend = 'threading'
-    elif dispatch_backend == 'processes':
-        dispatch_backend = 'loky'
-
-    if dispatch_backend == 'threading' and float(gt.__version__.split()[0]) > 2.55:
-        logg.warning('Threading backend does not work with this version of graph-tool\n'
-                     'Switching to loky backend')
-        dispatch_backend = 'loky'
-
-    if collect_marginals and not refine_model:
-        if n_init < 100:
-            logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'
+    if collect_marginals and n_init < 100:
+            logg.warning('Collecting marginals requires sufficient number of n_init\n'
                      f'It is now set to {n_init} and should be at least 100\n')
-    elif refine_model and refine_iter < 100:                     
-        logg.warning('Collecting marginals with refinement requires sufficient number of iterations\n'
-                     f'It is now set to {refine_iter} and should be at least 100\n')
-        
+                     
+
     start = logg.info('minimizing the Model')
     adata = adata.copy() if copy else adata
     # are we clustering a user-provided graph or the default AnnData one?
@@ -190,109 +184,97 @@ def fit_model(
     # convert it to igraph and graph-tool
     g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
 
-    recs=[]
-    rec_types=[]
+    state_args={}
+    base_state_args={}
+    f_args={}
+
+    if not assortative:
+        state_args['deg_corr']=deg_corr          
+
     if use_weights:
-        # this is not ideal to me, possibly we may need to transform
-        # weights. More tests needed.
-        recs=[g.ep.weight]
-        rec_types=['real-normal']
+        base_state_args['rec']=[g.ep.weight]
+        base_state_args['rec_types']=['real-exponential']
 
-    if model == 'ppbm':
-        # PPBlockState does not support state_args
-        states = [gt_model(g) for x in range(n_init)]
+    f_args['state_args']=state_args
+    if nested:
+        f_args['base_state']=base_state
+        f_args['base_state_args']=base_state_args
     else:
-        states = [gt_model(g=g,
-                                  deg_corr=deg_corr,
-                                  recs=recs,
-                                  rec_types=rec_types
-                                  ) for n in range(n_init)]
+        f_args['state']=base_state
+        f_args['state_args'].update(base_state_args) #merge...
 
-    with parallel_config(backend=dispatch_backend,
-                         max_nbytes=None,
-                         n_jobs=n_jobs):
-        states = list(tqdm(Parallel(return_as="generator")(
-            delayed(fast_min)(states[x], beta, n_sweep, tolerance, max_iter, seeds[x]) for x in range(n_init)
-                      ),
-                      total=n_init))
+    n_threads_set = gt.openmp_get_num_threads()
+    if n_jobs <= 0:
+        n_jobs=n_threads_set
+    # do the actual minimization
+    with gt.openmp_context(nthreads=n_jobs):
+        state=f_minimize(g, **f_args)
+        if nested:
+            # this is needed in case marginals are not collected
+            bs=[np.array(x) for x in state.get_bs() if len(np.unique(x)) > 1]
+            bs.append(np.array([0], dtype=np.int32)) 
 
-    # generate consensus over n_init models
-    if model == "nsbm":
-        pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
-        bs = pmode.get_max_nested() 
-        # prune redundant levels at the top
-        bs = [x for x in bs if len(np.unique(x)) > 1]
-        bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-        state = gt_model(g, bs=bs,
-                         state_args=dict(deg_corr=deg_corr,
-                         recs=recs,
-                         rec_types=rec_types))
-    else:
-        pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True, nested=False)
-        bs = pmode.get_max(g)
-        if model == "ppbm":
-            state = gt_model(g, b=bs)
-        else:
-            state = gt_model(g, b=bs,
-                            deg_corr=deg_corr,
-                            recs=recs,
-                            rec_types=rec_types
-                            )
-
-    logg.info('        consensus step done', time=start)
-
-    if refine_model:
-        # we here reuse pmode variable, so that it is consistent
-        logg.info('        Refining model')
+    logg.info('        done', time=start)
+    
+    if collect_marginals:
+        logg.info('Sampling posterior and getting cell marginals', time=start)
         bs = []
-        if model == "nsbm":
+        if nested:
             def collect_partitions(s):
                 bs.append(s.get_bs())
         else:
             def collect_partitions(s):
-                bs.append(s.get_blocks().a)
-
-        gt.mcmc_equilibrate(state, force_niter=refine_iter, 
-                            multiflip=True, 
-                            mcmc_args=dict(niter=n_sweep, beta=beta),
-                            callback=collect_partitions)
-
-        if model == "nsbm":
-            pmode = gt.PartitionModeState(bs, nested=True, converge=True)
-            bs = [x for x in pmode.get_max_nested() if len(np.unique(x)) > 1]
-            bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-            state = gt_model(g, bs=bs,
-                             state_args=dict(deg_corr=deg_corr,
-                             recs=recs,
-                             rec_types=rec_types))
+                bs.append(s.b.a.copy())
+            
+        with gt.openmp_context(nthreads=n_jobs):
+            gt.mcmc_equilibrate(state, force_niter=n_init + 1, 
+                            mcmc_args=dict(niter=10),
+                            callback=collect_partitions
+            )
+        pmode=gt.PartitionModeState(bs, converge=True, nested=nested)
+        if nested:
+            bs=pmode.get_max_nested()
+            # prune redundant levels at the top
+            bs = [x for x in bs if len(np.unique(x)) > 1]
+            bs.append(np.array([0], dtype=np.int32)) 
+            
         else:
-            pmode = gt_model(bs, converge=True)
-            bs = pmode.get_max(g)
-            if model == "ppbm":
-                state = gt_model(g, b=bs)
-            else:
-                state = gt_model(g, b=bs, deg_corr=deg_corr,
-                                 recs=recs,
-                                 rec_types=rec_types
-                                 )
-        
-        logg.info('        refinement complete', time=start)
-    
+            bs=pmode.get_max(g)
+        pv=pmode.get_marginal(g)
+
+    logg.info('        done', time=start)
+
+    if nested:
+        state=gt.NestedBlockState(g, bs=bs,
+                                  base_state=base_state,
+                                  base_state_args=base_state_args
+        )
+    elif assortative:
+        state=gt.PPBlockState(g, b=bs)
+    else:
+        if use_weights:
+            state=gt.WeightedBlockState(g=g, b=bs, **base_state_args)
+        else:
+            state=gt.BlockState(g=g, b=bs)
+
     if save_model:
         import pickle
         fname = save_model
         if not fname.endswith('pkl'):
             fname = f'{fname}.pkl'
         logg.info(f'Saving model into {fname}')    
+        dump = {'State':state,
+                'Graph':g
+                }
+        if collect_marginals:
+            dump['PartitionModeState']=pmode
+            
         with open(fname, 'wb') as fout:
-            dump = {'PartitionModeState':pmode,
-                    'Graph':g
-                    }
             pickle.dump(dump, fout, 2)
     
     logg.info('    done', time=start)
     # reorganize things so that groups are ordered literals
-    if model == "nsbm":
+    if nested:
         groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
         u_groups = np.unique(bs[0])
     else:
@@ -302,7 +284,7 @@ def fit_model(
     last_group = np.max(u_groups) + 1
     n_groups = len(u_groups)
 
-    if model == "nsbm":
+    if nested:
         # this is harder as we have to consider and refactor the entire hierarchy
         for x in range(len(bs)):
             # for each level, project labels to the vertex level
@@ -323,10 +305,12 @@ def fit_model(
         bs = [i_groups.iloc[:, 0].values]
         for x in range(1, groups.shape[1]):
             bs.append(np.where(pd.crosstab(i_groups.iloc[:, x - 1], i_groups.iloc[:, x])> 0)[1])
-        state = gt_model(g, bs, 
-                         state_args=dict(deg_corr=deg_corr,recs=recs,
-                                         rec_types=rec_types
-                                         ))
+
+        state=gt.NestedBlockState(g, bs=bs,
+                                  base_state=base_state,
+                                  base_state_args=base_state_args
+        )
+
         del(i_groups)
     
         groups.index = adata.obs_names
@@ -353,8 +337,8 @@ def fit_model(
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pmode.get_marginal(g).get_2d_array(range(last_group)).T[:, u_groups] / n_init
-        if model == "nsbm":
+        pv_array = pv.get_2d_array(range(last_group)).T[:, u_groups] / n_init
+        if nested:
             # add marginals for level 0, the sum up according to the hierarchy
             adata.obsm[f"CM_{key_added}_level_0"] = pv_array
             for group in groups.columns[1:]:
@@ -364,7 +348,7 @@ def fit_model(
             adata.obsm[f"CM_{key_added}"] = pv_array
 
     # add some unstructured info
-    if model == "nsbm":
+    if nested:
         modularity=np.array([gt.modularity(g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     else:
@@ -377,10 +361,10 @@ def fit_model(
               entropy=state.entropy(),
               modularity=modularity
               )
-    if model == "nsbm":
+    if nested:
         adata.uns['schist'][key_added]['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
 
-    if model == "nsbm":
+    if nested:
         # record state as list of blocks
         # unfortunately this cannot be a list of lists but needs to be a dictionary
         bl_d = {}
@@ -394,7 +378,7 @@ def fit_model(
 
     # last step is recording some parameters used in this analysis
     adata.uns['schist'][key_added]['params'] = dict(
-        model=model,
+        nested=nested,
         neighbors_key=neighbors_key,
         use_weights=use_weights,
         key_added=key_added,
@@ -404,8 +388,6 @@ def fit_model(
         deg_corr=deg_corr,
         recs=recs,
         rec_types=rec_types,
-        refine_model=refine_model,
-        refine_iter=refine_iter,
         directed=directed
     )
 
