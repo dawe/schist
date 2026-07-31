@@ -165,7 +165,6 @@ def fit_model(
         logg.warning('Collecting marginals requires sufficient number of n_samples\n'
                      f'It is now set to {n_samples} and should be at least 100\n')
                      
-
     start = logg.info('Minimizing the Model')
     adata = adata.copy() if copy else adata
     # are we clustering a user-provided graph or the default AnnData one?
