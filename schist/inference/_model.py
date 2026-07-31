@@ -5,7 +5,6 @@ import pandas as pd
 from anndata import AnnData
 from scipy import sparse
 from natsort import natsorted
-from joblib import delayed, Parallel, parallel_config
 from tqdm import tqdm
 from scanpy import logging as logg
 from .._utils import get_graph_tool_from_adjacency
@@ -38,6 +37,8 @@ def fit_model(
     bisection: bool = True,
     simple_init: bool = False,
     n_jobs: int = -1,
+    n_iter: int = 10,
+    beta: float = 1.0,
     save_model: Union[str, None] = None,
     copy: bool = False,
     random_seed: Optional[int] = None,
@@ -91,6 +92,12 @@ def fit_model(
         the space of solutions is reduced and so is the time needed to converge.
     n_jobs
         Number of OMP threads used during model minimization
+    n_iter
+        When sampling from the posterior, set this number of iterations for the 
+        MCMC sweep
+    beta
+        When sampling from the posterior, set this as the inverse of the temperature.
+        Higher values make computation faster but may be less effective
     save_model
         If provided, this will be the filename for the PartitionModeState to 
         be saved. The PartitionModeState contains all the models minimized during 
@@ -203,7 +210,7 @@ def fit_model(
     if n_jobs <= 0:
         n_jobs=n_threads_set
     # do the actual minimization
-    with gt.openmp_context(nthreads=n_jobs):
+    with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
         state=f_minimize(g, **f_args)
         if nested:
             # this is needed in case marginals are not collected
@@ -215,18 +222,15 @@ def fit_model(
     if collect_marginals:
         logg.info('Sampling posterior and getting cell marginals', time=start)
         bs = []
-        if nested:
-            def collect_partitions(s):
-                bs.append(s.get_bs())
-        else:
-            def collect_partitions(s):
-                bs.append(s.b.a.copy())
-            
-        with gt.openmp_context(nthreads=n_jobs):
-            gt.mcmc_equilibrate(state, force_niter=n_samples + 1, 
-                            mcmc_args=dict(niter=10),
-                            callback=collect_partitions
-            )
+        with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
+            for n in tqdm(range(n_samples)):
+                state.multiflip_mcmc_sweep(niter=n_iter, beta=beta)
+                if nested:
+                    bs.append(state.get_bs())
+                else:
+                    bs.append(state.b.a.copy())
+
+        logg.info('Computing the consesus', time=start)
         pmode=gt.PartitionModeState(bs, converge=True, nested=nested)
         if nested:
             bs=pmode.get_max_nested()
@@ -383,7 +387,9 @@ def fit_model(
         collect_marginals=collect_marginals,
         random_seed=random_seed,
         deg_corr=deg_corr,
-        directed=directed
+        directed=directed,
+        n_iter=n_iter,
+        beta=beta
     )
 
     logg.info(
