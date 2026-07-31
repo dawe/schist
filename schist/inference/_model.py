@@ -210,11 +210,13 @@ def fit_model(
     if n_jobs <= 0:
         # this because context does not understand negative values
         n_threads_set=current_omp_threads
+        n_jobs=current_omp_threads
     
     if random_seed:
         np.random.seed(random_seed)
         gt.seed_rng(random_seed)
         n_threads_set=1 #disable threading to have deterministic behaviour
+
     # do the actual minimization
     with gt.openmp_context(nthreads=n_threads_set, schedule='guided'):
         state=f_minimize(g, **f_args)
@@ -228,8 +230,14 @@ def fit_model(
     if collect_marginals:
         logg.info('Sampling posterior and getting cell marginals')
         bs = []
-        with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
+        if random_seed:
+            np.random.seed(random_seed)
+            seeds = np.random.choice(range(n_samples**2), size=n_samples, replace=False)           
+        # create seeds for each MCMC sweep
+        with gt.openmp_context(nthreads=n_threads_set, schedule='guided'):
             for n in tqdm(range(n_samples)):
+                if random_seed:
+                    gt.seed_rng(seeds[n])
                 state.multiflip_mcmc_sweep(niter=n_iter, beta=beta)
                 if nested:
                     bs.append(state.get_bs())
