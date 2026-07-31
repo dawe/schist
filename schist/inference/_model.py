@@ -105,7 +105,8 @@ def fit_model(
     copy
         Whether to copy `adata` or modify it inplace.
     random_seed
-        Random number to be used as seed for graph-tool
+        Random number to be used as seed for graph-tool. Note that setting this 
+        to 0 is equivalent to not setting it at all.
     
     Returns
     -------
@@ -213,7 +214,6 @@ def fit_model(
         n_jobs=current_omp_threads
     
     if random_seed:
-        np.random.seed(random_seed)
         gt.seed_rng(random_seed)
         n_threads_set=1 #disable threading to have deterministic behaviour
 
@@ -231,7 +231,6 @@ def fit_model(
         logg.info('Sampling posterior and getting cell marginals')
         bs = []
         if random_seed:
-            np.random.seed(random_seed)
             gt.seed_rng(random_seed)
         # create seeds for each MCMC sweep
         with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
