@@ -31,6 +31,7 @@ def fit_model(
     key_added: str | None = None,
     adjacency: Optional[sparse.spmatrix] = None,
     neighbors_key: Optional[str] = 'neighbors',
+    constraint_key: Optional[str] = None,
     deg_corr: bool = True,
     directed: bool = False,
     use_weights: bool = False,
@@ -74,6 +75,9 @@ def fit_model(
         `adata.obsp[neighbors_key][connectivity_key]` for scanpy>1.4.6
     neighbors_key
         The key passed to `sc.pp.neighbors`
+    constraint_key
+        Use this annotation in adata.obs as constraint when minimizing the model, 
+        that is, avoid grouping cells with different values in this field. 
     deg_corr
         Whether to use degree correction in the minimization step. In many
         real world networks this is the case, although this doesn't seem
@@ -162,7 +166,7 @@ def fit_model(
                      f'It is now set to {n_samples} and should be at least 100\n')
                      
 
-    start = logg.info('minimizing the Model')
+    start = logg.info('Minimizing the Model')
     adata = adata.copy() if copy else adata
     # are we clustering a user-provided graph or the default AnnData one?
     if adjacency is None:
@@ -224,6 +228,25 @@ def fit_model(
     if nested:
         f_args['simple_init']=simple_init
 
+    if constraint_key:
+        if not constraint_key in adata.obs.columns:
+            raise NameError(f"{constraint_key} was not found in your dataset")
+        if adata.obs[constraint_key].dtype.name != 'category':
+            raise AttributeError(f"{constraint_key} must be categorical")
+        else:
+            pclabel = g.new_vp('int64_t')
+            pclabel.a = np.array(adata.obs[constraint_key].cat.codes)
+            if nested:
+                raise NotImplementedError("Constraints do not (yet) work with NSBM")
+#                base_state_args['pclabel'] = pclabel
+#                base_state_args['clabel'] = pclabel
+            elif assortative:
+                 raise NotImplementedError("Constraints do not (yet) work with PPBM")
+#                base_state_args['pclabel'] = pclabel
+#                base_state_args['clabel'] = pclabel
+            else:
+                state_args['pclabel'] = pclabel
+                state_args['clabel'] = pclabel
 
     current_omp_threads = gt.openmp_get_num_threads()
     if n_jobs <= 0:
@@ -279,15 +302,18 @@ def fit_model(
     if nested:
         state=gt.NestedBlockState(g, bs=bs,
                                   base_state=base_state,
-                                  base_state_args=base_state_args
+                                  base_state_args=base_state_args,
+
         )
     elif assortative:
-        state=gt.PPBlockState(g, b=bs)
+        state=gt.PPBlockState(g, b=bs, **state_args)
     else:
         if use_weights:
-            state=gt.WeightedBlockState(g=g, b=bs, **base_state_args)
+            state=gt.WeightedBlockState(g=g, b=bs, 
+                                        **state_args,
+                                        **base_state_args)
         else:
-            state=gt.BlockState(g=g, b=bs)
+            state=gt.BlockState(g=g, b=bs, **state_args)
 
     if save_model:
         import pickle
