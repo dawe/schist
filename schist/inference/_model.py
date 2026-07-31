@@ -242,6 +242,8 @@ def fit_model(
             # this is needed in case marginals are not collected
             bs=[np.array(x) for x in state.get_bs() if len(np.unique(x)) > 1]
             bs.append(np.array([0], dtype=np.int32)) 
+        else:
+            bs=np.array(state.b.a)
 
     logg.info('        done', time=start)
     
@@ -307,7 +309,7 @@ def fit_model(
         groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
         u_groups = np.unique(bs[0])
     else:
-        groups = np.array(bs.get_array())
+        groups = np.array(bs)
         u_groups = np.unique(groups)
 
     last_group = np.max(u_groups) + 1
