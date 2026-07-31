@@ -150,13 +150,13 @@ def fit_model(
         
     
     if random_seed:
-        np.random.seed(random_seed)
-        gt.seed_rng(random_seed)
+        logg.warning('Setting random seed disables threading during minimization\n'
+                     f'due to non deterministic behaviour of thread allocation\n')
     
     if n_samples < 1:
         n_samples = 1
     if collect_marginals and n_samples < 100:
-            logg.warning('Collecting marginals requires sufficient number of n_samples\n'
+        logg.warning('Collecting marginals requires sufficient number of n_samples\n'
                      f'It is now set to {n_samples} and should be at least 100\n')
                      
 
@@ -206,11 +206,17 @@ def fit_model(
         f_args['simple_init']=simple_init
 
 
-    n_threads_set = gt.openmp_get_num_threads()
+    current_omp_threads = gt.openmp_get_num_threads()
     if n_jobs <= 0:
-        n_jobs=n_threads_set
+        # this because context does not understand negative values
+        n_threads_set=current_omp_threads
+    
+    if random_seed:
+        np.random.seed(random_seed)
+        gt.seed_rng(random_seed)
+        n_threads_set=1 #disable threading to have deterministic behaviour
     # do the actual minimization
-    with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
+    with gt.openmp_context(nthreads=n_threads_set, schedule='guided'):
         state=f_minimize(g, **f_args)
         if nested:
             # this is needed in case marginals are not collected
@@ -220,7 +226,7 @@ def fit_model(
     logg.info('        done', time=start)
     
     if collect_marginals:
-        logg.info('Sampling posterior and getting cell marginals', time=start)
+        logg.info('Sampling posterior and getting cell marginals')
         bs = []
         with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
             for n in tqdm(range(n_samples)):
@@ -230,7 +236,8 @@ def fit_model(
                 else:
                     bs.append(state.b.a.copy())
 
-        logg.info('Computing the consesus', time=start)
+        logg.info('        done', time=start)
+        logg.info('Computing the consesus')
         pmode=gt.PartitionModeState(bs, converge=True, nested=nested)
         if nested:
             bs=pmode.get_max_nested()
@@ -272,7 +279,6 @@ def fit_model(
         with open(fname, 'wb') as fout:
             pickle.dump(dump, fout, 2)
     
-    logg.info('    done', time=start)
     # reorganize things so that groups are ordered literals
     if nested:
         groups = np.zeros((g.num_vertices(), len(bs)), dtype=int)
