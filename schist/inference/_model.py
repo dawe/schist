@@ -234,7 +234,7 @@ def fit_model(
             np.random.seed(random_seed)
             gt.seed_rng(random_seed)
         # create seeds for each MCMC sweep
-        with gt.openmp_context(nthreads=n_threads_set, schedule='guided'):
+        with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
             for n in tqdm(range(n_samples)):
                 state.multiflip_mcmc_sweep(niter=n_iter, beta=beta)
                 if nested:
