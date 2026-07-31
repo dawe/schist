@@ -118,7 +118,8 @@ def fit_model(
     `adata.uns['schist'][model]['params']`
         A dict with the values for the parameters used
     `adata.obsm['CM_nsbm_level_{n}']` or `adata.obsm['CM_model']`
-        A `np.ndarray` with cell probability of belonging to a specific group
+        A `np.ndarray` with cell probability of belonging to a specific group if
+        marginals are computed
     `adata.uns['schist'][model]['state']`
         The block model, to be used in case a gt state should be initialized
     """
@@ -180,6 +181,23 @@ def fit_model(
 
     # convert it to igraph and graph-tool
     g = get_graph_tool_from_adjacency(adjacency, directed=directed, use_weights=use_weights)
+    
+    if g.num_vertices() > 1e5:
+        if not save_model:
+            logg.warning('When working with large networks it is a good idea\n'
+                         'to save the model and load it separately for further analysis.\n'
+                        )
+        if collect_marginals:
+            logg.warning('When working with large networks it may be appropriate to\n'
+                         'skip sampling and do not collect marginals.\n'
+                         'You can save the model and perform sampling in a separate experiment.\n'
+                        )
+        if not simple_init or bisection:
+            logg.warning('When working with large networks it may be appropriate to\n'
+                         'enable fast minimization setting the ```bisection``` and\n'
+                         '```simple_init``` accordingly.\n'
+                        )
+        
 
     state_args={}
     base_state_args={}
