@@ -234,13 +234,13 @@ def fit_model(
         pclabel = g.new_vp('int64_t')
         pclabel.a = np.array(adata.obs[constraint_key].cat.codes)
 #        if nested:
-#            raise NotImplementedError("Constraints do not (yet) work with NSBM")
-            base_state_args['pclabel'] = pclabel
-            base_state_args['clabel'] = pclabel
-        elif assortative:
-#             raise NotImplementedError("Constraints do not (yet) work with PPBM")
-            base_state_args['pclabel'] = pclabel
-            base_state_args['clabel'] = pclabel
+            raise NotImplementedError("Constraints do not (yet) work with NSBM")
+#            base_state_args['pclabel'] = pclabel
+#            base_state_args['clabel'] = pclabel
+#        elif assortative:
+             raise NotImplementedError("Constraints do not (yet) work with PPBM")
+#            base_state_args['pclabel'] = pclabel
+#            base_state_args['clabel'] = pclabel
         else:
             state_args['pclabel'] = pclabel
             state_args['clabel'] = pclabel
