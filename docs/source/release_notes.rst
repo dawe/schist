@@ -11,8 +11,9 @@ This update introduces support for ``graph-tool`` 3, which is now the required v
 
     - If marginals are computed, ``n_samples`` must be specified in place of ``n_init``
     - Due to threading policy in ``graph-tool``, setting a ``random_seed`` causes single thread execution of the minimization step. 
-    - It is now possible to set a constraint to the model, so that cells that belong to different categories (``constraint_key``) are never grouped together.
+    - It is now possible to set a constraint to the model, so that cells that belong to different categories (``constraint_key``) are never grouped together, see :ref:`constrained`
     - Different models are not accessed with ``model`` parameter, it is now necessary to set ``nested`` or ``assortative`` flags.
+    - Bugfixes.
 
 -------------
 version 0.9.4
