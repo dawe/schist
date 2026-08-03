@@ -159,10 +159,10 @@ def fit_model_multi(
         if overlap:
             base_state=gt.LayeredWeightedOverlapBlockState
                 
-	if nested:
-		key_added = 'multi_nsbm' if key_added is None else key_added
-	else:
-		key_added = 'multi_sbm' if key_added is None else key_added
+    if nested:
+        key_added = 'multi_nsbm' if key_added is None else key_added
+    else:
+        key_added = 'multi_sbm' if key_added is None else key_added
 
     # define the function that will be used to minimize    
     f_minimize = gt.minimize_blockmodel_dl
