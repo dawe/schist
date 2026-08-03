@@ -453,5 +453,6 @@ def fit_model(
             f'    {key_added!r}, the cluster labels (adata.obs, categorical)'
         ),
     )
+    del g
     return adata if copy else None
 

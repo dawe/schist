@@ -23,6 +23,7 @@ Advanced Usage
 
 The following tutorials cover some experimental and/or advanced approaches, useful for specific problems
 
+* :ref:`constrained`
 * :ref:`cellrank_integration`
 * :ref:`large_samples`
 * :ref:`multimodal_spatial`
