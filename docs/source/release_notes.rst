@@ -5,6 +5,16 @@ Release notes
 .. highlight:: python
 
 -------------
+version 0.10.0
+-------------
+This update introduces support for ``graph-tool`` 3, which is now the required version. Due to recent updates to ``graph-tool`` it was impossible to make ``schist`` compatible with elder versions. This update introduces some modifications:
+
+    - If marginals are computed, ``n_samples`` must be specified in place of ``n_init``
+    - Due to threading policy in ``graph-tool``, setting a ``random_seed`` causes single thread execution of the minimization step. 
+    - It is now possible to set a constraint to the model, so that cells that belong to different categories (``constraint_key``) are never grouped together.
+    - Different models are not accessed with ``model`` parameter, it is now necessary to set ``nested`` or ``assortative`` flags.
+
+-------------
 version 0.9.4
 -------------
 This is a minor update. It fixes setting random seed for reproducibile cell marginals.
