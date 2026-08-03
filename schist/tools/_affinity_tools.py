@@ -431,11 +431,11 @@ def label_transfer(
         # we have to create a merged dataset and integrate
         # before that check that the labels are not in the recipient, in case drop
         
-        if obs in adata.obs_keys():
+        if obs in adata.obs:
             logg.warning(f'{obs} was found in dataset 1, it will be wiped')
             adata.obs.drop(obs, inplace=True, axis='columns')
 
-        if not obs in adata_ref.obs_keys():
+        if not obs in adata_ref.obs:
             raise ValueError(
                 f'Annotation {obs} is not present in reference dataset.'
             )         
@@ -489,7 +489,7 @@ def label_transfer(
                         n_neighbors=n_neighbors, key_added=key_added) 
     else:
         adata_merge = adata#.copy()
-        if not obs in adata_merge.obs_keys():
+        if not obs in adata_merge.obs:
             raise ValueError(
                 f'Annotation {obs} is not present in dataset.'
             )         

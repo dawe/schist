@@ -305,7 +305,9 @@ def fit_model_multi(
 
     state_args['deg_corr']=deg_corr
     base_state_args['ec']=union_g.ep.layer
-    base_state_args['overlap']=overlap
+    if overlap:
+        # this to avoid annoying warnings by graph tool
+        base_state_args['overlap']=True
     if use_weights:
 #### TODO ####
 #### ADD weights to union_g
@@ -412,11 +414,11 @@ def fit_model_multi(
         )
     else:
         if use_weights:
-            state=gt.WeightedBlockState(g=union_g, b=bs, 
+            state=base_state(g=union_g, b=bs, 
                                         **state_args,
                                         **base_state_args)
         else:
-            state=gt.BlockState(g=union_g, b=bs, **state_args)
+            state=base_state(g=union_g, b=bs, **state_args)
         
     # prune redundant levels at the top
     
@@ -552,7 +554,7 @@ def fit_model_multi(
             neighbors_key=neighbors_key[xn],
             key_added=key_added,
             use_weights=use_weights,
-            n_init=n_init,
+            n_samples=n_samples,
             collect_marginals=collect_marginals,
             random_seed=random_seed,
             deg_corr=deg_corr,
