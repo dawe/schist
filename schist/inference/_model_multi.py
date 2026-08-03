@@ -327,27 +327,34 @@ def fit_model_multi(
         f_args['simple_init']=simple_init
 
 
-####TODO
-####CHECK HOW TO GET this
-#    if constraint_key:
-#        if not constraint_key in adata.obs.columns:
-#            raise NameError(f"{constraint_key} was not found in your dataset")
-#        if adata.obs[constraint_key].dtype.name != 'category':
-#            raise AttributeError(f"{constraint_key} must be categorical")
-#        else:
-#            pclabel = g.new_vp('int64_t')
-#            pclabel.a = np.array(adata.obs[constraint_key].cat.codes)
-#            if nested:
-#                raise NotImplementedError("Constraints do not (yet) work with NSBM")
-##                base_state_args['pclabel'] = pclabel
-##                base_state_args['clabel'] = pclabel
-#            elif assortative:
-#                 raise NotImplementedError("Constraints do not (yet) work with PPBM")
-##                base_state_args['pclabel'] = pclabel
-##                base_state_args['clabel'] = pclabel
-#            else:
-#                state_args['pclabel'] = pclabel
-#                state_args['clabel'] = pclabel
+    if constraint_key:
+        # the key must be present in all adata. Moreover, we require the same
+        # categories to be in all adata. Collect all info in a single dict
+        # then use it to create the pclabel
+        d_constraint = dict.from_keys(all_names)
+        for data in adata_list:
+            if not constraint_key in data.obs.columns:
+                raise NameError(f"{constraint_key} was not found all your datasets")
+            if data.obs[constraint_key].dtype.name != 'category':
+                raise AttributeError(f"{constraint_key} must be categorical in all datasets")
+            if data.obs[constraint_key].cat.categories != adata_list[0].obs[constraint_key].cat.categories:
+                raise AttributeError(f"{constraint_key} must contain the same cateogires in all datasets")
+            _s = data.obs[constraint_key].cat.codes
+            for c in _s:
+                d_constraint[c] = _s[c]
+        pclabel = g.new_vp('int64_t')
+        pclabel.a = np.array([d_constraint[c]] for c in all_names)
+        if nested:
+            raise NotImplementedError("Constraints do not (yet) work with NSBM")
+#            base_state_args['pclabel'] = pclabel
+#            base_state_args['clabel'] = pclabel
+        elif assortative:
+            raise NotImplementedError("Constraints do not (yet) work with PPBM")
+#            base_state_args['pclabel'] = pclabel
+#            base_state_args['clabel'] = pclabel
+        else:
+            state_args['pclabel'] = pclabel
+            state_args['clabel'] = pclabel
 
                 
     current_omp_threads = gt.openmp_get_num_threads()
@@ -373,74 +380,50 @@ def fit_model_multi(
     logg.info('        done', time=start)
 
 
-    if model == "nsbm":
-        pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
-        bs = pmode.get_max_nested()
-        bs = [x for x in bs if len(np.unique(x)) > 1]
-        bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-        state = gt_model(union_g, bs=bs,
-                         base_type=gt.LayeredBlockState,
-                         state_args=dict(deg_corr=deg_corr,
-                         ec=union_g.ep.layer,
-                         layers=True,
-                         overlap=overlap
-                         ))
+    if collect_marginals:
+        logg.info('Sampling posterior and getting cell marginals')
+        bs = []
+        if random_seed:
+            gt.seed_rng(random_seed)
+        # create seeds for each MCMC sweep
+        with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
+            for n in tqdm(range(n_samples)):
+                state.multiflip_mcmc_sweep(niter=n_iter, beta=beta)
+                if nested:
+                    bs.append(state.get_bs())
+                else:
+                    bs.append(state.b.a.copy())
 
+        logg.info('        done', time=start)
+        logg.info('Computing the consesus')
+        pmode=gt.PartitionModeState(bs, converge=True, nested=nested)
+        if nested:
+            bs=pmode.get_max_nested()
+            # prune redundant levels at the top
+            bs = [x for x in bs if len(np.unique(x)) > 1]
+            bs.append(np.array([0], dtype=np.int32)) 
+            
+        else:
+            bs=pmode.get_max(union_g)
+        pv=pmode.get_marginal(union_g)
 
+    logg.info('        done', time=start)
+
+    if nested:
+        state=gt.NestedBlockState(union_g, bs=bs,
+                                  base_state=base_state,
+                                  base_state_args=base_state_args,
+
+        )
     else:
-        pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True, nested=False)
-        bs = pmode.get_max(union_g)
-        state = gt_model(union_g, b=bs,
-                         deg_corr=deg_corr,
-                         ec=union_g.ep.layer,
-                         layers=True,
-                         overlap=overlap
-                         )
-
-
-    logg.info('        consensus step done', time=start)
+        if use_weights:
+            state=gt.WeightedBlockState(g=union_g, b=bs, 
+                                        **state_args,
+                                        **base_state_args)
+        else:
+            state=gt.BlockState(g=union_g, b=bs, **state_args)
         
     # prune redundant levels at the top
-    
-    if refine_model:
-        # we here reuse pmode variable, so that it is consistent
-        logg.info('        Refining model')
-        bs = []
-        if model == "nsbm":
-            def collect_partitions(s):
-                bs.append(s.get_bs())
-        else:
-            def collect_partitions(s):
-                bs.append(s.get_blocks().a)
-
-        gt.mcmc_equilibrate(state, force_niter=refine_iter, 
-                            multiflip=True, 
-                            mcmc_args=dict(niter=n_sweep, beta=beta),
-                            callback=collect_partitions)
-
-        if model == "nsbm":
-            pmode = gt.PartitionModeState(bs, nested=True, converge=True)
-            bs = [x for x in pmode.get_max_nested() if len(np.unique(x)) > 1]
-            bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-            state = gt_model(union_g, bs=bs,
-                             base_type=gt.LayeredBlockState,
-                             state_args=dict(deg_corr=deg_corr,
-                             ec=union_g.ep.layer,
-                             layers=True,
-                             overlap=overlap
-                             ))
-        else:
-            pmode = gt_model(bs, converge=True)
-            bs = pmode.get_max(union_g)
-            state = gt_model(union_g, b=bs,
-                             deg_corr=deg_corr,
-                             ec=union_g.ep.layer,
-                             layers=True,
-                             overlap=overlap
-                             )
-
-        logg.info('        refinement complete', time=start)
-    
     
     if save_model:
         import pickle
@@ -448,10 +431,13 @@ def fit_model_multi(
         if not fname.endswith('pkl'):
             fname = f'{fname}.pkl'
         logg.info(f'Saving model into {fname}')    
+        dump = {'State':state,
+                'Graph':union_g
+                }
+        if collect_marginals:
+            dump['PartitionModeState']=pmode
+            
         with open(fname, 'wb') as fout:
-            dump = {'PartitionModeState':pmode,
-                    'Graph':union_g
-                    }
             pickle.dump(dump, fout, 2)
 
     logg.info('    done', time=start)
