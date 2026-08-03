@@ -356,7 +356,6 @@ def fit_model_multi(
             state_args['pclabel'] = pclabel
             state_args['clabel'] = pclabel
 
-                
     current_omp_threads = gt.openmp_get_num_threads()
     if n_jobs <= 0:
         # this because context does not understand negative values
@@ -442,7 +441,7 @@ def fit_model_multi(
 
     logg.info('    done', time=start)
     # reorganize things so that groups are ordered literals
-    if model == "nsbm":
+    if nested:
         groups = np.zeros((union_g.num_vertices(), len(bs)), dtype=int)
         u_groups = np.unique(bs[0])
     else:
@@ -452,17 +451,13 @@ def fit_model_multi(
     last_group = np.max(u_groups) + 1
     n_groups = len(u_groups)
     
-    if model == "nsbm":
-        groups = np.zeros((union_g.num_vertices(), len(bs)), dtype=int)
-
+    if nested:
         for x in range(len(bs)):
             # for each level, project labels to the vertex level
             # so that every cell has a name. Note that at this level
             # the labels are not necessarily consecutive
             groups[:, x] = state.project_partition(x, 0).get_array()
-
         groups = pd.DataFrame(groups).astype('category')
-
         # rename categories from 0 to n
         for c in groups.columns:
             ncat = len(groups[c].cat.categories)
@@ -476,11 +471,9 @@ def fit_model_multi(
         bs = [i_groups.iloc[:, 0].values]
         for x in range(1, groups.shape[1]):
             bs.append(np.where(pd.crosstab(i_groups.iloc[:, x - 1], i_groups.iloc[:, x])> 0)[1])
-        state = gt_model(union_g, bs=bs,
-                             deg_corr=deg_corr,
-                             ec=union_g.ep.layer,
-                             layers=True,
-                             overlap=overlap
+        state = gt.NestedBlockState(union_g, bs=bs,
+                             base_state=base_state,
+                             base_state_args=base_state_args
                              )
 
         del(i_groups)
@@ -497,7 +490,7 @@ def fit_model_multi(
                 adata_list[xn].obs.drop(drop_columns, axis='columns', inplace=True)
             adata_list[xn].obs = pd.concat([adata_list[xn].obs, groups.loc[adata_list[xn].obs_names]], axis=1)
     else:
-        # for ppbm and sbm is simpler
+        # for sbm is simpler
         rosetta = dict(zip(u_groups, range(len(u_groups))))
         groups = np.array([rosetta[x] for x in groups])
         groups = groups.astype('U')
@@ -506,19 +499,18 @@ def fit_model_multi(
             adata_list[xn].obs[key_added] = pd.Categorical(groups.loc[adata_list[xn].obs_names], 
                                                        categories=natsorted(np.unique(groups)),
                                                        )
-
     # now add marginal probabilities.
 
     if collect_marginals:
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pmode.get_marginal(union_g).get_2d_array(range(last_group)).T[:, u_groups] / n_init    
+        pv_array = pv.get_2d_array(range(last_group)).T[:, u_groups] / n_samples    
         for xn in range(n_data):
             # add marginals for level 0, the sum up according to the hierarchy
             _groups = groups.loc[adata_list[xn].obs_names]
             _pv_array = pd.DataFrame(pv_array, index=all_names).loc[adata_list[xn].obs_names].values
-            if model == "nsbm":
+            if nested:
                 adata_list[xn].obsm[f"CM_{key_added}_level_0"] = _pv_array
                 for group in groups.columns[1:]:
                     ct = pd.crosstab(_groups[_groups.columns[0]], _groups[group], 
@@ -528,7 +520,7 @@ def fit_model_multi(
                 adata_list[xn].obsm[f"CM_{key_added}"] = _pv_array
 
     # add some unstructured info
-    if model == "nsbm":
+    if nested:
         modularity=np.array([gt.modularity(union_g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     else:
@@ -543,10 +535,10 @@ def fit_model_multi(
               entropy=state.entropy(),
               modularity=modularity
               )
-        if model == "nsbm":
+        if nested:
             adata_list[xn].uns['schist'][key_added]['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
 
-        if model == "nsbm":
+        if nested:
             # record state as list of blocks
             # unfortunately this cannot be a list of lists but needs to be a dictionary
             bl_d = {}
@@ -560,18 +552,18 @@ def fit_model_multi(
 
         # last step is recording some parameters used in this analysis
         adata_list[xn].uns['schist'][key_added]['params'] = dict(
-            model=model,
-            use_weights=use_weights,
+            nested=nested,
             neighbors_key=neighbors_key[xn],
             key_added=key_added,
+            use_weights=use_weights,
             n_init=n_init,
             collect_marginals=collect_marginals,
             random_seed=random_seed,
             deg_corr=deg_corr,
-            refine_model=refine_model,
-            refine_iter=refine_iter,
             overlap=overlap,
-            directed=directed
+            directed=directed,
+            n_iter=n_iter,
+            beta=beta
         )
 
     logg.info(
