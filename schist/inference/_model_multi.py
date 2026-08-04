@@ -436,7 +436,7 @@ def fit_model_multi(
         with open(fname, 'wb') as fout:
             pickle.dump(dump, fout, 2)
 
-    logg.info('    done', time=start)
+        logg.info('        done', time=start)
     # reorganize things so that groups are ordered literals
     if nested:
         groups = np.zeros((union_g.num_vertices(), len(bs)), dtype=int)

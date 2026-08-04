@@ -325,6 +325,7 @@ def fit_model(
             
         with open(fname, 'wb') as fout:
             pickle.dump(dump, fout, 2)
+        logg.info('        done', time=start)
     
     # reorganize things so that groups are ordered literals
     if nested:
