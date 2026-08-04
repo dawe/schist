@@ -377,7 +377,7 @@ def fit_model_multi(
 
 
     if collect_marginals:
-        logg.info('Sampling posterior and getting cell marginals')
+        logg.info('Sampling the posterior and getting cell marginals')
         bs = []
         if random_seed:
             gt.seed_rng(random_seed)
@@ -391,7 +391,7 @@ def fit_model_multi(
                     bs.append(state.b.a.copy())
 
         logg.info('        done', time=start)
-        logg.info('Computing the consesus')
+        logg.info('Computing the consesus partition')
         pmode=gt.PartitionModeState(bs, converge=True, nested=nested)
         if nested:
             bs=pmode.get_max_nested()
