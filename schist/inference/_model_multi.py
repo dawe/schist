@@ -6,7 +6,6 @@ from anndata import AnnData
 from mudata import MuData
 from scipy import sparse
 from natsort import natsorted
-from joblib import delayed, Parallel, parallel_config
 from tqdm import tqdm
 from scanpy import logging as logg
 from .._utils import get_graph_tool_from_adjacency
