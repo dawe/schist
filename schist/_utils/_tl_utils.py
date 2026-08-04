@@ -11,7 +11,9 @@ from scanpy._utils import get_igraph_from_adjacency
 
 #@numba.jit(forceobj=True, parallel=True)
 def get_cell_loglikelihood(
-    state: Union[graph_tool.inference.nested_blockmodel.NestedBlockState, graph_tool.inference.planted_partition.PPBlockState],
+    state: Union[graph_tool.inference.nested_blockmodel.NestedBlockState, 
+                 graph_tool.inference.nested_blockmodel.BlockState, 
+                 graph_tool.inference.planted_partition.PPBlockState],
     level: int = 0,
     rescale: bool = False, 
     as_prob: bool = False,
@@ -55,7 +57,7 @@ def get_cell_loglikelihood(
     
     
     n_cells = state.g.num_vertices()
-    n_blocks = B.get_nonempty_B()
+    n_blocks = B.get_B()
     M = np.zeros((n_cells, n_blocks))
     for v in range(n_cells): #one day this will be parallel
         for s in range(n_blocks):

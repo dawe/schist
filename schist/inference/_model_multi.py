@@ -6,7 +6,6 @@ from anndata import AnnData
 from mudata import MuData
 from scipy import sparse
 from natsort import natsorted
-from joblib import delayed, Parallel, parallel_config
 from tqdm import tqdm
 from scanpy import logging as logg
 from .._utils import get_graph_tool_from_adjacency
@@ -38,26 +37,24 @@ def fast_min(state, beta=np.inf, n_sweep=10, fast_tol=1e-4, max_iter=1000, seed=
 
 def fit_model_multi(
     mdata: Union[List[AnnData], MuData],
-    deg_corr: bool = True,
-    tolerance: float = 1e-4,
-    n_sweep: int = 10,
-    beta: float = np.inf,
-    n_init: int = 100,
-    model: Literal["nsbm", "sbm"] = "nsbm",
-    max_iter: int = 1000,
+    nested: bool = True,
     collect_marginals: bool = True,
-    refine_model: bool = False,
-    refine_iter: int = 100,
-    n_jobs: int = -1,
-    overlap: bool = False,
+    n_samples: int = 100,
     key_added: str | None = None,
     adjacency: Optional[List[sparse.spmatrix]] = None,
     neighbors_key: Optional[List[str]] = ['neighbors'],
+    constraint_key: Optional[str] = None,
+    deg_corr: bool = True,
     directed: bool = False,
     use_weights: bool = False,
+    bisection: bool = True,
+    simple_init: bool = False,
+    overlap: bool = False,
+    n_jobs: int = -1,
+    n_iter: int = 10,
+    beta: float = 1.0,
     save_model: Union[str, None] = None,
     copy: bool = False,
-    dispatch_backend: Optional[str] = 'loky',
     random_seed: Optional[int] = None,
 ) -> [Union[List[AnnData]], MuData, None]:
     """\
@@ -80,30 +77,15 @@ def fit_model_multi(
         will be fitted. If you want to fit a model on the shared graph representation, 
         e.g. WNN graph or a graph built on MOFA latent factors, you still can use
         the standard ``scs.inference.model()`` function.
-    deg_corr
-        Whether to use degree correction in the minimization step. In many
-        real world networks this is the case, although this doesn't seem
-        the case for KNN graphs used in scanpy.
-    tolerance
-        Tolerance for fast model convergence.
-    n_sweep 
-        Number of iterations to be performed in the fast model MCMC greedy approach
-    beta
-        Inverse temperature for MCMC greedy approach    
-    n_init
-        Number of initial minimizations to be performed. The one with smaller
-        entropy is chosen
-    refine_model
-        Wether to perform a further mcmc step to refine the model
-    refine_iter
-        Number of refinement iterations.
-    max_iter
-        Maximum number of iterations during minimization, set to infinite to stop 
-        minimization only on tolerance
-    overlap
-        Whether the different layers are dependent (overlap=True) or not (overlap=False)
-    n_jobs
-        Number of parallel computations used during model initialization
+    nested
+        Wether to use the hierarchical version of SBM (default) or a simple SBM
+    collect_marginals
+        Collect marginal distribution of cells, that is the probability
+        to belong to any cluster. Note that enabling this option requires sampling
+        from the posterior and modifying the community structure.
+    n_samples
+        If marginals are collected, this number of samples is taken from the posterior.
+        These are then used to compute the consensus and the marginals.
     key_added
         `adata.obs` key under which to add the cluster labels.
     adjacency
@@ -111,22 +93,45 @@ def fit_model_multi(
         `adata.uns['neighbors']['connectivities']` in case of scanpy<=1.4.6 or
         `adata.obsp[neighbors_key][connectivity_key]` for scanpy>1.4.6
     neighbors_key
-        The key passed to `sc.pp.neighbors`. If all AnnData share the same key, one
-        only has to be specified, otherwise the full tuple of all keys must 
-        be provided
+        The key passed to `sc.pp.neighbors`
+    constraint_key
+        Use this annotation in adata.obs as constraint when minimizing the model, 
+        that is, avoid grouping cells with different values in this field. 
+    deg_corr
+        Whether to use degree correction in the minimization step. In many
+        real world networks this is the case, although this doesn't seem
+        the case for KNN graphs used in scanpy.
     directed
         Whether to treat the graph as directed or undirected.
     use_weights
         If `True`, edge weights from the graph are used in the computation
         (placing more emphasis on stronger edges). Note that this
         increases computation times
+    bisection
+        Bisection search is enabled by default to determine the appropriate number of
+        groups. Disable this to obtain a faster computation by agglomerative search.
+    simple_init
+        This parameter estimates an upper bound on the number of groups at each level, 
+        the space of solutions is reduced and so is the time needed to converge.
+    overlap
+        Whether the different layers are dependent (overlap=True) or not (overlap=False)
+    n_jobs
+        Number of OMP threads used during model minimization
+    n_iter
+        When sampling from the posterior, set this number of iterations for the 
+        MCMC sweep
+    beta
+        When sampling from the posterior, set this as the inverse of the temperature.
+        Higher values make computation faster but may be less effective
     save_model
         If provided, this will be the filename for the PartitionModeState to 
-        be saved    
+        be saved. The PartitionModeState contains all the models minimized during 
+        inference.
     copy
-        Whether to copy `adata` or modify it inplace.
+        Whether to copy data or modify them inplace.
     random_seed
-        Random number to be used as seed for graph-tool
+        Random number to be used as seed for graph-tool. Note that setting this 
+        to 0 is equivalent to not setting it at all.
 
     Returns
     -------
@@ -138,48 +143,43 @@ def fit_model_multi(
         and `n_iterations`.
     `adata.uns['schist']['multi_level_stats']`
         A dict with the values returned by mcmc_sweep
-    `adata.obsm['CA_multi_nsbm_level_{n}']`
+    `adata.obsm['CM_multi_nsbm_level_{n}']`
         A `np.ndarray` with cell probability of belonging to a specific group
     `adata.uns['schist']['multi_level_state']`
         The NestedBlockModel state object
     """
 
-    gt_model = {'nsbm':gt.NestedBlockState, 
-                'sbm':gt.LayeredBlockState,
-    }[model]
-        
-    # if key is not set, use the model name
-    key_added = f'multi_{model}' if key_added is None else key_added
+    # define the base model.
+    base_state=gt.LayeredBlockState
+    if overlap:
+        base_state=gt.LayeredOverlapBlockState
+    if use_weights:
+        base_state=gt.LayeredWeightedBlockState
+        if overlap:
+            base_state=gt.LayeredWeightedOverlapBlockState
+                
+    if nested:
+        key_added = 'multi_nsbm' if key_added is None else key_added
+    else:
+        key_added = 'multi_sbm' if key_added is None else key_added
 
-    if random_seed:
-        np.random.seed(random_seed)
+    # define the function that will be used to minimize    
+    f_minimize = gt.minimize_blockmodel_dl
+    if nested:
+        f_minimize = gt.minimize_nested_blockmodel_dl
     
-    if n_init < 1:
-        n_init = 1
-    seeds = np.random.choice(range(n_init**2), size=n_init, replace=False)
+    if random_seed:
+        logg.warning('Setting random seed disables threading during minimization\n'
+                     f'due to non deterministic behaviour of thread allocation\n')
+    
+    if n_samples < 1:
+        n_samples = 1
+    if collect_marginals and n_samples < 100:
+        logg.warning('Collecting marginals requires sufficient number of n_samples\n'
+                     f'It is now set to {n_samples} and should be at least 100\n')
         
-    # the following lines are for compatibility
-    if dispatch_backend == 'threads':
-        dispatch_backend = 'threading'
-    elif dispatch_backend == 'processes':
-        dispatch_backend = 'loky'
-
-    if dispatch_backend == 'threading' and float(gt.__version__.split()[0]) > 2.55:
-        logg.warning('Threading backend does not work with this version of graph-tool\n'
-                     'Switching to loky backend')
-        dispatch_backend = 'loky'
-
-    if collect_marginals and not refine_model:
-        if n_init < 100:
-            logg.warning('Collecting marginals without refinement requires sufficient number of n_init\n'
-                     f'It is now set to {n_init} and should be at least 100\n')
-    elif refine_model and refine_iter < 100:                     
-        logg.warning('Collecting marginals with refinement requires sufficient number of iterations\n'
-                     f'It is now set to {refine_iter} and should be at least 100\n')
-        
-
     start = logg.info('minimizing the Block Model')
-
+    # here we have to build the graph
     is_mudata = False
     adata_list = []
     if type(mdata) == MuData:
@@ -225,7 +225,6 @@ def fit_model_multi(
                 # scanpy<=1.4.6 has sparse matrix here
                 adjacency.append(adata_list[x].uns[neighbors_key[x]]['connectivities'])
 
-
     # create a union graph with layers
         
     graph_list = []
@@ -263,7 +262,6 @@ def fit_model_multi(
                 'shared cells have the same name across modalities.'
             )
         
-    
     # now handle in a non elegant way the index mapping across all 
     # modalities and the unified Graph
     
@@ -279,104 +277,149 @@ def fit_model_multi(
             Sidx = u_cell_index[Sn]
             Tidx = u_cell_index[Tn]
             ne = union_g.add_edge(Sidx, Tidx)
-            layer[ne] = ng + 1 # this is the layer label
+            layer[ne] = ng + 1 # this is the layer label, must be >0
 
     union_g.ep['layer'] = layer
     # DONE! now proceed with standard minimization, ish
+
+    if union_g.num_vertices() > 1e5:
+        if not save_model:
+            logg.warning('When working with large networks it is a good idea\n'
+                         'to save the model and load it separately for further analysis.\n'
+                        )
+        if collect_marginals:
+            logg.warning('When working with large networks it may be appropriate to\n'
+                         'skip sampling and do not collect marginals.\n'
+                         'You can save the model and perform sampling in a separate experiment.\n'
+                        )
+        if not simple_init or bisection:
+            logg.warning('When working with large networks it may be appropriate to\n'
+                         'enable fast minimization setting the ```bisection``` and\n'
+                         '```simple_init``` accordingly.\n'
+                        )
+
+    state_args={}
+    base_state_args={}
+    f_args={}
+
+    state_args['deg_corr']=deg_corr
+    base_state_args['ec']=union_g.ep.layer
+    if overlap:
+        # this to avoid annoying warnings by graph tool
+        base_state_args['overlap']=True
+    if use_weights:
+#### TODO ####
+#### ADD weights to union_g
+        base_state_args['rec']=[union_g.ep.weight] 
+        base_state_args['rec_types']=['real-exponential']
     
-    if model == "nsbm":
-        states = [gt_model(g=union_g,
-                          base_type=gt.LayeredBlockState,
-                          state_args=dict(deg_corr=deg_corr,
-                          ec=union_g.ep.layer,
-                          layers=True,
-                          overlap=overlap
-                          )) for n in range(n_init)]
+    f_args['state_args']=state_args
+    if nested:
+        f_args['base_state']=base_state
+        f_args['base_state_args']=base_state_args
+    else:
+        f_args['state']=base_state
+        f_args['state_args'].update(base_state_args) #merge...
     
+    if simple_init and nested:
+        bisection=False
+    f_args['multilevel_mcmc_args'] = {'bisection':bisection}
+    if nested:
+        f_args['simple_init']=simple_init
+
+
+    if constraint_key:
+        # the key must be present in all adata. Moreover, we require the same
+        # categories to be in all adata. Collect all info in a single dict
+        # then use it to create the pclabel
+        d_constraint = dict.from_keys(all_names)
+        for data in adata_list:
+            if not constraint_key in data.obs.columns:
+                raise NameError(f"{constraint_key} was not found all your datasets")
+            if data.obs[constraint_key].dtype.name != 'category':
+                raise AttributeError(f"{constraint_key} must be categorical in all datasets")
+            if data.obs[constraint_key].cat.categories != adata_list[0].obs[constraint_key].cat.categories:
+                raise AttributeError(f"{constraint_key} must contain the same cateogires in all datasets")
+            _s = data.obs[constraint_key].cat.codes
+            for c in _s:
+                d_constraint[c] = _s[c]
+        pclabel = g.new_vp('int64_t')
+        pclabel.a = np.array([d_constraint[c]] for c in all_names)
+        if nested:
+            raise NotImplementedError("Constraints do not (yet) work with NSBM")
+#            base_state_args['pclabel'] = pclabel
+#            base_state_args['clabel'] = pclabel
+        else:
+            state_args['pclabel'] = pclabel
+            state_args['clabel'] = pclabel
+
+    current_omp_threads = gt.openmp_get_num_threads()
+    if n_jobs <= 0:
+        # this because context does not understand negative values
+        n_threads_set=current_omp_threads
+        n_jobs=current_omp_threads
+    
+    if random_seed:
+        gt.seed_rng(random_seed)
+        n_threads_set=1 #disable threading to have deterministic behaviour
+
+    # do the actual minimization
+    with gt.openmp_context(nthreads=n_threads_set, schedule='guided'):
+        state=f_minimize(g, **f_args)
+        if nested:
+            # this is needed in case marginals are not collected
+            bs=[np.array(x) for x in state.get_bs() if len(np.unique(x)) > 1]
+            bs.append(np.array([0], dtype=np.int32)) 
+        else:
+            bs=np.array(state.b.a)
+
+    logg.info('        done', time=start)
+
+
+    if collect_marginals:
+        logg.info('Sampling the posterior and getting cell marginals')
+        bs = []
+        if random_seed:
+            gt.seed_rng(random_seed)
+        # create seeds for each MCMC sweep
+        with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
+            for n in tqdm(range(n_samples)):
+                state.multiflip_mcmc_sweep(niter=n_iter, beta=beta)
+                if nested:
+                    bs.append(state.get_bs())
+                else:
+                    bs.append(state.b.a.copy())
+
+        logg.info('        done', time=start)
+        logg.info('Computing the consesus partition')
+        pmode=gt.PartitionModeState(bs, converge=True, nested=nested)
+        if nested:
+            bs=pmode.get_max_nested()
+            # prune redundant levels at the top
+            bs = [x for x in bs if len(np.unique(x)) > 1]
+            bs.append(np.array([0], dtype=np.int32)) 
+            
+        else:
+            bs=pmode.get_max(union_g)
+        pv=pmode.get_marginal(union_g)
+
+    logg.info('        done', time=start)
+
+    if nested:
+        state=gt.NestedBlockState(union_g, bs=bs,
+                                  base_state=base_state,
+                                  base_state_args=base_state_args,
+
+        )
     else:
-        states = [gt_model(g=union_g,
-                          deg_corr=deg_corr,
-                          ec=union_g.ep.layer,
-                          layers=True,
-                          overlap=overlap
-                          ) for n in range(n_init)]
-
-    with parallel_config(backend=dispatch_backend,
-                         max_nbytes=None,
-                         n_jobs=n_jobs):
-        states = list(tqdm(Parallel(return_as="generator")(
-            delayed(fast_min)(states[x], beta, n_sweep, tolerance, max_iter, seeds[x]) for x in range(n_init)
-                      ),
-                      total=n_init))
-
-    if model == "nsbm":
-        pmode = gt.PartitionModeState([x.get_bs() for x in states], converge=True, nested=True)
-        bs = pmode.get_max_nested()
-        bs = [x for x in bs if len(np.unique(x)) > 1]
-        bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-        state = gt_model(union_g, bs=bs,
-                         base_type=gt.LayeredBlockState,
-                         state_args=dict(deg_corr=deg_corr,
-                         ec=union_g.ep.layer,
-                         layers=True,
-                         overlap=overlap
-                         ))
-
-
-    else:
-        pmode = gt.PartitionModeState([x.get_blocks().a for x in states], converge=True, nested=False)
-        bs = pmode.get_max(union_g)
-        state = gt_model(union_g, b=bs,
-                         deg_corr=deg_corr,
-                         ec=union_g.ep.layer,
-                         layers=True,
-                         overlap=overlap
-                         )
-
-
-    logg.info('        consensus step done', time=start)
+        if use_weights:
+            state=base_state(g=union_g, b=bs, 
+                                        **state_args,
+                                        **base_state_args)
+        else:
+            state=base_state(g=union_g, b=bs, **state_args)
         
     # prune redundant levels at the top
-    
-    if refine_model:
-        # we here reuse pmode variable, so that it is consistent
-        logg.info('        Refining model')
-        bs = []
-        if model == "nsbm":
-            def collect_partitions(s):
-                bs.append(s.get_bs())
-        else:
-            def collect_partitions(s):
-                bs.append(s.get_blocks().a)
-
-        gt.mcmc_equilibrate(state, force_niter=refine_iter, 
-                            multiflip=True, 
-                            mcmc_args=dict(niter=n_sweep, beta=beta),
-                            callback=collect_partitions)
-
-        if model == "nsbm":
-            pmode = gt.PartitionModeState(bs, nested=True, converge=True)
-            bs = [x for x in pmode.get_max_nested() if len(np.unique(x)) > 1]
-            bs.append(np.array([0], dtype=np.int32)) #in case of type changes, check this
-            state = gt_model(union_g, bs=bs,
-                             base_type=gt.LayeredBlockState,
-                             state_args=dict(deg_corr=deg_corr,
-                             ec=union_g.ep.layer,
-                             layers=True,
-                             overlap=overlap
-                             ))
-        else:
-            pmode = gt_model(bs, converge=True)
-            bs = pmode.get_max(union_g)
-            state = gt_model(union_g, b=bs,
-                             deg_corr=deg_corr,
-                             ec=union_g.ep.layer,
-                             layers=True,
-                             overlap=overlap
-                             )
-
-        logg.info('        refinement complete', time=start)
-    
     
     if save_model:
         import pickle
@@ -384,15 +427,18 @@ def fit_model_multi(
         if not fname.endswith('pkl'):
             fname = f'{fname}.pkl'
         logg.info(f'Saving model into {fname}')    
+        dump = {'State':state,
+                'Graph':union_g
+                }
+        if collect_marginals:
+            dump['PartitionModeState']=pmode
+            
         with open(fname, 'wb') as fout:
-            dump = {'PartitionModeState':pmode,
-                    'Graph':union_g
-                    }
             pickle.dump(dump, fout, 2)
 
-    logg.info('    done', time=start)
+        logg.info('        done', time=start)
     # reorganize things so that groups are ordered literals
-    if model == "nsbm":
+    if nested:
         groups = np.zeros((union_g.num_vertices(), len(bs)), dtype=int)
         u_groups = np.unique(bs[0])
     else:
@@ -402,17 +448,13 @@ def fit_model_multi(
     last_group = np.max(u_groups) + 1
     n_groups = len(u_groups)
     
-    if model == "nsbm":
-        groups = np.zeros((union_g.num_vertices(), len(bs)), dtype=int)
-
+    if nested:
         for x in range(len(bs)):
             # for each level, project labels to the vertex level
             # so that every cell has a name. Note that at this level
             # the labels are not necessarily consecutive
             groups[:, x] = state.project_partition(x, 0).get_array()
-
         groups = pd.DataFrame(groups).astype('category')
-
         # rename categories from 0 to n
         for c in groups.columns:
             ncat = len(groups[c].cat.categories)
@@ -426,11 +468,9 @@ def fit_model_multi(
         bs = [i_groups.iloc[:, 0].values]
         for x in range(1, groups.shape[1]):
             bs.append(np.where(pd.crosstab(i_groups.iloc[:, x - 1], i_groups.iloc[:, x])> 0)[1])
-        state = gt_model(union_g, bs=bs,
-                             deg_corr=deg_corr,
-                             ec=union_g.ep.layer,
-                             layers=True,
-                             overlap=overlap
+        state = gt.NestedBlockState(union_g, bs=bs,
+                             base_state=base_state,
+                             base_state_args=base_state_args
                              )
 
         del(i_groups)
@@ -447,7 +487,7 @@ def fit_model_multi(
                 adata_list[xn].obs.drop(drop_columns, axis='columns', inplace=True)
             adata_list[xn].obs = pd.concat([adata_list[xn].obs, groups.loc[adata_list[xn].obs_names]], axis=1)
     else:
-        # for ppbm and sbm is simpler
+        # for sbm is simpler
         rosetta = dict(zip(u_groups, range(len(u_groups))))
         groups = np.array([rosetta[x] for x in groups])
         groups = groups.astype('U')
@@ -456,19 +496,18 @@ def fit_model_multi(
             adata_list[xn].obs[key_added] = pd.Categorical(groups.loc[adata_list[xn].obs_names], 
                                                        categories=natsorted(np.unique(groups)),
                                                        )
-
     # now add marginal probabilities.
 
     if collect_marginals:
         # note that the size of this will be equal to the number of the groups in Mode
         # but some entries won't sum to 1 as in the collection there may be differently
         # sized partitions
-        pv_array = pmode.get_marginal(union_g).get_2d_array(range(last_group)).T[:, u_groups] / n_init    
+        pv_array = pv.get_2d_array(range(last_group)).T[:, u_groups] / n_samples    
         for xn in range(n_data):
             # add marginals for level 0, the sum up according to the hierarchy
             _groups = groups.loc[adata_list[xn].obs_names]
             _pv_array = pd.DataFrame(pv_array, index=all_names).loc[adata_list[xn].obs_names].values
-            if model == "nsbm":
+            if nested:
                 adata_list[xn].obsm[f"CM_{key_added}_level_0"] = _pv_array
                 for group in groups.columns[1:]:
                     ct = pd.crosstab(_groups[_groups.columns[0]], _groups[group], 
@@ -478,7 +517,7 @@ def fit_model_multi(
                 adata_list[xn].obsm[f"CM_{key_added}"] = _pv_array
 
     # add some unstructured info
-    if model == "nsbm":
+    if nested:
         modularity=np.array([gt.modularity(union_g, state.project_partition(x, 0))
                          for x in range(len((state.levels)))])
     else:
@@ -493,10 +532,10 @@ def fit_model_multi(
               entropy=state.entropy(),
               modularity=modularity
               )
-        if model == "nsbm":
+        if nested:
             adata_list[xn].uns['schist'][key_added]['stats']['level_entropy']=np.array([state.level_entropy(x) for x in range(len(state.levels))])
 
-        if model == "nsbm":
+        if nested:
             # record state as list of blocks
             # unfortunately this cannot be a list of lists but needs to be a dictionary
             bl_d = {}
@@ -510,18 +549,18 @@ def fit_model_multi(
 
         # last step is recording some parameters used in this analysis
         adata_list[xn].uns['schist'][key_added]['params'] = dict(
-            model=model,
-            use_weights=use_weights,
+            nested=nested,
             neighbors_key=neighbors_key[xn],
             key_added=key_added,
-            n_init=n_init,
+            use_weights=use_weights,
+            n_samples=n_samples,
             collect_marginals=collect_marginals,
             random_seed=random_seed,
             deg_corr=deg_corr,
-            refine_model=refine_model,
-            refine_iter=refine_iter,
             overlap=overlap,
-            directed=directed
+            directed=directed,
+            n_iter=n_iter,
+            beta=beta
         )
 
     logg.info(
