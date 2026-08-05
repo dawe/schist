@@ -195,7 +195,7 @@ def fit_model(
                          'skip sampling and do not collect marginals.\n'
                          'You can save the model and perform sampling in a separate experiment.\n'
                         )
-        if not simple_init or bisection:
+        if not simple_init and bisection:
             logg.warning('When working with large networks it may be appropriate to\n'
                          'enable fast minimization setting the ```bisection``` and\n'
                          '```simple_init``` accordingly.\n'
