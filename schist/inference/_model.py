@@ -40,6 +40,7 @@ def fit_model(
     n_jobs: int = -1,
     n_iter: int = 10,
     beta: float = 1.0,
+    refine: bool = False,
     save_model: Union[str, None] = None,
     copy: bool = False,
     random_seed: Optional[int] = None,
@@ -102,6 +103,8 @@ def fit_model(
     beta
         When sampling from the posterior, set this as the inverse of the temperature.
         Higher values make computation faster but may be less effective
+    refine
+        Run additional refinement step at the end of the minimization
     save_model
         If provided, this will be the filename for the PartitionModeState to 
         be saved. The PartitionModeState contains all the models minimized during 
@@ -257,6 +260,11 @@ def fit_model(
     # do the actual minimization
     with gt.openmp_context(nthreads=n_threads_set, schedule='guided'):
         state=f_minimize(g, **f_args)
+        if refine:
+            logg.info(f'Refining the model', time=start)
+            dS = 1
+            while np.abs(dS) > 1e-2:
+                dS, _, _ = state.multilevel_mcmc_sweep(refine=True)
         if nested:
             # this is needed in case marginals are not collected
             bs=[np.array(x) for x in state.get_bs() if len(np.unique(x)) > 1]
