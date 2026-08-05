@@ -26,7 +26,7 @@ except ImportError:
 def fit_model_multi(
     mdata: Union[List[AnnData], MuData],
     nested: bool = True,
-    collect_marginals: bool = True,
+    collect_marginals: bool = False,
     n_samples: int = 100,
     key_added: str | None = None,
     adjacency: Optional[List[sparse.spmatrix]] = None,
@@ -41,7 +41,7 @@ def fit_model_multi(
     n_jobs: int = -1,
     n_iter: int = 10,
     beta: float = 1.0,
-    refine: bool = False,
+    refine: bool = True,
     save_model: Union[str, None] = None,
     copy: bool = False,
     random_seed: Optional[int] = None,
