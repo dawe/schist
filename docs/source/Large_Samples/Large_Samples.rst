@@ -418,13 +418,3 @@ strategies, due to the differences in number of blocks found:
 
 
 
-
------------
-Conclusions
------------
-
-How do these solutions compare to a model that takes the whole dataset?
-For the ``ppbm`` and the ``sbm`` the subsampled
-solutions can be considered coarser descriptions of the same model computed on the entire dataset. In the full model, the partition sizes are rather small compared to the
-size of the dataset. The full ``sbm``, in particular, will find thousands of groups (given that :math:`B \propto \sqrt{N}`, we may expect 10\ :sup:`3` groups in this case), which may be unpractical to analyze. Since the model from subsampled data will raise many less groups, the subsampled solution may even be preferable. As for the ``nsbm``, we will obtain a even coarser description compared to the same model on the entire dataset; the nested model, in fact, is able to identify smaller groups (:math:`B  \propto N\log(N)`, 10\ :sup:`5` in this case). In addition, we should ensure that the hierarchy is somehow consistent, otherwise we should drop (for now) the possibility to subsample data for the ``nsbm``, unless some time is spent on model refinement.
-
