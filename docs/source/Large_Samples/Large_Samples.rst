@@ -284,11 +284,16 @@ Lastly, we may want to test how cell marginals impact on the required resources:
 	100%|██████████| 100/100 [21:21:37<00:00, 768.97s/it]
 			done (22:39:26)
 	Computing the consesus partition
-			done (22:50:20)
+			done (23:51:28)
 	Saving model into sbm_scs_cm1_b0.pkl
-			done (22:50:33)
-		finished (22:54:58)
-	Size: 22424.49 MB, peak: 31941.33 MB
+			done (23:55:09)
+		finished (1 day, 0:02:34)
+	Size: 69285.43 MB, peak: 102232.87 MB
+
+
+Computation of cell marginals requires substantially more resources for SBM compared to
+PPBM, both in term of time (1 day vs 3 hours) and memory (102Gb vs 32Gb), these 
+requirements should always been kept in mind.
 
 
 As for the hierachical version of the SBM model, we can test the performance with
