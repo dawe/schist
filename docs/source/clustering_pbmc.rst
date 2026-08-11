@@ -93,7 +93,7 @@ Planted Model
 
 The nested model is expected to find reliable communities in networks, however, it pays its statistical significance in terms of runtimes. Another approach implemented in ``graph-tool``, called Planted Partition Block Model, performs Bayesian inference on node groups. This function, in particular, uses the Planted Block Model, which is particularly suitable in case of assortative graphs and it returns the optimal number of communities::
 
-    scs.inference.fit_model(adata, model='ppbm')
+    scs.inference.fit_model(adata, assortative=True)
 
 The final outcome of the function consists of a single layer of annotations, stored in ``adata.obs``, with the prefix ``ppbm``, which can be visualized through ``sc.pl.umap()``::
 

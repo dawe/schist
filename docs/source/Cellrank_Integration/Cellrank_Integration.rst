@@ -36,25 +36,41 @@ We first download the Zebrafish dataset and perform some preprocessing as previo
     sc.pp.filter_genes(adata, min_cells=10)
     scv.pp.normalize_per_cell(adata)
     sc.pp.log1p(adata)
-    
     sc.pp.highly_variable_genes(adata)
-    
     adata.layers["spliced"] = adata.X
     adata.layers["unspliced"] = adata.X
     n_neighbors = int(np.sqrt(adata.shape[0]/4))
     scv.pp.moments(adata, n_pcs=30, n_neighbors=n_neighbors)
 
-We then run a nested model in ``schist`` as usual. Plotting the modularity profile allows us to identify the most likely level of interest, level 2 in this case.
+
+.. parsed-literal::
+
+    Normalized count data: X.
+    computing neighbors
+        finished (0:00:05) --> added 
+        'distances' and 'connectivities', weighted adjacency matrices (adata.obsp)
+    computing moments based on connectivities
+        finished (0:00:01) --> added 
+        'Ms' and 'Mu', moments of un/spliced abundances (adata.layers)
+
+
+We then run a nested model in ``schist`` as usual. Plotting the modularity profile allows 
+us to identify the most likely level of interest, level 3 in this case.
 
 .. code:: python
 
-    scs.inference.fit_model(adata, max_iter = np.inf)
-    
+    scs.inference.fit_model(adata, collect_marginals=True, random_seed=1024)
     plot(adata.uns['schist']['nsbm']['stats']['modularity'])
 
-.. image:: output_3_2.png
+.. parsed-literal::
+
+    WARNING: Setting random seed disables threading during minimization
+    due to non deterministic behaviour of thread allocation
+
+
+.. image:: output_2_3.png
    :width: 298px
-   :height: 283px
+   :height: 285px
 
 
 Remove the given color map for developmental stages and plot the hierarchy along with it.
@@ -68,23 +84,45 @@ Remove the given color map for developmental stages and plot the hierarchy along
                    legend_loc='on data', frameon=False)
 
 
-.. image:: output_5_1.png
+.. image:: output_3_0.png
    :width: 644px
    :height: 559px
 
-We already appreciate that some groups identified by ``schist`` at level 2 correspond to the developmental stages annotated for this dataset. Now run ``cellrank`` as done in the tutorials, using the ``CytoTraceKernel``.
+We already appreciate that some groups identified by ``schist`` at level 3 correspond 
+to the developmental stages annotated for this dataset. Now run ``cellrank`` 
+as done in the tutorials, using the ``CytoTraceKernel``.
 
 .. code:: python
 
     ctk = cr.kernels.CytoTRACEKernel(adata)
-    ctk.compute_cytotrace()
+    ctk.compute_cytotrace(layer='Ms')
     ctk.compute_transition_matrix(threshold_scheme="soft", nu=0.5)
     g_fwd = cr.estimators.GPCCA(ctk)
     g_fwd.compute_schur(n_components=20)
     g_fwd.plot_spectrum(real_only=True)
 
-.. image:: output_7_1.png
-   :width: 587px
+.. parsed-literal::
+
+	INFO     Computing CytoTRACE score with `13690` genes                                                              
+	INFO     Adding adata.obs['ct_score']                                                                          
+					adata.obs['ct_pseudotime']
+					adata.obs['ct_num_exp_genes']
+					adata.var['ct_gene_corr']                                                                     
+					adata.var['ct_correlates']                                                                       
+					adata.uns['ct_params']                                                                        
+				 Finish (0.78s)                                                                                        
+	INFO     Computing transition matrix based on pseudotime   
+	100%|██████████| 2434/2434 [00:00<00:00, 4660.92cell/s]
+	INFO         Finish (0.67s)                                                                                        
+	INFO     Computing Schur decomposition                                                                             
+	INFO     Adding adata.uns['eigendecomposition_fwd']                                                           
+					.schur_vectors                                                               
+					.schur_matrix                                                                                    
+					.eigendecomposition                                                                              
+				 Finish (0.56s)               
+
+.. image:: output_4_3.png
+   :width: 589px
    :height: 476px
 
 While there could be 5-6 macrostates, we select the top 3, as done in the original tutorials. 
@@ -96,20 +134,34 @@ While there could be 5-6 macrostates, we select the top 3, as done in the origin
         discrete=True, legend_loc="right", size=100, basis="force_directed"
     )
 
-.. image:: output_7_2.png
-   :width: 426px
-   :height: 277px
+.. parsed-literal::
+	
+	INFO     Computing 3 macrostates                                                                                   
+	INFO     Adding .macrostates                                                                                  
+					.macrostates_memberships
+					.coarse_T                                                                          
+					.coarse_initial_distribution                                                                      
+					.coarse_stationary_distribution
+					.schur_vectors                                                                   
+					.schur_matrix
+					.eigendecomposition                                                                              
+				 Finish (0.12s)               
 
-We highlight three out of the seven groups identified by ``schist`` which seem to correspond to the macrostates
+.. image:: output_5_1.png
+   :width: 447px
+   :height: 298px
+
+We highlight three out of the seven groups identified by ``schist`` which seem to 
+correspond to the macrostates
 
 .. code:: python
 
-    scs_groups = ['6', '5', '4']
-    sc.pl.embedding(adata, color='nsbm_level_2', basis='X_force_directed', groups=scs_groups)
+    scs_groups = ['6', '4', '8']
+    sc.pl.embedding(adata, color='nsbm_level_3', basis='X_force_directed', groups=scs_groups, na_in_legend=False)
 
 
-.. image:: output_8_1.png
-   :width: 337px
+.. image:: output_6_0.png
+   :width: 326px
    :height: 298px
 
 We now go on with processing of macrostates, identifying their fate probabilities and lineage drivers
@@ -123,8 +175,23 @@ We now go on with processing of macrostates, identifying their fate probabilitie
     cr_drivers = g_fwd.compute_lineage_drivers()
 
 
-.. image:: output_10_2.png
-   :width: 367px
+.. parsed-literal::
+
+	INFO     Adding adata.obs['term_states_fwd']                                                            
+					adata.obs['term_states_fwd_probs']                                                     
+					.terminal_states                                                                
+					.terminal_states_probabilities                                                                   
+					.terminal_states_memberships                                                                      
+				 Finish                                                                  
+	INFO     Computing fate probabilities                                                                              
+	100%|██████████| 3/3 [00:00<00:00, 48.84/s]
+	INFO     Adding adata.obsm['lineages_fwd']                                                                    
+					.fate_probabilities                                                                        
+				 Finish (0.07s)                                                                                           
+
+
+.. image:: output_7_3.png
+   :width: 265px
    :height: 277px
 
 
@@ -132,8 +199,7 @@ When ``schist`` infers the best models, it calculates cell marginals by default.
 
 .. code:: python
 
-    scs_lineage = scs.tl.cr_lineages(adata, level=2)
-
+    scs_lineage = scs.tl.cr_lineages(adata, level=3)
     scs_drivers = cr._utils._utils._correlation_test(
         adata.X,
         scs_lineage,
@@ -148,35 +214,35 @@ Now let's check if lineage drivers are consistent. We compare drivers using thei
 
 .. code:: python
 
-    X = scs_drivers['6_corr']
+    X = scs_drivers['8_corr']
     Y = cr_drivers['Early Blastomeres_corr'].loc[X.index]
     scatter(X, Y, s=1)
-    xlabel("6")
+    xlabel("Group 8")
     ylabel("Early Blastomeres")
     rr = st.pearsonr(X, Y)
     title(f"r={rr[0]:.3f} p={rr[1]:.3e}")
 
 
-.. image:: output_13_1.png
-   :width: 341px
-   :height: 321px
+.. image:: output_9_1.png
+   :width: 340px
+   :height: 320px
 
 For the Prechordal Plate we obtain again fairly good results.
 
 .. code:: python
 
-    X = scs_drivers['5_corr']
+    X = scs_drivers['6_corr']
     Y = cr_drivers['Prechordal Plate_corr'].loc[X.index]
     scatter(X, Y, s=1)
-    xlabel("5")
+    xlabel("Group 6")
     ylabel("Prechordal Plate")
     rr = st.pearsonr(X, Y)
     title(f"r={rr[0]:.3f} p={rr[1]:.3e}")
 
 
-.. image:: output_14_1.png
-   :width: 341px
-   :height: 321px
+.. image:: output_10_1.png
+   :width: 340px
+   :height: 320px
 
 
 The situation for Notochord is a bit different. The gene scores for the two methods seem to be slightly different, as if there are two subgroups mixed.
@@ -186,37 +252,44 @@ The situation for Notochord is a bit different. The gene scores for the two meth
     X = scs_drivers['4_corr']
     Y = cr_drivers['Notochord_corr'].loc[X.index]
     scatter(X, Y, s=1)
-    xlabel("4")
+    xlabel("Group 4")
     ylabel("Notochord_corr")
     rr = st.pearsonr(X, Y)
     title(f"r={rr[0]:.3f} p={rr[1]:.3e}")
 
 
-.. image:: output_15_1.png
+.. image:: output_11_1.png
    :width: 341px
-   :height: 321px
+   :height: 320px
 
-Plotting the actual probabilities makes clear that there is no complete match between the Notochord macrostate and group 4, the former being bigger and including more cells.
+Plotting the actual probabilities makes clear that there is no complete match between 
+the Notochord macrostate and group 4, the former being bigger and including more cells.
 
 .. code:: python
 
     g_fwd.plot_fate_probabilities(same_plot=False, basis='force_directed')
 
 
-.. image:: output_16_1.png
-   :width: 644px
+.. image:: output_12_0.png
+   :width: 979px
 
 
 .. code:: python
 
-    for g in scs_lineage.names:
+    fig = plt.figure(figsize=(14, 4))
+    n = 1
+    for g in ['8', '6', '4']:
         adata.obs[f'CM_{g}'] = scs_lineage[g].X.squeeze()
-    scv.pl.scatter(adata, color=['CM_6', 'CM_5', 'CM_4'], basis='force_directed', 
-                  cmap='viridis', perc=[2, 98])
+        vmin, vmax = np.nanpercentile(adata.obs[f'CM_{g}'], [2, 98])
+        ax = fig.add_subplot(1, 3, n)
+        sc.pl.embedding(adata, color=f'CM_{g}', basis='force_directed',
+                  cmap='viridis', vmin=vmin, vmax=vmax, ax=ax, show=False)
+        n+=1
+    plt.show()
 
 
-.. image:: output_17_1.png
-   :width: 644px
+.. image:: output_13_0.png
+   :width: 930px
 
 
 Since the Schur decomposition revealed a higher number of macrostates, perform ``cellrank`` analysis with more of them.
@@ -228,9 +301,23 @@ Since the Schur decomposition revealed a higher number of macrostates, perform `
     g_fwd.plot_macrostates('all', basis="force_directed", discrete=True)
 
 
-.. image:: output_24_1.png
-   :width: 401px
-   :height: 277px
+.. parsed-literal::
+
+	INFO     Computing 6 macrostates                                                                                   
+	INFO     Adding .macrostates                                                                             
+					.macrostates_memberships                                                                         
+					.coarse_T                                                                          
+					.coarse_initial_distribution                                                                      
+					.coarse_stationary_distribution                                                                  
+					.schur_vectors                                                                   
+					.schur_matrix                                                                                    
+					.eigendecomposition                                                                              
+				 Finish (0.74s)                                                                                        
+
+
+.. image:: output_14_1.png
+   :width: 403px
+   :height: 298px
 
 The coarse grained transition matrix shows that 6 macrostates are totally legit in this dataset.
 
@@ -240,9 +327,8 @@ The coarse grained transition matrix shows that 6 macrostates are totally legit 
 
 
 
-.. image:: output_25_0.png
+.. image:: output_15_0.png
    :width: 774px
-   :height: 652px
 
 
 We proceed with the analysis, extracting lineage drivers for all 6 macrostates.
@@ -255,19 +341,39 @@ We proceed with the analysis, extracting lineage drivers for all 6 macrostates.
     cr_drivers = g_fwd.compute_lineage_drivers()
 
 
+.. parsed-literal::
 
-.. image:: output_26_2.png
-   :width: 386px
+	INFO     Adding adata.obs['term_states_fwd']                                                                
+					adata.obs['term_states_fwd_probs']                                                              
+					.terminal_states                                                                    
+					.terminal_states_probabilities                                                                   
+					.terminal_states_memberships                                                                      
+				 Finish                                                                                               
+	INFO     Computing fate probabilities                                                                              
+	100%|██████████| 6/6 [00:00<00:00, 80.03/s]
+	INFO     Adding adata.obsm['lineages_fwd']                                                                       
+					.fate_probabilities
+				 Finish (0.09s)                        
+                                                                                              
+
+.. image:: output_16_4.png
+   :width: 302px
    :height: 277px
 
 
+.. parsed-literal::
+	
+	INFO     Adding adata.obsm['lineages_fwd']                                                                       
+					.fate_probabilities
+				 Finish (0.09s)                     
+				 
+				 
 Let's calculate and visualize all the pairwise correlations between drivers identified with both methods
 
 .. code:: python
 
     A = scs_drivers.filter(like='_corr').sort_index()
     B = cr_drivers.filter(like='_corr').sort_index()
-
     DM = 1 - ssp.distance.cdist(A.T, B.T, metric='correlation')
     DM = pd.DataFrame(DM, 
                       columns=g_fwd.fate_probabilities.names, 
@@ -275,34 +381,53 @@ Let's calculate and visualize all the pairwise correlations between drivers iden
     sns.clustermap(DM, cmap='RdYlBu_r', vmin=-1, vmax=1, )
 
 
-.. image:: output_31_1.png
+.. image:: output_17_1.png
    :width: 783px
-   :height: 788px
+   :height: 789px
 
 
-Allowing for more macrostates causes the "fragmentation" of the Notochord state and, in fact, the match with group 4 is now fairly consistent. Looking at the heatmap we also can spot a correspondence of group 0 with "Early_Blastomeres_3", a group that wasn't identified using only 3 macrostates.
+Allowing for more macrostates causes the "fragmentation" of the Notochord state and, i
+n fact, the match with group 4 is now fairly consistent. We can also appreciate that
+another group (group 3) is related to the Notochord.
+Looking at the heatmap we also can spot a correspondence of group 
+0 with "Early_Blastomeres_3", a group that wasn't identified using only 3 macrostates.
 
 .. code:: python
 
-    X = scs_drivers['4_corr']
     Y = cr_drivers['Notochord_corr'].loc[X.index]
+    figure(figsize=(8, 4))
+    subplot(1, 2, 1)
+    X = scs_drivers['4_corr']
     scatter(X, Y, s=1)
-    xlabel("4")
+    xlabel("Group 4")
     ylabel("Notochord")
     rr = st.pearsonr(X, Y)
     title(f"r={rr[0]:.3f} p={rr[1]:.3e}")
+    subplot(1, 2, 2)
+    X = scs_drivers['3_corr']
+    scatter(X, Y, s=1)
+    xlabel("Group 3")
+    ylabel("Notochord")
+    rr = st.pearsonr(X, Y)
+    title(f"r={rr[0]:.3f} p={rr[1]:.3e}")
+    tight_layout()
 
 
-.. image:: output_32_1.png
-   :width: 341px
-   :height: 321px
+.. image:: output_18_0.png
+   :width: 622px
+   :height: 302px
 
 
 -----------------
 Cell Trajectories
 -----------------
 
-The following section is considered highly experimental and it is currently under study. ``schist`` (actually ``graph-tool``) allows to estimate the affinity of each cell to their group by calculating the gain (or loss) of information that is obtained by moving a cell and putting it back to the original group. We can calculate this at every level of the hierarchy and use it as a proxy to define terminal states. We choose here level 1 (just below the one used for defining groups).
+The following section is considered highly experimental and it is currently under 
+study. ``schist`` (actually ``graph-tool``) allows to estimate the affinity of each 
+cell to their group by calculating the gain (or loss) of information that is obtained 
+by moving a cell and putting it back to the original group. We can calculate this at 
+every level of the hierarchy and use it as a proxy to define terminal states. We choose 
+here level 1 (just below the one used for defining groups).
 
 
 .. code:: python
@@ -314,12 +439,13 @@ The following section is considered highly experimental and it is currently unde
     sc.pl.embedding(adata, color='scs_terminal_states', basis='force_directed')
 
 
-.. image:: output_21_2.png
+.. image:: output_19_0.png
    :width: 306px
    :height: 298px
 
 
-Interestingly the terminal states mostly correspond to the biologically relevant ones. As said, we can get the same at every level.
+Interestingly the terminal states mostly correspond to the biologically relevant 
+ones. As said, we can get the same at every level.
 
 .. code:: python
 
@@ -330,42 +456,46 @@ Interestingly the terminal states mostly correspond to the biologically relevant
         adata.obs[f'scs_terminal_states_{k}'] = np.max(E, axis=1) / np.max(E)
 
 
-To identify trajectories, we start from cells that have the lowest affinity, interpreting those as the ones that "wont' stay" in a group (or are more likely to transition).
+To identify trajectories, we start from cells that have the lowest affinity, 
+interpreting those as the ones that "wont' stay" in a group (or are more 
+likely to transition).
 
 .. code:: python
 
-    first_cell = adata.obs.sort_values('scs_terminal_states_2', ascending=False).index[0]
+    first_cell = adata.obs.sort_values('scs_terminal_states_3', ascending=False).index[0]
     adata.uns['iroot'] = np.where(adata.obs_names == first_cell)[0][0]
     sc.tl.diffmap(adata)
 
 
-We then exploit the graph topology to travel from the first cell to the rest of the dataset, again recapitulating the main finding for this dataset (that is the differentiation from Blastomeres to Notochord and Prechordal Plate).
+We then exploit the graph topology to travel from the first cell to the 
+rest of the dataset, again recapitulating the main finding for this dataset 
+(that is the differentiation from Blastomeres to Notochord and Prechordal Plate).
 
 .. code:: python
 
     state = scs.tools.state_from_blocks(adata)
     tour = gt.shortest_distance(state.g, source=adata.uns['iroot'])
-    adata.obs['shortest_path_dist'] = np.array(tour.a / np.max(tour.a))
+    adata.obs['shortest_path_dist'] = 1-np.array(tour.a / np.max(tour.a))
     sc.pl.embedding(adata, color='shortest_path_dist', basis='force_directed')
 
 
 
-.. image:: output_44_1.png
+.. image:: output_22_0.png
    :width: 306px
    :height: 298px
 
 
-Lastly we can get the transition probabilities from the ``BlockState`` relative to level 2 and visualize it as a coarse grained matrix
+Lastly we can get the transition probabilities from the ``BlockState`` 
+relative to level 3 and visualize it as a coarse grained matrix
 
 .. code:: python
 
-    M = state.get_levels()[2].get_matrix().A
+    M = state.get_levels()[3].get_matrix().A
     sns.clustermap(M / np.sum(M, 1)[:, None] , cmap='viridis', fmt=".2f",
                    annot=True, figsize=(6, 6), row_cluster=False, col_cluster=False)
 
 
 
-.. image:: output_58_1.png
-   :width: 470px
-   :height: 470px
+.. image:: output_23_1.png
+   :width: 626px
 

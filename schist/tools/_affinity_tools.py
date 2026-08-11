@@ -265,7 +265,7 @@ def cell_stability(
                                   )
 
     # check if we have levels we want to prune
-    n_effective_levels = sum([x.get_nonempty_B() > 1 for x in state.get_levels()])
+    n_effective_levels = sum([x.get_B() > 1 for x in state.get_levels()])
     n_effective_levels = min(n_effective_levels, len(state.get_levels()))
     obsm_names = [x for x in adata.obsm if x.startswith(f"{matrix_prefix}_{model_key}_level")]    
     if len(obsm_names) < n_effective_levels:
