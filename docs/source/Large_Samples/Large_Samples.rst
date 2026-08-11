@@ -416,5 +416,23 @@ strategies, due to the differences in number of blocks found:
 
 
 
+These results actually reveal that the second option (``bisection=False``, 
+``simple_init=True``) converges to a solution that seems to lack fine-grained descriptions
+at levels 0 and 1. Indeed there is some correspondence between level 2 of the first 
+solution and level 0 of the second solution:
 
+.. code:: python
+
+	>>> l2_B1 = b1_state.project_partition(2, 0).a # project level 2 to single cells
+	>>> l0_B0 = b0_state.project_partition(0, 0).a
+	>>> h, c, v = skm.homogeneity_completeness_v_measure(l2_B1, l0_B0)
+	>>> print("Homogeneity: ", h)
+	>>> print("Completeness: ", c)
+	>>> print("V measure: ", v)
+	
+.. parsed-literal::
+
+	Homogeneity:  0.779528789164119
+	Completeness:  0.830511899563901
+	V measure:  0.8042131357126281
 
