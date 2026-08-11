@@ -19,7 +19,7 @@ algorithms converges pretty fast because the community structure is
 As for July 2026, the major library under the hood (``graph-tool``) implemented a 
 parallel version of the algorithm that is used to identify the most likely block scheme 
 in graphs.
-Starting from ``schist`` version 0.10.0, we support this major improvement, analysis of 
+Starting from ``schist==0.10.0``, we support this major improvement, analysis of 
 large networks is no more prohibitive, given that enough computational resources are 
 available. Parallelization relies on `OpenMP <https://www.openmp.org>`_, the more 
 threads are available the faster is convergence. For SBM and NSBM models, some options 
