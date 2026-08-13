@@ -435,4 +435,36 @@ solution and level 0 of the second solution:
 	Homogeneity:  0.779528789164119
 	Completeness:  0.830511899563901
 	V measure:  0.8042131357126281
+	
 
+Collecting marginals for hierarchical partition is more demanding, yet it is possible
+
+.. code:: python
+
+	>>> scs.inference.fit_model(adata, 
+	...	collect_marginals=True, 
+	...	nested=True, 
+	...	bisection=False,
+	...	adjacency=adata.obsp['connectivities'],
+	...	save_model='nsbm_scs_cm1_b0_si0.pkl'
+	... )
+	>>> size, peak = tm.get_traced_memory()
+	>>> size /= 1<<20
+	>>> peak /= 1<<20
+	>>> print(f'Size: {size:.2f} MB, peak: {peak:.2f} MB')
+	>>> tm.reset_peak()
+    
+
+.. parsed-literal::
+
+	Minimizing the Model
+			done (1:55:14)
+	Sampling the posterior and getting cell marginals
+	100%|██████████| 100/100 [25:02:36<00:00, 901.57s/it]
+			done (1 day, 2:57:51)
+	Computing the consesus partition
+			done (1 day, 11:39:11)
+	Saving model into nsbm_scs_cm1_b0_si0.pkl
+			done (1 day, 11:42:51)
+	
+	
