@@ -339,7 +339,7 @@ def fit_model_multi(
             _s = data.obs[constraint_key].cat.codes
             for c in _s:
                 d_constraint[c] = _s[c]
-        pclabel = g.new_vp('int64_t')
+        pclabel = union_g.new_vp('int64_t')
         pclabel.a = np.array([d_constraint[c]] for c in all_names)
         if nested:
             raise NotImplementedError("Constraints do not (yet) work with NSBM")
@@ -361,7 +361,7 @@ def fit_model_multi(
 
     # do the actual minimization
     with gt.openmp_context(nthreads=n_threads_set, schedule='guided'):
-        state=f_minimize(g, **f_args)
+        state=f_minimize(union_g, **f_args)
         if nested:
             # this is needed in case marginals are not collected
             bs=[np.array(x) for x in state.get_bs() if len(np.unique(x)) > 1]
