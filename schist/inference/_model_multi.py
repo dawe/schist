@@ -35,6 +35,7 @@ def fit_model_multi(
     deg_corr: bool = True,
     directed: bool = False,
     use_weights: bool = False,
+    weights_model: Optional[str] = 'real-exponential',
     bisection: bool = True,
     simple_init: bool = False,
     overlap: bool = False,
@@ -95,6 +96,11 @@ def fit_model_multi(
         If `True`, edge weights from the graph are used in the computation
         (placing more emphasis on stronger edges). Note that this
         increases computation times
+    weights_model
+        If weights are used, specify the distribution model. Default is real-exponential
+        for distance-based graphs, but it is changed to real-normal in case of weights
+        that have negative values. Other possibilities are 'discrete-geometric', 
+        'discrete-binomial', 'discrete-poisson'
     bisection
         Bisection search is enabled by default to determine the appropriate number of
         groups. Disable this to obtain a faster computation by agglomerative search.
@@ -299,7 +305,9 @@ def fit_model_multi(
 #### TODO ####
 #### ADD weights to union_g
         base_state_args['rec']=[union_g.ep.weight] 
-        base_state_args['rec_types']=['real-exponential']
+        if np.min(union_g.ep.weight.a) < 0 and weights_model == 'real-exponential':
+            weights_model='real-normal'
+        base_state_args['rec_types']=[weights_model]
     
     f_args['state_args']=state_args
     if nested:
