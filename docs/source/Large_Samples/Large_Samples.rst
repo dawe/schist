@@ -458,13 +458,18 @@ Collecting marginals for hierarchical partition is more demanding, yet it is pos
 .. parsed-literal::
 
 	Minimizing the Model
-			done (1:55:14)
+			done (1:27:22)
 	Sampling the posterior and getting cell marginals
-	100%|██████████| 100/100 [25:02:36<00:00, 901.57s/it]
-			done (1 day, 2:57:51)
+	100%|██████████| 100/100 [22:58:48<00:00, 827.29s/it]
+			done (1 day, 0:26:11)
 	Computing the consesus partition
-			done (1 day, 11:39:11)
+			done (1 day, 7:47:34)
 	Saving model into nsbm_scs_cm1_b0_si0.pkl
-			done (1 day, 11:42:51)
-	
-	
+			done (1 day, 7:51:04)
+		finished (1 day, 7:58:55)
+	Size: 152947.50 MB, peak: 153085.76 MB
+
+
+In this example it took slightly more than a day to compute and the whole process
+required a fairly large amount of memory to accomodate. It is interesting to note that
+the largest memory is required to compute the consensus partition. 
