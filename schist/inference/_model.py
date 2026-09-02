@@ -255,15 +255,14 @@ def fit_model(
     current_omp_threads = gt.openmp_get_num_threads()
     if n_jobs <= 0:
         # this because context does not understand negative values
-        n_threads_set=current_omp_threads
         n_jobs=current_omp_threads
     
     if random_seed:
         gt.seed_rng(random_seed)
-        n_threads_set=1 #disable threading to have deterministic behaviour
+        n_jobs=1 #disable threading to have deterministic behaviour
 
     # do the actual minimization
-    with gt.openmp_context(nthreads=n_threads_set, schedule='guided'):
+    with gt.openmp_context(nthreads=n_jobs, schedule='guided'):
         state=f_minimize(g, **f_args)
         if nested:
             # this is needed in case marginals are not collected
